@@ -18,6 +18,7 @@ import {
   Sparkles,
   Gift,
   Laptop,
+  AlertTriangle,
 } from "lucide-react";
 import confetti from "canvas-confetti";
 import { Vault } from "../../lib/types";
@@ -27,17 +28,30 @@ import { playSound, triggerHaptic } from "../../lib/audioHaptics";
 
 const VAULT_ICON_MAP: Record<string, React.ElementType> = {
   Shield,
+  shield: Shield,
   Cpu,
+  cpu: Cpu,
   ShieldAlert,
+  alert: ShieldAlert,
+  AlertTriangle,
   Mountain,
+  mountain: Mountain,
   Plane,
+  plane: Plane,
   Car,
+  car: Car,
   Home,
+  home: Home,
   Coins,
+  coins: Coins,
   Zap,
+  zap: Zap,
   Sparkles,
+  sparkles: Sparkles,
   Gift,
+  gift: Gift,
   Laptop,
+  laptop: Laptop,
 };
 
 interface VaultCardProps {

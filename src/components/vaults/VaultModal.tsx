@@ -1,12 +1,10 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
-  X,
-  Check,
   Shield,
   Cpu,
-  ShieldAlert,
+  AlertTriangle,
   Mountain,
   Plane,
   Car,
@@ -16,86 +14,138 @@ import {
   Sparkles,
   Gift,
   Laptop,
-  AlertTriangle,
-  ArrowUpLeft,
+  X,
+  Check,
+  Trash2,
 } from "lucide-react";
-import { Vault, Account } from "../../lib/types";
-import { formatCurrency } from "../../lib/mathEngine";
-import { playSound, triggerHaptic } from "../../lib/audioHaptics";
+import { Account, Vault } from "../../lib/types";
 import { db } from "../../lib/db/dexie";
 import { useLiveQuery } from "dexie-react-hooks";
 import { useAuth } from "../../lib/auth/authContext";
 import { getFirebaseServices } from "../../lib/firebase/config";
 import { doc, setDoc, deleteDoc } from "firebase/firestore";
 import { addTransactionWithLedgerSync } from "../../lib/db/syncEngine";
+import { playSound, triggerHaptic } from "../../lib/audioHaptics";
+import { formatCurrency } from "../../lib/mathEngine";
 
-export const VAULT_ICONS: Record<string, React.ElementType> = {
-  Shield,
-  Cpu,
-  ShieldAlert,
-  Mountain,
-  Plane,
-  Car,
-  Home,
-  Coins,
-  Zap,
-  Sparkles,
-  Gift,
-  Laptop,
-};
-
+// Supported Accent Colors
 export const VAULT_COLORS = [
-  "#00F0FF", // Cyan
-  "#00FF88", // Emerald
-  "#FF5C00", // Neon Flame
-  "#FFB800", // Amber
-  "#9D00FF", // Purple
-  "#38BDF8", // Sky
-  "#E056FD", // Neon Pink
+  { id: "cyan", hex: "#00F0FF", border: "border-[#00F0FF]" },
+  { id: "emerald", hex: "#00FF88", border: "border-[#00FF88]" },
+  { id: "orange", hex: "#FF5C00", border: "border-[#FF5C00]" },
+  { id: "amber", hex: "#FFB800", border: "border-[#FFB800]" },
+  { id: "purple", hex: "#A855F7", border: "border-[#A855F7]" },
+  { id: "sky", hex: "#38BDF8", border: "border-[#38BDF8]" },
+  { id: "pink", hex: "#EC4899", border: "border-[#EC4899]" },
 ];
 
-interface VaultModalProps {
+// Available Icons
+export const VAULT_ICONS = [
+  { id: "shield", icon: Shield, label: "Shield" },
+  { id: "cpu", icon: Cpu, label: "Cpu" },
+  { id: "alert", icon: AlertTriangle, label: "Alert" },
+  { id: "mountain", icon: Mountain, label: "Mountain" },
+  { id: "plane", icon: Plane, label: "Plane" },
+  { id: "car", icon: Car, label: "Car" },
+  { id: "home", icon: Home, label: "Home" },
+  { id: "coins", icon: Coins, label: "Coins" },
+  { id: "zap", icon: Zap, label: "Zap" },
+  { id: "sparkles", icon: Sparkles, label: "Sparkles" },
+  { id: "gift", icon: Gift, label: "Gift" },
+  { id: "laptop", icon: Laptop, label: "Laptop" },
+];
+
+export interface VaultModalProps {
   isOpen: boolean;
-  vaultToEdit: Vault | null;
   onClose: () => void;
+  onSubmit?: (vaultData: {
+    title: string;
+    targetAmount: number;
+    assignedAccountId: string;
+    targetDate?: string;
+    color: string;
+    icon: string;
+  }) => Promise<void> | void;
+  accounts?: Account[];
+  initialData?: Vault | null;
+  vaultToEdit?: Vault | null; // Alias for backward compatibility
 }
 
-export const VaultModal: React.FC<VaultModalProps> = ({
+export function VaultModal({
   isOpen,
-  vaultToEdit,
   onClose,
-}) => {
+  onSubmit,
+  accounts: propAccounts,
+  initialData,
+  vaultToEdit,
+}: VaultModalProps) {
   const { user } = useAuth();
   const overlayRef = useRef<HTMLDivElement>(null);
 
-  const rawAccounts = useLiveQuery(() => db.accounts.toArray()) ?? [];
-  const settings = useLiveQuery(() => db.settings.get("main"));
+  // Fallback to Dexie if accounts not passed via props
+  const queriedAccounts = useLiveQuery(() => db.accounts.toArray()) ?? [];
+  const allAccounts = propAccounts && propAccounts.length > 0 ? propAccounts : queriedAccounts;
+  const liquidAccounts = allAccounts.filter((a) => !a.isArchived && a.type !== "credit");
 
+  const settings = useLiveQuery(() => db.settings.get("main"));
   const currency = settings?.currency || "IDR";
   const locale = settings?.locale || "id-ID";
 
-  const liquidAccounts = rawAccounts.filter((a) => !a.isArchived && a.type !== "credit");
+  const targetVault = initialData ?? vaultToEdit ?? null;
 
+  // 1. Independent Local Form State
   const [title, setTitle] = useState("");
-  const [targetAmount, setTargetAmount] = useState("");
-  const [targetDate, setTargetDate] = useState("");
+  const [targetAmountRaw, setTargetAmountRaw] = useState("");
   const [assignedAccountId, setAssignedAccountId] = useState("");
-  const [color, setColor] = useState("#00F0FF");
-  const [icon, setIcon] = useState("Shield");
-  const [status, setStatus] = useState<"active" | "reached" | "liquidated">("active");
-
-  const [error, setError] = useState<string | null>(null);
+  const [targetDate, setTargetDate] = useState("");
+  const [selectedColor, setSelectedColor] = useState(VAULT_COLORS[0].hex);
+  const [selectedIcon, setSelectedIcon] = useState(VAULT_ICONS[0].id);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  // Liquidation / Delete flow states
+  // Liquidation / Delete flow states for editing existing vaults
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [liquidationTargetAccountId, setLiquidationTargetAccountId] = useState("");
 
-  // Universal Escape key listener
+  // 2. Hydrate or Reset Form State on Open / targetVault change
+  // Note: Only depend on isOpen and targetVault?.id to prevent wiping state during typing!
   useEffect(() => {
-    if (!isOpen) return;
+    if (isOpen) {
+      if (targetVault) {
+        setTitle(targetVault.title || "");
+        setTargetAmountRaw(targetVault.targetAmount ? String(targetVault.targetAmount) : "");
+        setAssignedAccountId(targetVault.assignedAccountId || liquidAccounts[0]?.id || "");
+        setTargetDate(targetVault.targetDate || "");
+        setSelectedColor(targetVault.color || VAULT_COLORS[0].hex);
+        setSelectedIcon(targetVault.icon || VAULT_ICONS[0].id);
+        setLiquidationTargetAccountId(targetVault.assignedAccountId || liquidAccounts[0]?.id || "");
+      } else {
+        setTitle("");
+        setTargetAmountRaw("");
+        setAssignedAccountId(liquidAccounts[0]?.id || "");
+        setTargetDate("");
+        setSelectedColor(VAULT_COLORS[0].hex);
+        setSelectedIcon(VAULT_ICONS[0].id);
+        setLiquidationTargetAccountId(liquidAccounts[0]?.id || "");
+      }
+      setErrorMsg(null);
+      setIsSubmitting(false);
+      setShowDeleteConfirm(false);
+    }
+  }, [isOpen, targetVault?.id]);
+
+  // Fallback to first liquid account once loaded if unassigned
+  useEffect(() => {
+    if (isOpen && !assignedAccountId && liquidAccounts.length > 0) {
+      setAssignedAccountId(liquidAccounts[0].id);
+      setLiquidationTargetAccountId(liquidAccounts[0].id);
+    }
+  }, [isOpen, assignedAccountId, liquidAccounts]);
+
+  // 3. Escape key dismissal listener
+  useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
+      if (e.key === "Escape" && isOpen) {
         playSound("click", true);
         onClose();
       }
@@ -104,179 +154,157 @@ export const VaultModal: React.FC<VaultModalProps> = ({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isOpen, onClose]);
 
-  // Sync state on open/edit
-  useEffect(() => {
-    if (isOpen) {
-      if (vaultToEdit) {
-        setTitle(vaultToEdit.title);
-        setTargetAmount(String(vaultToEdit.targetAmount));
-        setTargetDate(vaultToEdit.targetDate || "");
-        setAssignedAccountId(vaultToEdit.assignedAccountId || liquidAccounts[0]?.id || "");
-        setColor(vaultToEdit.color || "#00F0FF");
-        setIcon(vaultToEdit.icon || "Shield");
-        setStatus(vaultToEdit.status);
-        setLiquidationTargetAccountId(vaultToEdit.assignedAccountId || liquidAccounts[0]?.id || "");
-      } else {
-        setTitle("");
-        setTargetAmount("");
-        setTargetDate("");
-        setAssignedAccountId(liquidAccounts[0]?.id || "");
-        setColor("#00F0FF");
-        setIcon("Shield");
-        setStatus("active");
-        setLiquidationTargetAccountId(liquidAccounts[0]?.id || "");
-      }
-      setError(null);
-      setShowDeleteConfirm(false);
-    }
-  }, [isOpen, vaultToEdit, liquidAccounts]);
-
   if (!isOpen) return null;
 
-  const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (e.target === overlayRef.current) {
-      playSound("click", true);
-      onClose();
-    }
+  // Format currency helpers - numbers only
+  const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const cleaned = e.target.value.replace(/[^0-9]/g, "");
+    setTargetAmountRaw(cleaned);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const parsedTarget = Math.abs(parseFloat(targetAmount));
+    setErrorMsg(null);
 
+    const numericAmount = parseInt(targetAmountRaw, 10);
     if (!title.trim()) {
-      setError("Vault goal title is required");
+      setErrorMsg("Vault goal title is required.");
       return;
     }
-    if (!parsedTarget || isNaN(parsedTarget) || parsedTarget <= 0) {
-      setError("Please specify a target monetary amount");
+    if (isNaN(numericAmount) || numericAmount <= 0) {
+      setErrorMsg("Please specify a valid target allocation amount.");
       return;
     }
     if (!assignedAccountId) {
-      setError("Primary funding account is required");
+      setErrorMsg("Please select a primary backing account.");
       return;
     }
 
-    setIsSubmitting(true);
-    playSound("click", true);
-    triggerHaptic(20);
-
-    const { firestore } = getFirebaseServices();
-
     try {
-      if (vaultToEdit) {
-        // Update existing vault
-        const updated: Vault = {
-          ...vaultToEdit,
+      setIsSubmitting(true);
+      playSound("click", true);
+
+      if (onSubmit) {
+        await onSubmit({
           title: title.trim(),
-          targetAmount: parsedTarget,
-          targetDate: targetDate || undefined,
+          targetAmount: numericAmount,
           assignedAccountId,
-          color,
-          icon,
-          status:
-            vaultToEdit.currentAmount >= parsedTarget
-              ? "reached"
-              : status === "reached"
-              ? "active"
-              : status,
-        };
-
-        await db.vaults.put(updated);
-
-        if (firestore && user?.uid && !user.isDemo) {
-          try {
-            await setDoc(doc(firestore, `users/${user.uid}/vaults/${updated.id}`), updated, { merge: true });
-          } catch (err) {
-            console.warn("[VaultModal] Cloud sync error:", err);
-          }
-        }
+          targetDate: targetDate || undefined,
+          color: selectedColor,
+          icon: selectedIcon,
+        });
       } else {
-        // Create new vault
-        const existingVaults = await db.vaults.toArray();
-        const newVault: Vault = {
-          id: `vault_${Date.now()}_${Math.random().toString(36).substring(2, 5)}`,
-          title: title.trim(),
-          targetAmount: parsedTarget,
-          currentAmount: 0,
-          targetDate: targetDate || undefined,
-          assignedAccountId,
-          color,
-          icon,
-          status: "active",
-          order: existingVaults.length,
-        };
+        // Direct Dexie + Firestore persistence
+        const { firestore } = getFirebaseServices();
 
-        await db.vaults.add(newVault);
+        if (targetVault) {
+          // Update existing vault
+          const updatedVault: Vault = {
+            ...targetVault,
+            title: title.trim(),
+            targetAmount: numericAmount,
+            targetDate: targetDate || undefined,
+            assignedAccountId,
+            color: selectedColor,
+            icon: selectedIcon,
+          };
 
-        if (firestore && user?.uid && !user.isDemo) {
-          try {
-            await setDoc(doc(firestore, `users/${user.uid}/vaults/${newVault.id}`), newVault);
-          } catch (err) {
-            console.warn("[VaultModal] Cloud sync error:", err);
+          await db.vaults.put(updatedVault);
+
+          if (firestore && user?.uid && !user.isDemo) {
+            try {
+              await setDoc(doc(firestore, `users/${user.uid}/vaults/${updatedVault.id}`), updatedVault);
+            } catch (err) {
+              console.warn("[VaultModal] Cloud sync error:", err);
+            }
+          }
+        } else {
+          // Create new vault
+          const count = await db.vaults.count();
+          const newVault: Vault = {
+            id: `vault_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+            title: title.trim(),
+            targetAmount: numericAmount,
+            currentAmount: 0,
+            targetDate: targetDate || undefined,
+            assignedAccountId,
+            color: selectedColor,
+            icon: selectedIcon,
+            status: "active",
+            order: count,
+          };
+
+          await db.vaults.add(newVault);
+
+          if (firestore && user?.uid && !user.isDemo) {
+            try {
+              await setDoc(doc(firestore, `users/${user.uid}/vaults/${newVault.id}`), newVault);
+            } catch (err) {
+              console.warn("[VaultModal] Cloud sync error:", err);
+            }
           }
         }
       }
 
       playSound("success", true);
+      triggerHaptic(20);
       onClose();
-    } catch (err) {
+    } catch (err: any) {
       console.error("[VaultModal] Error saving vault:", err);
-      setError("Failed to save vault goal");
+      setErrorMsg(err?.message || "Failed to save vault.");
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const handleLiquidateAndDelete = async () => {
-    if (!vaultToEdit) return;
+    if (!targetVault) return;
     setIsSubmitting(true);
     playSound("click", true);
 
     const { firestore } = getFirebaseServices();
 
     try {
-      if (vaultToEdit.currentAmount > 0) {
+      if (targetVault.currentAmount > 0) {
         if (!liquidationTargetAccountId) {
-          setError("Please select a target liquid account to receive remaining funds");
+          setErrorMsg("Please select a destination account to return remaining funds");
           setIsSubmitting(false);
           return;
         }
 
-        // Create vault withdrawal transaction to transfer out remaining balance
-        const today = new Date().toISOString().split("T")[0];
-        const hours = String(new Date().getHours()).padStart(2, "0");
-        const minutes = String(new Date().getMinutes()).padStart(2, "0");
-
+        // Return remaining funds back to liquid account
         await addTransactionWithLedgerSync({
-          desc: `Liquidation Return [${vaultToEdit.title}]`,
-          amount: vaultToEdit.currentAmount,
           type: "vault_withdraw",
-          fromAccountId: vaultToEdit.assignedAccountId,
+          amount: targetVault.currentAmount,
+          fromAccountId: targetVault.assignedAccountId || liquidationTargetAccountId,
           toAccountId: liquidationTargetAccountId,
-          vaultId: vaultToEdit.id,
+          vaultId: targetVault.id,
           categoryId: "cat_transfer",
-          tags: ["VaultLiquidation"],
-          date: today,
-          time: `${hours}:${minutes}`,
-          note: `Final liquidation and vault closure`,
+          desc: `Vault Liquidation & Closure: ${targetVault.title}`,
+          date: new Date().toISOString().slice(0, 10),
+          time: new Date().toTimeString().slice(0, 5),
+          tags: ["liquidation", "vault_closure"],
           source: "web_client",
         });
       }
 
-      // Delete from Dexie
-      await db.vaults.delete(vaultToEdit.id);
+      // Delete the vault
+      await db.vaults.delete(targetVault.id);
 
-      // Delete from Firestore
       if (firestore && user?.uid && !user.isDemo) {
-        await deleteDoc(doc(firestore, `users/${user.uid}/vaults/${vaultToEdit.id}`));
+        try {
+          await deleteDoc(doc(firestore, `users/${user.uid}/vaults/${targetVault.id}`));
+        } catch (err) {
+          console.warn("[VaultModal] Cloud sync error on delete:", err);
+        }
       }
 
-      playSound("delete", true);
+      playSound("success", true);
+      triggerHaptic(20);
       onClose();
-    } catch (err) {
+    } catch (err: any) {
       console.error("[VaultModal] Liquidation error:", err);
-      setError("Failed to liquidate and delete vault");
+      setErrorMsg(err?.message || "Failed to liquidate and delete vault");
     } finally {
       setIsSubmitting(false);
     }
@@ -285,271 +313,276 @@ export const VaultModal: React.FC<VaultModalProps> = ({
   return (
     <div
       ref={overlayRef}
-      onClick={handleBackdropClick}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-sm p-3 sm:p-6 overflow-hidden pb-[env(safe-area-inset-bottom)]"
+      onClick={(e) => e.target === overlayRef.current && onClose()}
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/80 backdrop-blur-md overflow-y-auto pb-[env(safe-area-inset-bottom)]"
     >
       <div
+        role="dialog"
+        aria-modal="true"
         className="w-full max-w-lg max-h-[calc(100dvh-2rem)] flex flex-col rounded-xl border border-[#232A3B] bg-[#0F131C] shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150"
-        onClick={(e) => e.stopPropagation()}
       >
         {/* Sticky Header */}
-        <div className="flex-shrink-0 flex items-center justify-between border-b border-[#232A3B] px-4 py-3 bg-[#07090E]">
+        <div className="flex items-center justify-between px-5 py-3.5 border-b border-[#232A3B] bg-[#07090E] flex-shrink-0">
           <div className="flex items-center gap-2">
-            <Shield className="h-4 w-4 text-[#00F0FF]" />
-            <h3 className="font-mono-num text-xs sm:text-sm font-bold uppercase tracking-wider text-white">
-              {vaultToEdit ? `Configure Vault: ${vaultToEdit.title}` : "Create Capital Sinking Vault"}
-            </h3>
+            <Shield className="w-4 h-4 text-[#00F0FF]" />
+            <h2 className="text-xs sm:text-sm font-mono-num font-bold tracking-wider text-white uppercase">
+              {targetVault ? `Update Vault: ${targetVault.title}` : "Create Capital Sinking Vault"}
+            </h2>
           </div>
           <button
             type="button"
-            onClick={() => {
-              playSound("click", true);
-              onClose();
-            }}
-            className="text-[#64748B] hover:text-white p-1 rounded hover:bg-[#161B26]"
+            onClick={onClose}
+            className="p-1.5 text-zinc-400 hover:text-white rounded-md hover:bg-[#161B26] transition-colors"
           >
-            <X className="h-4 w-4" />
+            <X className="w-4 h-4" />
           </button>
         </div>
 
         {/* Scrollable Form Body */}
-        <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0 overflow-hidden">
-          <div className="flex-1 min-h-0 overflow-y-auto p-4 space-y-4 custom-scrollbar">
-            {/* Vault Title */}
+        <form
+          id="vault-form"
+          onSubmit={handleSubmit}
+          className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4 custom-scrollbar min-h-0"
+        >
+          {errorMsg && (
+            <div className="p-3 text-xs font-mono-num border border-red-500/50 bg-red-950/30 text-red-400 rounded-md">
+              {errorMsg}
+            </div>
+          )}
+
+          {/* Title */}
+          <div>
+            <label className="block text-[11px] font-mono-num uppercase tracking-wider text-zinc-400 mb-1.5">
+              Vault Goal Title
+            </label>
+            <input
+              type="text"
+              required
+              placeholder="e.g. Shibuya Tech Lab Gear, Emergency Runway, Tokyo Trip"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              className="w-full px-3 py-2 text-sm bg-[#07090E] border border-[#232A3B] focus:border-[#00F0FF] rounded-md text-white placeholder:text-zinc-600 outline-none transition-colors font-mono-num"
+            />
+          </div>
+
+          {/* Target Amount */}
+          <div>
+            <label className="block text-[11px] font-mono-num uppercase tracking-wider text-zinc-400 mb-1.5">
+              Target Allocation Amount ({currency})
+            </label>
+            <div className="relative">
+              <input
+                type="text"
+                inputMode="numeric"
+                required
+                placeholder="0"
+                value={targetAmountRaw ? Number(targetAmountRaw).toLocaleString("id-ID") : ""}
+                onChange={handleAmountChange}
+                className="w-full px-3 py-2 text-sm bg-[#07090E] border border-[#232A3B] focus:border-[#00F0FF] rounded-md text-white placeholder:text-zinc-600 outline-none transition-colors font-mono-num"
+              />
+              {targetAmountRaw && (
+                <span className="absolute right-3 top-2 text-xs font-mono-num text-[#94A3B8]">
+                  {formatCurrency(parseInt(targetAmountRaw, 10) || 0, currency, locale)}
+                </span>
+              )}
+            </div>
+          </div>
+
+          {/* Liquid Wallet & Deadline Row */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label htmlFor="vault-title-input" className="block text-[10px] font-mono-num uppercase tracking-wider text-[#64748B] mb-1">
-                Vault Goal Title
+              <label className="block text-[11px] font-mono-num uppercase tracking-wider text-zinc-400 mb-1.5">
+                Primary Liquid Backing Wallet
+              </label>
+              <select
+                value={assignedAccountId}
+                onChange={(e) => setAssignedAccountId(e.target.value)}
+                className="w-full px-3 py-2 text-sm bg-[#07090E] border border-[#232A3B] focus:border-[#00F0FF] rounded-md text-white outline-none transition-colors font-mono-num"
+              >
+                {liquidAccounts.length === 0 && <option value="">No Accounts Available</option>}
+                {liquidAccounts.map((acc) => (
+                  <option key={acc.id} value={acc.id}>
+                    {acc.name} ({formatCurrency(acc.currentBalance, currency, locale)})
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-[11px] font-mono-num uppercase tracking-wider text-zinc-400 mb-1.5">
+                Target Deadline Date (Optional)
               </label>
               <input
-                id="vault-title-input"
-                type="text"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                placeholder="e.g. Shibuya Tech Lab Gear, Emergency Runway, Tokyo Trip"
-                required
-                autoFocus
-                autoComplete="off"
-                className="w-full rounded border border-[#232A3B] bg-[#07090E] px-3 py-2 text-xs text-white placeholder-[#475569] focus:border-[#00F0FF] focus:outline-none font-mono-num"
+                type="date"
+                value={targetDate}
+                onChange={(e) => setTargetDate(e.target.value)}
+                className="w-full px-3 py-2 text-sm bg-[#07090E] border border-[#232A3B] focus:border-[#00F0FF] rounded-md text-white outline-none transition-colors font-mono-num"
               />
             </div>
+          </div>
 
-            {/* Target Amount */}
-            <div>
-              <label htmlFor="vault-target-amount-input" className="block text-[10px] font-mono-num uppercase tracking-wider text-[#64748B] mb-1">
-                Target Allocation Amount ({currency})
-              </label>
-              <div className="relative">
-                <input
-                  id="vault-target-amount-input"
-                  type="number"
-                  step="any"
-                  value={targetAmount}
-                  onChange={(e) => setTargetAmount(e.target.value)}
-                  placeholder="0"
-                  required
-                  autoComplete="off"
-                  className="w-full rounded border border-[#232A3B] bg-[#07090E] px-3 py-2.5 font-mono-num text-lg font-bold text-white placeholder-[#475569] focus:border-[#00F0FF] focus:outline-none"
-                />
-                {targetAmount && (
-                  <span className="absolute right-3 top-3 text-xs font-mono-num text-[#94A3B8]">
-                    {formatCurrency(parseFloat(targetAmount) || 0, currency, locale)}
-                  </span>
-                )}
-              </div>
-            </div>
-
-            {/* Primary Backing Account & Target Date */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div>
-                <label className="block text-[10px] font-mono-num uppercase tracking-wider text-[#64748B] mb-1">
-                  Primary Liquid Backing Wallet
-                </label>
-                <select
-                  value={assignedAccountId}
-                  onChange={(e) => setAssignedAccountId(e.target.value)}
-                  className="w-full rounded border border-[#232A3B] bg-[#07090E] px-3 py-2 text-xs text-white focus:border-[#00F0FF] focus:outline-none font-mono-num"
-                >
-                  {liquidAccounts.map((acc) => (
-                    <option key={acc.id} value={acc.id}>
-                      {acc.name} ({formatCurrency(acc.currentBalance, acc.currency, locale)})
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-[10px] font-mono-num uppercase tracking-wider text-[#64748B] mb-1">
-                  Target Deadline Date (Optional)
-                </label>
-                <input
-                  type="date"
-                  value={targetDate}
-                  onChange={(e) => setTargetDate(e.target.value)}
-                  className="w-full rounded border border-[#232A3B] bg-[#07090E] px-3 py-2 text-xs text-white focus:border-[#00F0FF] focus:outline-none font-mono-num"
-                />
-              </div>
-            </div>
-
-            {/* If Editing: Current Progress Status */}
-            {vaultToEdit && (
-              <div className="p-3 rounded bg-[#07090E] border border-[#232A3B] space-y-1">
-                <div className="flex justify-between text-xs font-mono-num">
-                  <span className="text-[#64748B]">Current Funded Level:</span>
-                  <span className="text-[#00FF88] font-bold">
-                    {formatCurrency(vaultToEdit.currentAmount, currency, locale)} (
-                    {vaultToEdit.targetAmount > 0
-                      ? ((vaultToEdit.currentAmount / vaultToEdit.targetAmount) * 100).toFixed(1)
-                      : 0}
-                    %)
-                  </span>
-                </div>
-              </div>
-            )}
-
-            {/* Color Palette Chips */}
-            <div>
-              <label className="block text-[10px] font-mono-num uppercase tracking-wider text-[#64748B] mb-1.5">
-                Vault Accent Color
-              </label>
-              <div className="flex flex-wrap gap-2">
-                {VAULT_COLORS.map((c) => (
+          {/* Accent Color Chips */}
+          <div>
+            <label className="block text-[11px] font-mono-num uppercase tracking-wider text-zinc-400 mb-2">
+              Vault Accent Color
+            </label>
+            <div className="flex items-center gap-3">
+              {VAULT_COLORS.map((c) => {
+                const isSelected = selectedColor.toLowerCase() === c.hex.toLowerCase();
+                return (
                   <button
-                    key={c}
+                    key={c.id}
                     type="button"
-                    onClick={() => setColor(c)}
-                    className={`h-6 w-6 rounded-full border-2 transition-transform ${
-                      color === c ? "scale-125 border-white" : "border-transparent hover:scale-110"
+                    onClick={() => {
+                      playSound("click", true);
+                      setSelectedColor(c.hex);
+                    }}
+                    style={{ backgroundColor: c.hex }}
+                    className={`w-7 h-7 rounded-full transition-transform flex items-center justify-center ${
+                      isSelected
+                        ? "ring-2 ring-white ring-offset-2 ring-offset-[#0F131C] scale-110"
+                        : "opacity-80 hover:opacity-100 hover:scale-105"
                     }`}
-                    style={{ backgroundColor: c }}
-                  />
-                ))}
-              </div>
-            </div>
-
-            {/* Icon Picker */}
-            <div>
-              <label className="block text-[10px] font-mono-num uppercase tracking-wider text-[#64748B] mb-1.5">
-                Icon Identity
-              </label>
-              <div className="grid grid-cols-6 gap-2 p-2 rounded bg-[#07090E] border border-[#232A3B]">
-                {Object.keys(VAULT_ICONS).map((iconKey) => {
-                  const IconComp = VAULT_ICONS[iconKey];
-                  const isSelected = icon === iconKey;
-                  return (
-                    <button
-                      key={iconKey}
-                      type="button"
-                      onClick={() => setIcon(iconKey)}
-                      className={`flex items-center justify-center p-2 rounded border transition-colors ${
-                        isSelected
-                          ? "border-[#00F0FF] bg-[#00F0FF]/20 text-[#00F0FF]"
-                          : "border-transparent text-[#64748B] hover:text-white hover:bg-[#161B26]"
-                      }`}
-                    >
-                      <IconComp className="h-4 w-4" />
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            {error && (
-              <div className="rounded border border-[#FF0055]/40 bg-[#FF0055]/10 p-2 text-xs font-mono-num text-[#FF0055]">
-                [ERROR]: {error}
-              </div>
-            )}
-
-            {/* Vault Liquidation / Deletion flow */}
-            {vaultToEdit && (
-              <div className="pt-2 border-t border-[#232A3B]">
-                {!showDeleteConfirm ? (
-                  <button
-                    type="button"
-                    onClick={() => setShowDeleteConfirm(true)}
-                    className="text-xs font-mono-num text-[#FF5C00] hover:underline flex items-center gap-1"
                   >
-                    <AlertTriangle className="h-3.5 w-3.5" />
-                    Liquidate or Expunge Vault
+                    {isSelected && <Check className="w-3.5 h-3.5 text-black stroke-[3]" />}
                   </button>
-                ) : (
-                  <div className="p-3 rounded bg-[#FF5C00]/10 border border-[#FF5C00]/30 space-y-3">
-                    <p className="text-xs text-[#94A3B8] font-mono-num">
-                      {vaultToEdit.currentAmount > 0 ? (
-                        <>
-                          Warning: Vault holds{" "}
-                          <span className="text-[#00FF88] font-bold">
-                            {formatCurrency(vaultToEdit.currentAmount, currency, locale)}
-                          </span>
-                          . Confirming liquidation will automatically withdraw this amount back to your chosen account.
-                        </>
-                      ) : (
-                        "Vault holds zero funds and can be immediately expunged."
-                      )}
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Icon Identity Picker */}
+          <div>
+            <label className="block text-[11px] font-mono-num uppercase tracking-wider text-zinc-400 mb-2">
+              Icon Identity
+            </label>
+            <div className="grid grid-cols-6 gap-2 p-3 bg-[#07090E] border border-[#232A3B] rounded-lg">
+              {VAULT_ICONS.map((item) => {
+                const IconComponent = item.icon;
+                const isSelected =
+                  selectedIcon.toLowerCase() === item.id.toLowerCase() ||
+                  selectedIcon.toLowerCase() === item.label.toLowerCase();
+                return (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => {
+                      playSound("click", true);
+                      setSelectedIcon(item.id);
+                    }}
+                    className={`p-2.5 rounded-md flex items-center justify-center transition-all ${
+                      isSelected
+                        ? "border border-[#00F0FF] bg-[#00F0FF]/15 text-[#00F0FF] shadow-[0_0_10px_rgba(0,240,255,0.2)]"
+                        : "border border-transparent text-zinc-500 hover:text-zinc-300 hover:bg-[#161B26]"
+                    }`}
+                  >
+                    <IconComponent className="w-4 h-4" />
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Danger Zone: Delete or Liquidate Vault for existing vaults */}
+          {targetVault && (
+            <div className="border-t border-[#232A3B] pt-4 mt-2">
+              {!showDeleteConfirm ? (
+                <button
+                  type="button"
+                  onClick={() => setShowDeleteConfirm(true)}
+                  className="flex items-center gap-1.5 text-xs text-[#FF0055] hover:text-[#FF3377] transition-colors font-mono-num"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                  <span>
+                    {targetVault.currentAmount > 0
+                      ? "LIQUIDATE & DELETE VAULT"
+                      : "DELETE CAPITAL SINKING VAULT"}
+                  </span>
+                </button>
+              ) : (
+                <div className="rounded border border-[#FF0055]/40 bg-[#FF0055]/10 p-3 space-y-3 animate-in fade-in duration-150">
+                  <div className="space-y-1">
+                    <p className="text-xs font-bold text-[#FF0055] font-mono-num">
+                      CONFIRM VAULT DESTRUCTION
                     </p>
-
-                    {vaultToEdit.currentAmount > 0 && (
-                      <div>
-                        <label className="block text-[10px] font-mono-num uppercase tracking-wider text-[#64748B] mb-1">
-                          Destination Account to Receive Remaining Funds:
-                        </label>
-                        <select
-                          value={liquidationTargetAccountId}
-                          onChange={(e) => setLiquidationTargetAccountId(e.target.value)}
-                          className="w-full rounded border border-[#232A3B] bg-[#07090E] px-2.5 py-1.5 text-xs text-white font-mono-num"
-                        >
-                          {liquidAccounts.map((acc) => (
-                            <option key={acc.id} value={acc.id}>
-                              {acc.name} ({formatCurrency(acc.currentBalance, acc.currency, locale)})
-                            </option>
-                          ))}
-                        </select>
-                      </div>
+                    {targetVault.currentAmount > 0 ? (
+                      <p className="text-[11px] text-[#94A3B8] font-mono-num">
+                        This vault holds{" "}
+                        <strong className="text-white">
+                          {formatCurrency(targetVault.currentAmount, currency, locale)}
+                        </strong>
+                        . Select an account to receive the refunded balance upon closure:
+                      </p>
+                    ) : (
+                      <p className="text-[11px] text-[#94A3B8] font-mono-num">
+                        Are you sure you want to delete this vault? This action cannot be undone.
+                      </p>
                     )}
-
-                    <div className="flex gap-2">
-                      <button
-                        type="button"
-                        onClick={() => setShowDeleteConfirm(false)}
-                        className="px-3 py-1.5 rounded border border-[#232A3B] bg-[#161B26] text-xs font-mono-num text-[#94A3B8]"
-                      >
-                        Cancel
-                      </button>
-                      <button
-                        type="button"
-                        onClick={handleLiquidateAndDelete}
-                        disabled={isSubmitting}
-                        className="flex-1 flex items-center justify-center gap-1.5 rounded border border-[#FF0055] bg-[#FF0055]/20 text-xs font-mono-num text-[#FF0055] font-bold"
-                      >
-                        <ArrowUpLeft className="h-3.5 w-3.5" />
-                        <span>Confirm Liquidation &amp; Expunge</span>
-                      </button>
-                    </div>
                   </div>
-                )}
-              </div>
-            )}
-          </div>
 
-          {/* Sticky Footer */}
-          <div className="flex-shrink-0 border-t border-[#232A3B] px-4 py-3 bg-[#07090E] flex gap-2">
-            <button
-              type="button"
-              onClick={onClose}
-              className="flex-1 rounded border border-[#232A3B] bg-[#161B26] py-2 text-xs font-mono-num text-[#94A3B8] hover:text-white"
-            >
-              CANCEL
-            </button>
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="flex-1 flex items-center justify-center gap-1.5 rounded border border-[#00F0FF]/60 bg-[#00F0FF]/15 py-2 text-xs font-bold font-mono-num text-[#00F0FF] hover:bg-[#00F0FF]/25 shadow-[0_0_12px_rgba(0,240,255,0.2)] disabled:opacity-50"
-            >
-              <Check className="h-4 w-4" />
-              <span>{vaultToEdit ? "UPDATE VAULT" : "CREATE VAULT"}</span>
-            </button>
-          </div>
+                  {targetVault.currentAmount > 0 && (
+                    <div>
+                      <label className="block text-[10px] font-mono-num uppercase text-[#64748B] mb-1">
+                        Refund Destination Account
+                      </label>
+                      <select
+                        value={liquidationTargetAccountId}
+                        onChange={(e) => setLiquidationTargetAccountId(e.target.value)}
+                        className="w-full rounded border border-[#232A3B] bg-[#07090E] px-3 py-1.5 text-xs text-white focus:border-[#FF0055] focus:outline-none font-mono-num"
+                      >
+                        {liquidAccounts.map((acc) => (
+                          <option key={acc.id} value={acc.id}>
+                            {acc.name} ({formatCurrency(acc.currentBalance, currency, locale)})
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+
+                  <div className="flex items-center gap-2 pt-1">
+                    <button
+                      type="button"
+                      onClick={handleLiquidateAndDelete}
+                      disabled={isSubmitting}
+                      className="flex-1 rounded border border-[#FF0055] bg-[#FF0055]/20 py-1.5 text-xs font-mono-num font-bold text-[#FF0055] hover:bg-[#FF0055]/30 transition-colors disabled:opacity-50"
+                    >
+                      {isSubmitting ? "PROCESSING..." : "CONFIRM PURGE"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setShowDeleteConfirm(false)}
+                      className="rounded border border-[#232A3B] bg-[#07090E] px-3 py-1.5 text-xs text-[#94A3B8] hover:text-white"
+                    >
+                      CANCEL
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
         </form>
+
+        {/* Sticky Footer */}
+        <div className="flex items-center justify-end gap-3 px-5 py-3 border-t border-[#232A3B] bg-[#07090E] flex-shrink-0">
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={isSubmitting}
+            className="px-4 py-2 text-xs font-mono-num tracking-wider uppercase text-zinc-400 hover:text-white rounded-md hover:bg-[#161B26] transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            form="vault-form"
+            disabled={isSubmitting}
+            className="flex items-center gap-2 px-5 py-2 text-xs font-mono-num font-bold tracking-wider uppercase bg-[#00F0FF]/15 text-[#00F0FF] border border-[#00F0FF] hover:bg-[#00F0FF] hover:text-black rounded-md transition-all disabled:opacity-50 shadow-[0_0_12px_rgba(0,240,255,0.2)]"
+          >
+            <Check className="w-3.5 h-3.5 stroke-[3]" />
+            {isSubmitting ? "COMMITTING..." : targetVault ? "UPDATE VAULT" : "CREATE VAULT"}
+          </button>
+        </div>
       </div>
     </div>
   );
-};
+}

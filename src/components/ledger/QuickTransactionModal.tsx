@@ -80,9 +80,11 @@ export const QuickTransactionModal: React.FC = () => {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isQuickTxOpen, closeQuickTx, soundEnabled]);
 
-  // Sync draft or defaults when modal opens
+  const prevOpenRef = useRef(false);
+
+  // Sync draft or defaults only when modal transitions from closed to open or quickTxDraft updates
   useEffect(() => {
-    if (isQuickTxOpen) {
+    if (isQuickTxOpen && !prevOpenRef.current) {
       const now = new Date();
       const defaultDate = now.toISOString().split("T")[0];
       const defaultTime = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
@@ -91,8 +93,18 @@ export const QuickTransactionModal: React.FC = () => {
       setType(initialType);
       setAmountStr(quickTxDraft?.amount ? String(quickTxDraft.amount) : "");
       setDesc(quickTxDraft?.desc || "");
-      setFromAccountId(quickTxDraft?.fromAccountId || accounts[0]?.id || "");
-      setToAccountId(quickTxDraft?.toAccountId || accounts[1]?.id || "");
+      setFromAccountId(
+        quickTxDraft?.fromAccountId ||
+        accounts.find((a) => a.id === "acc_bca")?.id ||
+        accounts[0]?.id ||
+        ""
+      );
+      setToAccountId(
+        quickTxDraft?.toAccountId ||
+        accounts.find((a) => a.id !== fromAccountId)?.id ||
+        accounts[1]?.id ||
+        ""
+      );
       setVaultId(quickTxDraft?.vaultId || vaults[0]?.id || "");
       setDebtId(quickTxDraft?.debtId || debts[0]?.id || "");
 
@@ -108,7 +120,18 @@ export const QuickTransactionModal: React.FC = () => {
       setNote(quickTxDraft?.note || "");
       setError(null);
     }
-  }, [isQuickTxOpen, quickTxDraft, accounts, vaults, debts, categories]);
+    prevOpenRef.current = isQuickTxOpen;
+  }, [isQuickTxOpen, quickTxDraft]);
+
+  // Fallback initial account selection if accounts query loaded after modal open
+  useEffect(() => {
+    if (isQuickTxOpen && !fromAccountId && accounts.length > 0) {
+      setFromAccountId(accounts.find((a) => a.id === "acc_bca")?.id || accounts[0].id);
+      if (accounts.length > 1 && !toAccountId) {
+        setToAccountId(accounts.find((a) => a.id !== accounts[0].id)?.id || accounts[1].id);
+      }
+    }
+  }, [isQuickTxOpen, fromAccountId, toAccountId, accounts]);
 
   if (!isQuickTxOpen) return null;
 
@@ -202,10 +225,10 @@ export const QuickTransactionModal: React.FC = () => {
     <div
       ref={overlayRef}
       onClick={handleBackdropClick}
-      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/85 backdrop-blur-md overflow-hidden pb-[env(safe-area-inset-bottom)]"
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/80 backdrop-blur-md overflow-hidden pb-[env(safe-area-inset-bottom)]"
     >
       <div
-        className="w-full max-w-lg max-h-[calc(100dvh-2rem)] flex flex-col rounded-xl border border-[#232A3B] bg-[#0F131C] shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150"
+        className="relative z-10 pointer-events-auto w-full max-w-lg max-h-[calc(100dvh-2rem)] flex flex-col rounded-xl border border-[#232A3B] bg-[#0F131C] shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Sticky Header */}
