@@ -1,19 +1,53 @@
 "use client";
 
 import React from "react";
-import { Shield, ShieldAlert, Cpu, Mountain, ArrowDownRight, ArrowUpLeft, CheckCircle } from "lucide-react";
+import {
+  Shield,
+  ShieldAlert,
+  Cpu,
+  Mountain,
+  ArrowDownRight,
+  ArrowUpLeft,
+  CheckCircle,
+  Edit2,
+  Plane,
+  Car,
+  Home,
+  Coins,
+  Zap,
+  Sparkles,
+  Gift,
+  Laptop,
+} from "lucide-react";
 import confetti from "canvas-confetti";
 import { Vault } from "../../lib/types";
-import { formatCurrency, safeDiv, safeSub } from "../../lib/mathEngine";
+import { formatCurrency, safeSub } from "../../lib/mathEngine";
 import { useUIStore } from "../../store/useUIStore";
 import { playSound, triggerHaptic } from "../../lib/audioHaptics";
+
+const VAULT_ICON_MAP: Record<string, React.ElementType> = {
+  Shield,
+  Cpu,
+  ShieldAlert,
+  Mountain,
+  Plane,
+  Car,
+  Home,
+  Coins,
+  Zap,
+  Sparkles,
+  Gift,
+  Laptop,
+};
 
 interface VaultCardProps {
   vault: Vault;
 }
 
 export const VaultCard: React.FC<VaultCardProps> = ({ vault }) => {
-  const { privacyMode, soundEnabled, openQuickTx } = useUIStore();
+  const { privacyMode, soundEnabled, openQuickTx, openVaultModal } = useUIStore();
+
+  const IconComp = VAULT_ICON_MAP[vault.icon] || Shield;
 
   const progress = vault.targetAmount > 0
     ? Math.min(100, Math.round((vault.currentAmount / vault.targetAmount) * 1000) / 10)
@@ -42,6 +76,12 @@ export const VaultCard: React.FC<VaultCardProps> = ({ vault }) => {
     });
   };
 
+  const handleEditVault = () => {
+    playSound("click", soundEnabled);
+    triggerHaptic(15);
+    openVaultModal(vault);
+  };
+
   const triggerCelebrate = () => {
     playSound("success", soundEnabled);
     confetti({
@@ -61,7 +101,7 @@ export const VaultCard: React.FC<VaultCardProps> = ({ vault }) => {
             className="flex h-9 w-9 items-center justify-center rounded border border-[#232A3B] bg-[#07090E]"
             style={{ color: vault.color }}
           >
-            <Shield className="h-5 w-5" />
+            <IconComp className="h-5 w-5" />
           </div>
           <div>
             <h4 className="text-xs sm:text-sm font-semibold text-white">{vault.title}</h4>
@@ -79,15 +119,24 @@ export const VaultCard: React.FC<VaultCardProps> = ({ vault }) => {
           </div>
         </div>
 
-        {isReached && (
+        <div className="flex items-center gap-1">
+          {isReached && (
+            <button
+              onClick={triggerCelebrate}
+              className="rounded-full bg-[#00FF88]/15 border border-[#00FF88]/40 p-1 text-[#00FF88] hover:scale-110 transition-transform"
+              title="Goal Reached! Click to celebrate"
+            >
+              <CheckCircle className="h-4 w-4" />
+            </button>
+          )}
           <button
-            onClick={triggerCelebrate}
-            className="rounded-full bg-[#00FF88]/15 border border-[#00FF88]/40 p-1 text-[#00FF88] hover:scale-110 transition-transform"
-            title="Goal Reached! Click to celebrate"
+            onClick={handleEditVault}
+            className="rounded border border-[#232A3B] bg-[#07090E] p-1.5 text-[#64748B] hover:text-white hover:border-[#384259] transition-colors"
+            title="Configure Vault Parameters"
           >
-            <CheckCircle className="h-4 w-4" />
+            <Edit2 className="h-3.5 w-3.5" />
           </button>
-        )}
+        </div>
       </div>
 
       {/* Progress Bar & Badges */}

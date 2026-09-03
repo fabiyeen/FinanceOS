@@ -27,6 +27,7 @@ export interface Account {
   color: string;
   icon: string;
   isArchived: boolean;
+  order?: number;
   creditLimit?: number; // Required if type === 'credit'
   statementClosingDay?: number;
 }
@@ -101,6 +102,7 @@ export interface Vault {
   color: string;
   icon: string;
   status: "active" | "reached" | "liquidated";
+  order?: number;
 }
 
 export interface Category {
@@ -111,6 +113,8 @@ export interface Category {
   type: "expense" | "income";
   subcategories?: string[];
   budgetCap?: number;
+  order: number;
+  isDefault?: boolean;
 }
 
 export interface UserSecuritySettings {

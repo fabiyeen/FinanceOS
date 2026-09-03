@@ -43,13 +43,24 @@ export const UniversalCmdBar: React.FC = () => {
   const currency = settings?.currency || "IDR";
   const locale = settings?.locale || "id-ID";
 
+  const overlayRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     if (isCmdBarOpen) {
       setTimeout(() => inputRef.current?.focus(), 50);
       setInputVal("");
       setStatusMessage(null);
+
+      const handleKeyDown = (e: KeyboardEvent) => {
+        if (e.key === "Escape") {
+          playSound("click", soundEnabled);
+          setCmdBarOpen(false);
+        }
+      };
+      window.addEventListener("keydown", handleKeyDown);
+      return () => window.removeEventListener("keydown", handleKeyDown);
     }
-  }, [isCmdBarOpen]);
+  }, [isCmdBarOpen, setCmdBarOpen, soundEnabled]);
 
   // Live NLP parsing
   const parsed = useMemo(() => {
@@ -62,6 +73,12 @@ export const UniversalCmdBar: React.FC = () => {
   const handleClose = () => {
     playSound("click", soundEnabled);
     setCmdBarOpen(false);
+  };
+
+  const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (e.target === overlayRef.current) {
+      handleClose();
+    }
   };
 
   const handleExecute = async () => {
@@ -103,13 +120,17 @@ export const UniversalCmdBar: React.FC = () => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/80 backdrop-blur-sm p-4 pt-16 sm:pt-24 animate-in fade-in duration-150">
+    <div
+      ref={overlayRef}
+      onClick={handleBackdropClick}
+      className="fixed inset-0 z-50 flex items-start justify-center bg-black/80 backdrop-blur-sm p-3 sm:p-4 pt-12 sm:pt-20 animate-in fade-in duration-150 overflow-hidden"
+    >
       <div
-        className="w-full max-w-xl rounded-lg border border-[#232A3B] bg-[#0F131C] shadow-[0_10px_40px_rgba(0,0,0,0.8)] overflow-hidden"
+        className="w-full max-w-xl max-h-[calc(100dvh-4rem)] flex flex-col rounded-xl border border-[#232A3B] bg-[#0F131C] shadow-[0_10px_40px_rgba(0,0,0,0.8)] overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Input Bar */}
-        <div className="flex items-center border-b border-[#232A3B] px-3.5 py-3 bg-[#07090E]">
+        <div className="flex-shrink-0 flex items-center border-b border-[#232A3B] px-3.5 py-3 bg-[#07090E]">
           <Command className="h-4 w-4 text-[#00F0FF] mr-2.5 shrink-0" />
           <input
             ref={inputRef}

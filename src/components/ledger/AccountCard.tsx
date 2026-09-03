@@ -9,18 +9,31 @@ import {
   Banknote,
   TrendingUp,
   ArrowRightLeft,
+  Edit2,
+  ArrowUp,
+  ArrowDown,
 } from "lucide-react";
 import { Account } from "../../lib/types";
-import { formatCurrency, safeAdd, safeSub } from "../../lib/mathEngine";
+import { formatCurrency, safeSub } from "../../lib/mathEngine";
 import { useUIStore } from "../../store/useUIStore";
 import { playSound, triggerHaptic } from "../../lib/audioHaptics";
 
 interface AccountCardProps {
   account: Account;
+  onMoveUp?: () => void;
+  onMoveDown?: () => void;
+  canMoveUp?: boolean;
+  canMoveDown?: boolean;
 }
 
-export const AccountCard: React.FC<AccountCardProps> = ({ account }) => {
-  const { privacyMode, soundEnabled, openQuickTx } = useUIStore();
+export const AccountCard: React.FC<AccountCardProps> = ({
+  account,
+  onMoveUp,
+  onMoveDown,
+  canMoveUp,
+  canMoveDown,
+}) => {
+  const { privacyMode, soundEnabled, openQuickTx, openAccountModal } = useUIStore();
 
   const getAccountIcon = (type: Account["type"]) => {
     switch (type) {
@@ -58,10 +71,40 @@ export const AccountCard: React.FC<AccountCardProps> = ({ account }) => {
     });
   };
 
+  const handleEditAccount = () => {
+    playSound("click", soundEnabled);
+    triggerHaptic(15);
+    openAccountModal(account);
+  };
+
   return (
     <div className="industrial-card rounded-lg border border-[#232A3B] bg-[#0F131C] p-4 relative overflow-hidden group hover:border-[#384259] transition-all">
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-3">
+          {/* Priority Reordering Controls */}
+          {(onMoveUp || onMoveDown) && (
+            <div className="flex flex-col gap-0.5">
+              <button
+                type="button"
+                onClick={onMoveUp}
+                disabled={!canMoveUp}
+                className="p-1 rounded text-[#64748B] hover:text-[#00F0FF] hover:bg-[#161B26] disabled:opacity-20 disabled:hover:bg-transparent"
+                title="Move Wallet Priority Up"
+              >
+                <ArrowUp className="h-3 w-3" />
+              </button>
+              <button
+                type="button"
+                onClick={onMoveDown}
+                disabled={!canMoveDown}
+                className="p-1 rounded text-[#64748B] hover:text-[#00F0FF] hover:bg-[#161B26] disabled:opacity-20 disabled:hover:bg-transparent"
+                title="Move Wallet Priority Down"
+              >
+                <ArrowDown className="h-3 w-3" />
+              </button>
+            </div>
+          )}
+
           <div
             className="flex h-9 w-9 items-center justify-center rounded border border-[#232A3B] bg-[#07090E]"
             style={{ color: account.color }}
@@ -81,14 +124,23 @@ export const AccountCard: React.FC<AccountCardProps> = ({ account }) => {
           </div>
         </div>
 
-        {/* Quick Transfer Button */}
-        <button
-          onClick={handleQuickTransfer}
-          className="rounded border border-[#232A3B] bg-[#07090E] p-1.5 text-[#64748B] hover:text-[#00F0FF] hover:border-[#00F0FF]/40 transition-colors"
-          title="Initiate transfer from this account"
-        >
-          <ArrowRightLeft className="h-3.5 w-3.5" />
-        </button>
+        {/* Actions: Edit & Quick Transfer */}
+        <div className="flex items-center gap-1">
+          <button
+            onClick={handleEditAccount}
+            className="rounded border border-[#232A3B] bg-[#07090E] p-1.5 text-[#64748B] hover:text-white hover:border-[#384259] transition-colors"
+            title="Configure account settings"
+          >
+            <Edit2 className="h-3.5 w-3.5" />
+          </button>
+          <button
+            onClick={handleQuickTransfer}
+            className="rounded border border-[#232A3B] bg-[#07090E] p-1.5 text-[#64748B] hover:text-[#00F0FF] hover:border-[#00F0FF]/40 transition-colors"
+            title="Initiate transfer from this account"
+          >
+            <ArrowRightLeft className="h-3.5 w-3.5" />
+          </button>
+        </div>
       </div>
 
       {/* Balance Readout */}

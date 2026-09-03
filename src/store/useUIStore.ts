@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { Transaction } from "../lib/types";
+import { Account, Transaction, Vault } from "../lib/types";
 
 export type NavTab = "overview" | "analytics" | "accounts" | "vaults" | "tools";
 
@@ -25,6 +25,19 @@ interface UIState {
   quickTxDraft: Partial<Transaction> | null;
   openQuickTx: (draft?: Partial<Transaction>) => void;
   closeQuickTx: () => void;
+
+  isCategoryManagerOpen: boolean;
+  setCategoryManagerOpen: (open: boolean) => void;
+
+  isAccountModalOpen: boolean;
+  editingAccount: Account | null;
+  openAccountModal: (account?: Account) => void;
+  closeAccountModal: () => void;
+
+  isVaultModalOpen: boolean;
+  editingVault: Vault | null;
+  openVaultModal: (vault?: Vault) => void;
+  closeVaultModal: () => void;
 
   isCsvImportOpen: boolean;
   setCsvImportOpen: (open: boolean) => void;
@@ -63,6 +76,19 @@ export const useUIStore = create<UIState>()(
       quickTxDraft: null,
       openQuickTx: (draft) => set({ isQuickTxOpen: true, quickTxDraft: draft || null }),
       closeQuickTx: () => set({ isQuickTxOpen: false, quickTxDraft: null }),
+
+      isCategoryManagerOpen: false,
+      setCategoryManagerOpen: (isCategoryManagerOpen) => set({ isCategoryManagerOpen }),
+
+      isAccountModalOpen: false,
+      editingAccount: null,
+      openAccountModal: (account) => set({ isAccountModalOpen: true, editingAccount: account || null }),
+      closeAccountModal: () => set({ isAccountModalOpen: false, editingAccount: null }),
+
+      isVaultModalOpen: false,
+      editingVault: null,
+      openVaultModal: (vault) => set({ isVaultModalOpen: true, editingVault: vault || null }),
+      closeVaultModal: () => set({ isVaultModalOpen: false, editingVault: null }),
 
       isCsvImportOpen: false,
       setCsvImportOpen: (isCsvImportOpen) => set({ isCsvImportOpen }),

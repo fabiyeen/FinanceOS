@@ -28,4 +28,8 @@ try {
   console.warn("[Firebase] Client initialization notice:", err);
 }
 
+export function getFirebaseServices() {
+  return { app, auth, firestore, isConfigured: isFirebaseConfigured };
+}
+
 export { app, auth, firestore };

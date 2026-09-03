@@ -19,6 +19,7 @@ import { DebtTracker } from "../ledger/DebtTracker";
 import { RecurringRulesManager } from "../ledger/RecurringRulesManager";
 import { PinSettingsModal } from "../security/PinSettingsModal";
 import { FactoryResetModal } from "../modals/FactoryResetModal";
+import { CategoryManager } from "./CategoryManager";
 import { useUIStore } from "../../store/useUIStore";
 import { playSound, triggerHaptic } from "../../lib/audioHaptics";
 import { db } from "../../lib/db/dexie";
@@ -65,15 +66,20 @@ export const ToolsView: React.FC = () => {
 
   return (
     <div className="space-y-8">
-      {/* 1. Debt & IOUs */}
-      <DebtTracker />
+      {/* 1. Category Architecture & Priority Manager */}
+      <CategoryManager />
 
-      {/* 2. Subscriptions & Automation */}
+      {/* 2. Debt & IOUs */}
+      <div className="pt-4 border-t border-[#232A3B]">
+        <DebtTracker />
+      </div>
+
+      {/* 3. Subscriptions & Automation */}
       <div className="pt-4 border-t border-[#232A3B]">
         <RecurringRulesManager />
       </div>
 
-      {/* 3. CSV Data Portability */}
+      {/* 4. CSV Data Portability */}
       <div className="pt-4 border-t border-[#232A3B] space-y-3">
         <div className="flex items-center gap-2">
           <FileSpreadsheet className="h-4 w-4 text-[#FFB800]" />

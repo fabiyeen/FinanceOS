@@ -28,7 +28,28 @@ export const FactoryResetModal: React.FC<FactoryResetModalProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [isWiping, setIsWiping] = useState(false);
 
+  const overlayRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        playSound("click", soundEnabled);
+        onClose();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen, onClose, soundEnabled]);
+
   if (!isOpen) return null;
+
+  const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (e.target === overlayRef.current) {
+      playSound("click", soundEnabled);
+      onClose();
+    }
+  };
 
   const handleExecuteWipe = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -78,13 +99,17 @@ export const FactoryResetModal: React.FC<FactoryResetModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-md p-4">
+    <div
+      ref={overlayRef}
+      onClick={handleBackdropClick}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-md p-3 sm:p-4 overflow-hidden pb-[env(safe-area-inset-bottom)]"
+    >
       <div
-        className="w-full max-w-md rounded-lg border-2 border-[#FF5C00] bg-[#0F131C] shadow-[0_0_50px_rgba(255,92,0,0.3)] overflow-hidden"
+        className="w-full max-w-md max-h-[calc(100dvh-2rem)] flex flex-col rounded-xl border-2 border-[#FF5C00] bg-[#0F131C] shadow-[0_0_50px_rgba(255,92,0,0.3)] overflow-hidden animate-in fade-in zoom-in-95 duration-150"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Caution Header */}
-        <div className="flex items-center justify-between border-b border-[#FF5C00]/40 px-4 py-3 bg-[#FF5C00]/10">
+        {/* Caution Sticky Header */}
+        <div className="flex-shrink-0 flex items-center justify-between border-b border-[#FF5C00]/40 px-4 py-3 bg-[#FF5C00]/10">
           <div className="flex items-center gap-2">
             <ShieldAlert className="h-5 w-5 text-[#FF5C00] animate-pulse" />
             <h3 className="font-mono-num text-xs font-bold uppercase tracking-wider text-[#FF5C00]">
@@ -96,13 +121,14 @@ export const FactoryResetModal: React.FC<FactoryResetModalProps> = ({
               playSound("click", soundEnabled);
               onClose();
             }}
-            className="text-[#94A3B8] hover:text-white"
+            className="text-[#94A3B8] hover:text-white p-1 rounded hover:bg-[#161B26]"
           >
             <X className="h-4 w-4" />
           </button>
         </div>
 
-        <form onSubmit={handleExecuteWipe} className="p-5 space-y-4">
+        <form onSubmit={handleExecuteWipe} className="flex flex-col flex-1 min-h-0 overflow-hidden">
+          <div className="flex-1 min-h-0 overflow-y-auto p-4 space-y-4 custom-scrollbar">
           <div className="rounded border border-[#FF5C00]/30 bg-[#FF5C00]/5 p-3 space-y-2 text-xs font-mono-num text-[#94A3B8]">
             <div className="flex items-center gap-1.5 text-[#FF5C00] font-bold">
               <AlertTriangle className="h-4 w-4 shrink-0" />
@@ -151,11 +177,14 @@ export const FactoryResetModal: React.FC<FactoryResetModalProps> = ({
             </div>
           )}
 
-          <div className="flex gap-2 pt-2">
+          </div>
+
+          {/* Sticky Footer */}
+          <div className="flex-shrink-0 border-t border-[#232A3B] px-4 py-3 bg-[#07090E] flex gap-2">
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 rounded border border-[#232A3B] bg-[#161B26] py-2 text-xs font-mono-num text-[#94A3B8] hover:text-white"
+              className="flex-1 rounded border border-[#232A3B] bg-[#161B26] py-2 text-xs font-mono-num text-[#94A3B8] hover:text-white transition-colors"
             >
               CANCEL
             </button>

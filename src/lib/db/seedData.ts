@@ -9,17 +9,17 @@ import {
 } from "../types";
 
 export const SEED_CATEGORIES: Category[] = [
-  { id: "cat_food", name: "Food & Dining", icon: "Utensils", color: "#00F0FF", type: "expense" },
-  { id: "cat_tech", name: "Tech & Infrastructure", icon: "Cpu", color: "#FF5C00", type: "expense" },
-  { id: "cat_subs", name: "Subscriptions & SaaS", icon: "Repeat", color: "#FFB800", type: "expense" },
-  { id: "cat_trans", name: "Transport & Mobility", icon: "Navigation", color: "#00FF88", type: "expense" },
-  { id: "cat_util", name: "Housing & Utilities", icon: "Home", color: "#9D00FF", type: "expense" },
-  { id: "cat_health", name: "Health & Fitness", icon: "Activity", color: "#FF0055", type: "expense" },
-  { id: "cat_ent", name: "Entertainment & Cyber", icon: "Gamepad2", color: "#00E5FF", type: "expense" },
-  { id: "cat_income", name: "Primary Income", icon: "TrendingUp", color: "#00FF88", type: "income" },
-  { id: "cat_bonus", name: "Syndicate / Consulting", icon: "Coins", color: "#FFB800", type: "income" },
-  { id: "cat_transfer", name: "Internal Transfer", icon: "ArrowLeftRight", color: "#708090", type: "expense" },
-  { id: "cat_debt", name: "Debt Settlement", icon: "Handshake", color: "#E056FD", type: "expense" },
+  { id: "cat_food", name: "Food & Dining", icon: "Utensils", color: "#00F0FF", type: "expense", order: 0, isDefault: true },
+  { id: "cat_tech", name: "Tech & Infrastructure", icon: "Cpu", color: "#FF5C00", type: "expense", order: 1, isDefault: true },
+  { id: "cat_subs", name: "Subscriptions & SaaS", icon: "Repeat", color: "#FFB800", type: "expense", order: 2, isDefault: true },
+  { id: "cat_trans", name: "Transport & Mobility", icon: "Navigation", color: "#00FF88", type: "expense", order: 3, isDefault: true },
+  { id: "cat_util", name: "Housing & Utilities", icon: "Home", color: "#9D00FF", type: "expense", order: 4, isDefault: true },
+  { id: "cat_health", name: "Health & Fitness", icon: "Activity", color: "#FF0055", type: "expense", order: 5, isDefault: true },
+  { id: "cat_ent", name: "Entertainment & Cyber", icon: "Gamepad2", color: "#00E5FF", type: "expense", order: 6, isDefault: true },
+  { id: "cat_income", name: "Primary Income", icon: "TrendingUp", color: "#00FF88", type: "income", order: 0, isDefault: true },
+  { id: "cat_bonus", name: "Syndicate / Consulting", icon: "Coins", color: "#FFB800", type: "income", order: 1, isDefault: true },
+  { id: "cat_transfer", name: "Internal Transfer", icon: "ArrowLeftRight", color: "#708090", type: "expense", order: 7, isDefault: true },
+  { id: "cat_debt", name: "Debt Settlement", icon: "Handshake", color: "#E056FD", type: "expense", order: 8, isDefault: true },
 ];
 
 export const SEED_ACCOUNTS: Account[] = [
@@ -33,6 +33,7 @@ export const SEED_ACCOUNTS: Account[] = [
     color: "#00F0FF",
     icon: "Landmark",
     isArchived: false,
+    order: 0,
   },
   {
     id: "acc_mandiri",
@@ -44,6 +45,7 @@ export const SEED_ACCOUNTS: Account[] = [
     color: "#00FF88",
     icon: "Building2",
     isArchived: false,
+    order: 1,
   },
   {
     id: "acc_tokyo_cc",
@@ -57,28 +59,31 @@ export const SEED_ACCOUNTS: Account[] = [
     isArchived: false,
     creditLimit: 50000000,
     statementClosingDay: 20,
+    order: 2,
   },
   {
-    id: "acc_ewallet",
-    name: "Jenius / GoPay Cyber",
+    id: "acc_gopay",
+    name: "GoPay / Cyberia Wallet",
     type: "ewallet",
     currency: "IDR",
-    initialBalance: 3450000,
-    currentBalance: 3450000,
-    color: "#FFB800",
+    initialBalance: 1250000,
+    currentBalance: 1250000,
+    color: "#00F0FF",
     icon: "Smartphone",
     isArchived: false,
+    order: 3,
   },
   {
-    id: "acc_cash",
+    id: "acc_cash_stash",
     name: "Physical Cash Stash",
     type: "cash",
     currency: "IDR",
-    initialBalance: 1200000,
-    currentBalance: 1200000,
-    color: "#94A3B8",
+    initialBalance: 3500000,
+    currentBalance: 3500000,
+    color: "#FFB800",
     icon: "Banknote",
     isArchived: false,
+    order: 4,
   },
 ];
 
@@ -93,6 +98,7 @@ export const SEED_VAULTS: Vault[] = [
     icon: "Cpu",
     status: "active",
     targetDate: "2026-12-31",
+    order: 0,
   },
   {
     id: "vault_emergency",
@@ -103,6 +109,7 @@ export const SEED_VAULTS: Vault[] = [
     color: "#00FF88",
     icon: "ShieldAlert",
     status: "active",
+    order: 1,
   },
   {
     id: "vault_retreat",
@@ -114,6 +121,7 @@ export const SEED_VAULTS: Vault[] = [
     icon: "Mountain",
     status: "reached",
     targetDate: "2026-10-15",
+    order: 2,
   },
 ];
 
@@ -217,6 +225,7 @@ export const FACTORY_BASELINE_ACCOUNTS: Account[] = [
     color: "#00F0FF",
     icon: "Landmark",
     isArchived: false,
+    order: 0,
   },
   {
     id: "acc_cash",
@@ -228,6 +237,7 @@ export const FACTORY_BASELINE_ACCOUNTS: Account[] = [
     color: "#94A3B8",
     icon: "Banknote",
     isArchived: false,
+    order: 1,
   },
 ];
 

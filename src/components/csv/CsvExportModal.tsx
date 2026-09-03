@@ -22,7 +22,28 @@ export const CsvExportModal: React.FC = () => {
   const [selectedAccountId, setSelectedAccountId] = useState<string>("all");
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>("all");
 
+  const overlayRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    if (!isCsvExportOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        playSound("click", soundEnabled);
+        setCsvExportOpen(false);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isCsvExportOpen, setCsvExportOpen, soundEnabled]);
+
   if (!isCsvExportOpen) return null;
+
+  const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (e.target === overlayRef.current) {
+      playSound("click", soundEnabled);
+      setCsvExportOpen(false);
+    }
+  };
 
   const handleExport = () => {
     playSound("click", soundEnabled);
@@ -58,12 +79,16 @@ export const CsvExportModal: React.FC = () => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-sm p-4">
+    <div
+      ref={overlayRef}
+      onClick={handleBackdropClick}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-sm p-3 sm:p-4 overflow-hidden pb-[env(safe-area-inset-bottom)]"
+    >
       <div
-        className="w-full max-w-md rounded-lg border border-[#232A3B] bg-[#0F131C] shadow-2xl overflow-hidden"
+        className="w-full max-w-md max-h-[calc(100dvh-2rem)] flex flex-col rounded-xl border border-[#232A3B] bg-[#0F131C] shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between border-b border-[#232A3B] px-4 py-3 bg-[#07090E]">
+        <div className="flex-shrink-0 flex items-center justify-between border-b border-[#232A3B] px-4 py-3 bg-[#07090E]">
           <div className="flex items-center gap-2">
             <Download className="h-4 w-4 text-[#00FF88]" />
             <h3 className="font-mono-num text-xs font-bold uppercase tracking-wider text-white">
@@ -71,14 +96,17 @@ export const CsvExportModal: React.FC = () => {
             </h3>
           </div>
           <button
-            onClick={() => setCsvExportOpen(false)}
-            className="text-[#64748B] hover:text-white"
+            onClick={() => {
+              playSound("click", soundEnabled);
+              setCsvExportOpen(false);
+            }}
+            className="text-[#64748B] hover:text-white p-1 rounded hover:bg-[#161B26]"
           >
             <X className="h-4 w-4" />
           </button>
         </div>
 
-        <div className="p-4 space-y-4">
+        <div className="flex-1 min-h-0 overflow-y-auto p-4 space-y-4 custom-scrollbar">
           <div>
             <label className="block text-[10px] font-mono-num uppercase tracking-wider text-[#64748B] mb-1">
               Time Range
@@ -129,7 +157,9 @@ export const CsvExportModal: React.FC = () => {
               ))}
             </select>
           </div>
+        </div>
 
+        <div className="flex-shrink-0 border-t border-[#232A3B] px-4 py-3 bg-[#07090E]">
           <button
             onClick={handleExport}
             className="flex w-full items-center justify-center gap-2 rounded border border-[#00FF88]/60 bg-[#00FF88]/15 py-2.5 text-xs font-bold font-mono-num text-[#00FF88] hover:bg-[#00FF88]/25 transition-colors shadow-[0_0_12px_rgba(0,255,136,0.15)]"

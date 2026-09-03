@@ -42,6 +42,7 @@ export default function DashboardPage() {
     openQuickTx,
     setCmdBarOpen,
     setCsvImportOpen,
+    openVaultModal,
   } = useUIStore();
 
   const accounts = useLiveQuery(() => db.accounts.toArray()) ?? [];
@@ -274,30 +275,71 @@ export default function DashboardPage() {
       {/* Vaults Tab Content */}
       {activeTab === "vaults" && (
         <div className="space-y-4">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div className="flex items-center gap-2">
               <Shield className="h-4 w-4 text-[#00F0FF]" />
               <h3 className="font-mono-num text-sm font-bold uppercase tracking-wider text-white">
                 Capital Sinking Vaults ({vaults.length})
               </h3>
             </div>
-            <button
-              onClick={() => {
-                playSound("click", soundEnabled);
-                openQuickTx({ type: "vault_deposit" });
-              }}
-              className="flex items-center gap-1.5 rounded border border-[#00F0FF]/50 bg-[#00F0FF]/10 px-2.5 py-1 text-xs font-mono-num text-[#00F0FF] hover:bg-[#00F0FF]/20 transition-colors"
-            >
-              <Plus className="h-3.5 w-3.5" />
-              <span>NEW DEPOSIT</span>
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => {
+                  playSound("click", soundEnabled);
+                  triggerHaptic(15);
+                  openVaultModal();
+                }}
+                className="flex items-center gap-1.5 rounded border border-[#00F0FF]/60 bg-[#00F0FF]/15 px-3 py-1.5 text-xs font-mono-num font-bold text-[#00F0FF] hover:bg-[#00F0FF]/25 transition-colors shadow-[0_0_12px_rgba(0,240,255,0.15)]"
+              >
+                <Plus className="h-3.5 w-3.5" />
+                <span>CREATE VAULT</span>
+              </button>
+              <button
+                onClick={() => {
+                  playSound("click", soundEnabled);
+                  triggerHaptic(15);
+                  openQuickTx({ type: "vault_deposit" });
+                }}
+                className="flex items-center gap-1.5 rounded border border-[#232A3B] bg-[#161B26] px-3 py-1.5 text-xs font-mono-num text-[#94A3B8] hover:text-white transition-colors"
+              >
+                <Plus className="h-3.5 w-3.5" />
+                <span>QUICK DEPOSIT</span>
+              </button>
+            </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-            {vaults.map((vault) => (
-              <VaultCard key={vault.id} vault={vault} />
-            ))}
-          </div>
+          {vaults.length === 0 ? (
+            <div className="industrial-card rounded-xl border border-dashed border-[#232A3B] bg-[#0F131C] p-8 text-center space-y-4">
+              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full border border-[#00F0FF]/30 bg-[#00F0FF]/5 text-[#00F0FF]">
+                <Shield className="h-7 w-7" />
+              </div>
+              <div className="space-y-1">
+                <h4 className="text-sm font-bold uppercase font-mono-num text-white">
+                  No Sinking Vaults Configured
+                </h4>
+                <p className="text-xs text-[#94A3B8] font-mono-num max-w-md mx-auto">
+                  Segregate long-term target savings (e.g. emergency runway, travel fund, capital equipment) with targeted deposit allocations.
+                </p>
+              </div>
+              <button
+                onClick={() => {
+                  playSound("click", soundEnabled);
+                  triggerHaptic(15);
+                  openVaultModal();
+                }}
+                className="inline-flex items-center gap-1.5 rounded border border-[#00F0FF] bg-[#00F0FF]/20 px-4 py-2 text-xs font-mono-num font-bold text-[#00F0FF] hover:bg-[#00F0FF]/30 transition-all shadow-[0_0_15px_rgba(0,240,255,0.2)]"
+              >
+                <Plus className="h-4 w-4" />
+                <span>INITIALIZE FIRST SINKING VAULT</span>
+              </button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+              {vaults.map((vault) => (
+                <VaultCard key={vault.id} vault={vault} />
+              ))}
+            </div>
+          )}
         </div>
       )}
 

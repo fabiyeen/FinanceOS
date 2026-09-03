@@ -44,8 +44,30 @@ export const CsvImportWizard: React.FC = () => {
   const [processedRows, setProcessedRows] = useState<ParsedCsvRow[]>([]);
   const [isImporting, setIsImporting] = useState(false);
   const [skipDuplicates, setSkipDuplicates] = useState(true);
+  const overlayRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    if (!isCsvImportOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        playSound("click", soundEnabled);
+        setCsvImportOpen(false);
+        setStep(1);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isCsvImportOpen, setCsvImportOpen, soundEnabled]);
 
   if (!isCsvImportOpen) return null;
+
+  const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (e.target === overlayRef.current) {
+      playSound("click", soundEnabled);
+      setCsvImportOpen(false);
+      setStep(1);
+    }
+  };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -131,13 +153,17 @@ export const CsvImportWizard: React.FC = () => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-sm p-4 overflow-y-auto">
+    <div
+      ref={overlayRef}
+      onClick={handleBackdropClick}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-sm p-3 sm:p-6 overflow-hidden pb-[env(safe-area-inset-bottom)]"
+    >
       <div
-        className="w-full max-w-3xl rounded-lg border border-[#232A3B] bg-[#0F131C] shadow-2xl overflow-hidden my-8"
+        className="w-full max-w-3xl max-h-[calc(100dvh-2rem)] flex flex-col rounded-xl border border-[#232A3B] bg-[#0F131C] shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Header */}
-        <div className="flex items-center justify-between border-b border-[#232A3B] px-4 py-3 bg-[#07090E]">
+        {/* Sticky Header */}
+        <div className="flex-shrink-0 flex items-center justify-between border-b border-[#232A3B] px-4 py-3 bg-[#07090E]">
           <div className="flex items-center gap-2">
             <FileSpreadsheet className="h-4 w-4 text-[#FFB800]" />
             <h3 className="font-mono-num text-xs sm:text-sm font-bold uppercase tracking-wider text-white">
@@ -150,11 +176,14 @@ export const CsvImportWizard: React.FC = () => {
               setCsvImportOpen(false);
               setStep(1);
             }}
-            className="text-[#64748B] hover:text-white"
+            className="text-[#64748B] hover:text-white p-1 rounded hover:bg-[#161B26]"
           >
             <X className="h-4 w-4" />
           </button>
         </div>
+
+        {/* Scrollable Wizard Body */}
+        <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar">
 
         {/* Step 1: Upload */}
         {step === 1 && (
@@ -380,6 +409,7 @@ export const CsvImportWizard: React.FC = () => {
             </div>
           </div>
         )}
+        </div>
       </div>
     </div>
   );
