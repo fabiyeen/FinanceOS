@@ -1,69 +1,308 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import React from "react";
+import {
+  Flame,
+  Hourglass,
+  Percent,
+  Plus,
+  ArrowRightLeft,
+  FileSpreadsheet,
+  Zap,
+  Shield,
+} from "lucide-react";
+import { useUIStore } from "../store/useUIStore";
+import { db } from "../lib/db/dexie";
+import { useLiveQuery } from "dexie-react-hooks";
+import {
+  calculateDebtToAssetRatio,
+  calculateNetWorth,
+  calculateRunway,
+  computeMonthlyMetrics,
+  formatCurrency,
+} from "../lib/mathEngine";
+import { playSound, triggerHaptic } from "../lib/audioHaptics";
+
+// Views & Components
+import { TransactionFeed } from "../components/ledger/TransactionFeed";
+import { AccountDrawer } from "../components/ledger/AccountDrawer";
+import { VaultCard } from "../components/ledger/VaultCard";
+import { SpendVelocityGauge } from "../components/analytics/SpendVelocityGauge";
+import { SankeyFlowDiagram } from "../components/analytics/SankeyFlowDiagram";
+import { HeatmapCalendar } from "../components/analytics/HeatmapCalendar";
+import { CashflowHorizonChart } from "../components/analytics/CashflowHorizonChart";
+import { ExpenseTreemap } from "../components/analytics/ExpenseTreemap";
+import { ToolsView } from "../components/tools/ToolsView";
+
+export default function DashboardPage() {
+  const {
+    activeTab,
+    privacyMode,
+    soundEnabled,
+    openQuickTx,
+    setCmdBarOpen,
+    setCsvImportOpen,
+  } = useUIStore();
+
+  const accounts = useLiveQuery(() => db.accounts.toArray()) ?? [];
+  const vaults = useLiveQuery(() => db.vaults.toArray()) ?? [];
+  const debts = useLiveQuery(() => db.debts.toArray()) ?? [];
+  const recurring = useLiveQuery(() => db.recurring.toArray()) ?? [];
+  const categories = useLiveQuery(() => db.categories.toArray()) ?? [];
+  const transactions = useLiveQuery(() => db.transactions.toArray()) ?? [];
+  const settings = useLiveQuery(() => db.settings.get("main"));
+
+  const currency = settings?.currency || "IDR";
+  const locale = settings?.locale || "id-ID";
+  const monthlyBudget = settings?.monthlyBudget || 18000000;
+
+  // Math Engine Calculations
+  const netWorth = calculateNetWorth(accounts, vaults, debts);
+  const metrics = computeMonthlyMetrics(transactions, new Date(), monthlyBudget);
+  const runway = calculateRunway(accounts, transactions, new Date());
+  const debtRatio = calculateDebtToAssetRatio(accounts, debts, netWorth);
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
+    <div className="space-y-6">
+      {/* Overview Tab Content */}
+      {activeTab === "overview" && (
+        <div className="space-y-6">
+          {/* Top High-Density Metric Telemetry Grid */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
+            {/* 1. Monthly Burn & Budget */}
+            <div className="industrial-card rounded-lg p-3 sm:p-4 border border-[#232A3B] bg-[#0F131C]">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-mono-num uppercase tracking-wider text-[#64748B] flex items-center gap-1">
+                  <Flame className="h-3 w-3 text-[#FF5C00]" />
+                  Burn Rate
+                </span>
+                <span className="text-[9px] font-mono-num text-[#94A3B8]">
+                  {metrics.spendVelocityRatio.toFixed(2)}x PACING
+                </span>
+              </div>
+              <div
+                className={`font-mono-num text-base sm:text-xl font-bold text-white mt-1.5 ${
+                  privacyMode ? "privacy-blur" : ""
+                }`}
+              >
+                {formatCurrency(metrics.spentThisMonth, currency, locale)}
+              </div>
+              <div className="text-[10px] font-mono-num text-[#64748B] mt-1">
+                Budget: {formatCurrency(monthlyBudget, currency, locale)}
+              </div>
+            </div>
+
+            {/* 2. Runway Calculator */}
+            <div className="industrial-card rounded-lg p-3 sm:p-4 border border-[#232A3B] bg-[#0F131C]">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-mono-num uppercase tracking-wider text-[#64748B] flex items-center gap-1">
+                  <Hourglass className="h-3 w-3 text-[#00FF88]" />
+                  Runway
+                </span>
+                <span className="rounded bg-[#00FF88]/15 px-1 py-0.2 text-[9px] font-mono-num font-bold text-[#00FF88]">
+                  [LIQUID]
+                </span>
+              </div>
+              <div className="font-mono-num text-base sm:text-xl font-bold text-[#00FF88] mt-1.5">
+                {runway.runwayMonths} MONTHS
+              </div>
+              <div
+                className={`text-[10px] font-mono-num text-[#64748B] mt-1 ${
+                  privacyMode ? "privacy-blur" : ""
+                }`}
+              >
+                Reserves: {formatCurrency(runway.liquidReserves, currency, locale)}
+              </div>
+            </div>
+
+            {/* 3. Savings Rate */}
+            <div className="industrial-card rounded-lg p-3 sm:p-4 border border-[#232A3B] bg-[#0F131C]">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-mono-num uppercase tracking-wider text-[#64748B] flex items-center gap-1">
+                  <Percent className="h-3 w-3 text-[#00F0FF]" />
+                  Savings Rate
+                </span>
+                <span className="text-[9px] font-mono-num text-[#00F0FF]">
+                  [EFFICIENCY]
+                </span>
+              </div>
+              <div className="font-mono-num text-base sm:text-xl font-bold text-[#00F0FF] mt-1.5">
+                {metrics.savingsRate.toFixed(1)}%
+              </div>
+              <div
+                className={`text-[10px] font-mono-num text-[#64748B] mt-1 ${
+                  privacyMode ? "privacy-blur" : ""
+                }`}
+              >
+                Inflow: {formatCurrency(metrics.incomeThisMonth, currency, locale)}
+              </div>
+            </div>
+
+            {/* 4. Debt-to-Asset Ratio */}
+            <div className="industrial-card rounded-lg p-3 sm:p-4 border border-[#232A3B] bg-[#0F131C]">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-mono-num uppercase tracking-wider text-[#64748B] flex items-center gap-1">
+                  <Shield className="h-3 w-3 text-[#FFB800]" />
+                  Debt-to-Asset
+                </span>
+                <span className="text-[9px] font-mono-num text-[#94A3B8]">
+                  [GEARING]
+                </span>
+              </div>
+              <div className="font-mono-num text-base sm:text-xl font-bold text-white mt-1.5">
+                {debtRatio.toFixed(1)}%
+              </div>
+              <div className="text-[10px] font-mono-num text-[#00FF88] mt-1">
+                {debtRatio < 30 ? "PRUDENT (LEAN LEVERAGE)" : "ELEVATED RATIO"}
+              </div>
+            </div>
+          </div>
+
+          {/* Quick Action Matrix Banner */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+            <button
+              onClick={() => {
+                playSound("click", soundEnabled);
+                triggerHaptic(15);
+                setCmdBarOpen(true);
+              }}
+              className="flex items-center justify-between p-3 rounded-lg border border-[#232A3B] bg-[#0F131C] hover:border-[#00F0FF]/50 transition-colors group"
             >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 rounded bg-[#161B26] text-[#00F0FF] border border-[#232A3B]">
+                  <Zap className="h-4 w-4" />
+                </div>
+                <div className="text-left">
+                  <div className="text-xs font-bold text-white font-mono-num uppercase">
+                    Command Bar
+                  </div>
+                  <div className="text-[10px] font-mono-num text-[#64748B]">
+                    Natural language fast dispatch
+                  </div>
+                </div>
+              </div>
+              <span className="font-mono-num text-[10px] text-[#64748B] group-hover:text-[#00F0FF]">
+                CMD+K
+              </span>
+            </button>
+
+            <button
+              onClick={() => {
+                playSound("click", soundEnabled);
+                triggerHaptic(15);
+                openQuickTx({ type: "transfer" });
+              }}
+              className="flex items-center justify-between p-3 rounded-lg border border-[#232A3B] bg-[#0F131C] hover:border-[#00FF88]/50 transition-colors group"
             >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 rounded bg-[#161B26] text-[#00FF88] border border-[#232A3B]">
+                  <ArrowRightLeft className="h-4 w-4" />
+                </div>
+                <div className="text-left">
+                  <div className="text-xs font-bold text-white font-mono-num uppercase">
+                    Inter-Account Transfer
+                  </div>
+                  <div className="text-[10px] font-mono-num text-[#64748B]">
+                    Atomic zero-sum ledger debit/credit
+                  </div>
+                </div>
+              </div>
+              <span className="font-mono-num text-[10px] text-[#64748B] group-hover:text-[#00FF88]">
+                TRANSFER
+              </span>
+            </button>
+
+            <button
+              onClick={() => {
+                playSound("click", soundEnabled);
+                triggerHaptic(15);
+                setCsvImportOpen(true);
+              }}
+              className="flex items-center justify-between p-3 rounded-lg border border-[#232A3B] bg-[#0F131C] hover:border-[#FFB800]/50 transition-colors group"
+            >
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 rounded bg-[#161B26] text-[#FFB800] border border-[#232A3B]">
+                  <FileSpreadsheet className="h-4 w-4" />
+                </div>
+                <div className="text-left">
+                  <div className="text-xs font-bold text-white font-mono-num uppercase">
+                    Import Statement
+                  </div>
+                  <div className="text-[10px] font-mono-num text-[#64748B]">
+                    CSV mapping &amp; deduplication
+                  </div>
+                </div>
+              </div>
+              <span className="font-mono-num text-[10px] text-[#64748B] group-hover:text-[#FFB800]">
+                IMPORT
+              </span>
+            </button>
+          </div>
+
+          {/* Central Ledger Feed */}
+          <TransactionFeed />
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+      )}
+
+      {/* Analytics Tab Content */}
+      {activeTab === "analytics" && (
+        <div className="space-y-6">
+          <SpendVelocityGauge
+            transactions={transactions}
+            monthlyBudget={monthlyBudget}
+          />
+          <SankeyFlowDiagram
+            transactions={transactions}
+            monthlyBudget={monthlyBudget}
+          />
+          <HeatmapCalendar transactions={transactions} />
+          <CashflowHorizonChart
+            accounts={accounts}
+            transactions={transactions}
+            recurring={recurring}
+          />
+          <ExpenseTreemap
+            transactions={transactions}
+            categories={categories}
+          />
         </div>
-      </main>
+      )}
+
+      {/* Accounts Tab Content */}
+      {activeTab === "accounts" && <AccountDrawer />}
+
+      {/* Vaults Tab Content */}
+      {activeTab === "vaults" && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Shield className="h-4 w-4 text-[#00F0FF]" />
+              <h3 className="font-mono-num text-sm font-bold uppercase tracking-wider text-white">
+                Capital Sinking Vaults ({vaults.length})
+              </h3>
+            </div>
+            <button
+              onClick={() => {
+                playSound("click", soundEnabled);
+                openQuickTx({ type: "vault_deposit" });
+              }}
+              className="flex items-center gap-1.5 rounded border border-[#00F0FF]/50 bg-[#00F0FF]/10 px-2.5 py-1 text-xs font-mono-num text-[#00F0FF] hover:bg-[#00F0FF]/20 transition-colors"
+            >
+              <Plus className="h-3.5 w-3.5" />
+              <span>NEW DEPOSIT</span>
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            {vaults.map((vault) => (
+              <VaultCard key={vault.id} vault={vault} />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Tools Tab Content */}
+      {activeTab === "tools" && <ToolsView />}
     </div>
   );
 }
