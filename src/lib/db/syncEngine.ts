@@ -671,9 +671,11 @@ export function initFirestoreSync(userId: string): () => void {
 /**
  * Check and execute due recurring rules
  */
-export async function processDueRecurringRules(): Promise<number> {
+export async function processDueRecurringRules(userId?: string): Promise<number> {
+  const activeUserId = userId || getCurrentActiveUserId();
+  const userDb = getDatabaseForUser(activeUserId);
   const today = new Date().toISOString().split("T")[0];
-  const dueRules = await db.recurring
+  const dueRules = await userDb.recurring
     .where("nextRunDate")
     .belowOrEqual(today)
     .toArray();
@@ -713,6 +715,10 @@ export async function processDueRecurringRules(): Promise<number> {
     }
 
     const nextRunDateStr = nextDate.toISOString().split("T")[0];
+    await userDb.recurring.update(rule.id, {
+      nextRunDate: nextRunDateStr,
+      lastExecuted: today,
+    });
     await db.recurring.update(rule.id, {
       nextRunDate: nextRunDateStr,
       lastExecuted: today,
@@ -723,3 +729,17 @@ export async function processDueRecurringRules(): Promise<number> {
 
   return executedCount;
 }
+
+/**
+ * Save or update a recurring transaction rule
+ */
+export async function saveRecurringRule(
+  rule: RecurringRule,
+  userId?: string
+): Promise<void> {
+  const activeUserId = userId || getCurrentActiveUserId();
+  const userDb = getDatabaseForUser(activeUserId);
+  await userDb.recurring.put(rule);
+  await db.recurring.put(rule);
+}
+

@@ -27,7 +27,6 @@ export const HeatmapCalendar: React.FC<HeatmapCalendarProps> = ({ transactions }
     const result: { date: string; amount: number; dayOfWeek: number }[] = [];
     let max = 1;
 
-    // 84 days back
     for (let i = 83; i >= 0; i--) {
       const d = new Date(today);
       d.setDate(d.getDate() - i);
@@ -44,50 +43,49 @@ export const HeatmapCalendar: React.FC<HeatmapCalendarProps> = ({ transactions }
     return { days: result, maxSpend: max };
   }, [transactions]);
 
-  // Determine heat level 0 - 4
+  // Determine heat level
   const getLevelColor = (amount: number) => {
-    if (amount === 0) return "#161B26"; // Void surface
+    if (amount === 0) return "var(--heatmap-empty, rgba(255, 255, 255, 0.05))";
     const ratio = amount / maxSpend;
-    if (ratio < 0.25) return "rgba(0, 255, 136, 0.4)"; // Low (Emerald)
-    if (ratio < 0.5) return "#00FF88"; // Moderate (Emerald solid)
-    if (ratio < 0.75) return "#00F0FF"; // Heavy (Cyan)
-    return "#FF5C00"; // Peak burn (Safety Orange)
+    if (ratio < 0.25) return "rgba(16, 185, 129, 0.35)";
+    if (ratio < 0.5) return "rgba(16, 185, 129, 0.75)";
+    if (ratio < 0.75) return "#06B6D4";
+    return "#F43F5E";
   };
 
   return (
-    <div className="industrial-card rounded-lg border border-[#232A3B] bg-[#0F131C] p-4 sm:p-5">
-      <div className="flex items-center justify-between mb-3">
+    <div className="rounded-2xl border border-white/[0.08] dark:border-white/[0.08] light:border-slate-200 bg-[var(--bg-surface)] p-5 sm:p-6 shadow-sm overflow-hidden transition-colors">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
         <div className="flex items-center gap-2">
-          <Calendar className="h-4 w-4 text-[#00F0FF]" />
-          <h3 className="font-mono-num text-xs sm:text-sm font-bold uppercase tracking-wider text-white">
-            Daily Spend Intensity (12-Week Matrix)
+          <Calendar className="h-4 w-4 text-emerald-500" />
+          <h3 className="text-sm font-semibold text-[var(--text-primary)]">
+            Daily Spending Activity (12-Week Heatmap)
           </h3>
         </div>
 
         {/* Legend */}
-        <div className="flex items-center gap-1 text-[9px] font-mono-num text-[#64748B]">
-          <span>LESS</span>
-          <span className="h-2 w-2 rounded-sm bg-[#161B26]" />
-          <span className="h-2 w-2 rounded-sm bg-[#00FF88]/40" />
-          <span className="h-2 w-2 rounded-sm bg-[#00FF88]" />
-          <span className="h-2 w-2 rounded-sm bg-[#00F0FF]" />
-          <span className="h-2 w-2 rounded-sm bg-[#FF5C00]" />
-          <span>MORE</span>
+        <div className="flex items-center gap-1.5 text-[10px] font-mono-num text-[var(--text-muted)]">
+          <span>Less</span>
+          <span className="h-2.5 w-2.5 rounded-sm bg-white/[0.06] light:bg-slate-200 border border-white/[0.06] dark:border-white/[0.06] light:border-slate-300" />
+          <span className="h-2.5 w-2.5 rounded-sm bg-emerald-500/35" />
+          <span className="h-2.5 w-2.5 rounded-sm bg-emerald-500/75" />
+          <span className="h-2.5 w-2.5 rounded-sm bg-cyan-500" />
+          <span className="h-2.5 w-2.5 rounded-sm bg-rose-500" />
+          <span>More</span>
         </div>
       </div>
 
       {/* Grid Canvas */}
       <div className="overflow-x-auto pb-1">
-        <div className="inline-grid grid-rows-7 grid-flow-col gap-1.5 p-1 bg-[#07090E] rounded border border-[#232A3B]">
+        <div className="inline-grid grid-rows-7 grid-flow-col gap-1.5 p-2 bg-white/[0.02] dark:bg-white/[0.02] light:bg-slate-100 rounded-xl border border-white/[0.06] dark:border-white/[0.06] light:border-slate-200">
           {days.map((d) => (
             <div
               key={d.date}
               onMouseEnter={() => setHoveredDay({ date: d.date, amount: d.amount })}
               onMouseLeave={() => setHoveredDay(null)}
-              className="h-3 w-3 sm:h-3.5 sm:w-3.5 rounded-xs transition-transform hover:scale-125 cursor-pointer"
+              className="h-3.5 w-3.5 rounded-xs transition-transform hover:scale-125 cursor-pointer"
               style={{
                 backgroundColor: getLevelColor(d.amount),
-                boxShadow: d.amount > 0 ? `0 0 4px ${getLevelColor(d.amount)}` : "none",
               }}
             />
           ))}
@@ -95,24 +93,24 @@ export const HeatmapCalendar: React.FC<HeatmapCalendarProps> = ({ transactions }
       </div>
 
       {/* Hover Status Readout */}
-      <div className="mt-3 pt-2 border-t border-[#232A3B]/60 flex items-center justify-between text-xs font-mono-num">
-        <div className="text-[#64748B]">
+      <div className="mt-3 pt-3 border-t border-white/[0.06] dark:border-white/[0.06] light:border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-xs font-mono-num">
+        <div className="text-[var(--text-secondary)]">
           {hoveredDay ? (
-            <span className="text-white font-medium">
+            <span className="font-medium text-[var(--text-primary)]">
               {hoveredDay.date} •{" "}
-              <span className={`text-[#00F0FF] ${privacyMode ? "privacy-blur" : ""}`}>
+              <span className={`text-emerald-500 tabular-nums ${privacyMode ? "privacy-blur" : ""}`}>
                 {hoveredDay.amount > 0
                   ? formatCurrency(hoveredDay.amount, "IDR", "id-ID")
                   : "Zero Spend Day"}
               </span>
             </span>
           ) : (
-            <span>Hover over any block to view daily cash dissipation</span>
+            <span className="text-[var(--text-muted)]">Hover over any block to view daily spending</span>
           )}
         </div>
-        <div className="flex items-center gap-1 text-[#94A3B8] text-[10px]">
-          <Flame className="h-3 w-3 text-[#FF5C00]" />
-          <span>Peak: {formatCurrency(maxSpend, "IDR", "id-ID")}</span>
+        <div className="flex items-center gap-1.5 text-[var(--text-muted)] text-[11px]">
+          <Flame className="h-3.5 w-3.5 text-rose-500" />
+          <span>Peak: <span className="tabular-nums font-semibold text-[var(--text-secondary)]">{formatCurrency(maxSpend, "IDR", "id-ID")}</span></span>
         </div>
       </div>
     </div>

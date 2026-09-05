@@ -8,9 +8,8 @@ import {
   YAxis,
   Tooltip,
   ResponsiveContainer,
-  ReferenceLine,
 } from "recharts";
-import { Activity, TrendingUp } from "lucide-react";
+import { Activity } from "lucide-react";
 import { Account, RecurringRule, Transaction } from "../../lib/types";
 import { formatCurrency, safeAdd, safeSub } from "../../lib/mathEngine";
 import { useUIStore } from "../../store/useUIStore";
@@ -56,7 +55,6 @@ export const CashflowHorizonChart: React.FC<CashflowHorizonProps> = ({
       if (i === 0) {
         historyPoints.unshift({ date: dStr.substring(5), actual: currentLiquid });
       } else {
-        // Approximate prior balance by factoring out that day's net transactions
         const dayTxs = transactions.filter((t) => t.date === dStr);
         let dayNet = 0;
         for (const t of dayTxs) {
@@ -72,7 +70,6 @@ export const CashflowHorizonChart: React.FC<CashflowHorizonProps> = ({
 
     // 30 days forward projection
     let runningForward = currentLiquid;
-    // Average daily burn estimate (excluding spikes)
     const dailyEstimatedBurn = 350000;
 
     for (let i = 1; i <= 30; i++) {
@@ -82,7 +79,6 @@ export const CashflowHorizonChart: React.FC<CashflowHorizonProps> = ({
 
       runningForward = safeSub(runningForward, dailyEstimatedBurn);
 
-      // Check if any recurring rules fire on this day
       for (const r of recurring) {
         if (r.nextRunDate === dStr) {
           if (r.type === "income") {
@@ -104,21 +100,21 @@ export const CashflowHorizonChart: React.FC<CashflowHorizonProps> = ({
   }, [currentLiquid, transactions, recurring]);
 
   return (
-    <div className="industrial-card rounded-lg border border-[#232A3B] bg-[#0F131C] p-4 sm:p-5">
-      <div className="flex items-center justify-between mb-4">
+    <div className="rounded-2xl border border-white/[0.08] dark:border-white/[0.08] light:border-slate-200 bg-[var(--bg-surface)] p-5 sm:p-6 shadow-sm overflow-hidden transition-colors">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
         <div className="flex items-center gap-2">
-          <Activity className="h-4 w-4 text-[#00FF88]" />
-          <h3 className="font-mono-num text-xs sm:text-sm font-bold uppercase tracking-wider text-white">
-            Cashflow Horizon (30-Day Forward Forecast)
+          <Activity className="h-4 w-4 text-emerald-500" />
+          <h3 className="text-sm font-semibold text-[var(--text-primary)]">
+            Cashflow Horizon (30-Day Forecast)
           </h3>
         </div>
-        <div className="flex items-center gap-3 text-[10px] font-mono-num">
-          <span className="flex items-center gap-1 text-[#00F0FF]">
-            <span className="h-1.5 w-1.5 rounded-full bg-[#00F0FF]" />
+        <div className="flex items-center gap-3 text-[11px] font-mono-num">
+          <span className="flex items-center gap-1.5 text-cyan-400">
+            <span className="h-2 w-2 rounded-full bg-cyan-400" />
             Historical Actuals
           </span>
-          <span className="flex items-center gap-1 text-[#00FF88]">
-            <span className="h-1.5 w-1.5 rounded-full bg-[#00FF88]" />
+          <span className="flex items-center gap-1.5 text-emerald-500">
+            <span className="h-2 w-2 rounded-full bg-emerald-500" />
             Projected Runway
           </span>
         </div>
@@ -129,12 +125,12 @@ export const CashflowHorizonChart: React.FC<CashflowHorizonProps> = ({
           <AreaChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
             <defs>
               <linearGradient id="colorActual" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#00F0FF" stopOpacity={0.4} />
-                <stop offset="95%" stopColor="#00F0FF" stopOpacity={0.0} />
+                <stop offset="5%" stopColor="#06B6D4" stopOpacity={0.35} />
+                <stop offset="95%" stopColor="#06B6D4" stopOpacity={0.0} />
               </linearGradient>
               <linearGradient id="colorProjected" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#00FF88" stopOpacity={0.3} />
-                <stop offset="95%" stopColor="#00FF88" stopOpacity={0.0} />
+                <stop offset="5%" stopColor="#10B981" stopOpacity={0.3} />
+                <stop offset="95%" stopColor="#10B981" stopOpacity={0.0} />
               </linearGradient>
             </defs>
             <XAxis
@@ -142,13 +138,13 @@ export const CashflowHorizonChart: React.FC<CashflowHorizonProps> = ({
               stroke="#64748B"
               fontSize={10}
               tickLine={false}
-              axisLine={{ stroke: "#232A3B" }}
+              axisLine={false}
             />
             <YAxis
               stroke="#64748B"
               fontSize={10}
               tickLine={false}
-              axisLine={{ stroke: "#232A3B" }}
+              axisLine={false}
               tickFormatter={(v) => `${(v / 1000000).toFixed(0)}M`}
             />
             <Tooltip
@@ -157,13 +153,13 @@ export const CashflowHorizonChart: React.FC<CashflowHorizonProps> = ({
                 const pt = payload[0].payload;
                 const val = pt.actual !== undefined ? pt.actual : pt.projected;
                 return (
-                  <div className="rounded border border-[#232A3B] bg-[#07090E] p-2 font-mono-num text-xs shadow-xl">
-                    <div className="text-[#64748B] text-[10px]">
+                  <div className="rounded-xl border border-white/[0.1] dark:border-white/[0.1] light:border-slate-200 bg-[var(--bg-surface)] p-2.5 font-mono-num text-xs shadow-xl">
+                    <div className="text-[var(--text-muted)] text-[10px]">
                       {pt.isProjection ? "PROJECTED DATE" : "DATE"}: {pt.date}
                     </div>
                     <div
-                      className={`font-bold mt-0.5 ${
-                        pt.isProjection ? "text-[#00FF88]" : "text-[#00F0FF]"
+                      className={`font-bold mt-0.5 tabular-nums ${
+                        pt.isProjection ? "text-emerald-500" : "text-cyan-400"
                       } ${privacyMode ? "privacy-blur" : ""}`}
                     >
                       {formatCurrency(val, "IDR", "id-ID")}
@@ -175,7 +171,7 @@ export const CashflowHorizonChart: React.FC<CashflowHorizonProps> = ({
             <Area
               type="monotone"
               dataKey="actual"
-              stroke="#00F0FF"
+              stroke="#06B6D4"
               strokeWidth={2}
               fillOpacity={1}
               fill="url(#colorActual)"
@@ -183,7 +179,7 @@ export const CashflowHorizonChart: React.FC<CashflowHorizonProps> = ({
             <Area
               type="monotone"
               dataKey="projected"
-              stroke="#00FF88"
+              stroke="#10B981"
               strokeDasharray="4 4"
               strokeWidth={2}
               fillOpacity={1}

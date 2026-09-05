@@ -268,24 +268,24 @@ export const CategoryManager: React.FC<CategoryManagerProps> = ({ isModal = fals
       {/* Header & Controls */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="flex items-center gap-2">
-          <Tag className="h-4 w-4 text-[#00F0FF]" />
-          <h3 className="font-mono-num text-sm font-bold uppercase tracking-wider text-white">
-            Category Architecture &amp; Priority
+          <Tag className="h-4 w-4 text-emerald-500" />
+          <h3 className="text-sm font-semibold text-[var(--text-primary)]">
+            Categories &amp; Priority
           </h3>
         </div>
 
         <div className="flex items-center gap-2">
           {/* Tabs */}
-          <div className="flex p-0.5 rounded border border-[#232A3B] bg-[#07090E]">
+          <div className="flex p-1 rounded-xl border border-white/[0.08] dark:border-white/[0.08] light:border-slate-200 bg-white/[0.02] dark:bg-white/[0.02] light:bg-slate-100">
             <button
               onClick={() => {
                 playSound("tab", true);
                 setActiveTab("expense");
               }}
-              className={`px-3 py-1 text-xs font-mono-num rounded uppercase transition-colors ${
+              className={`px-3 py-1 text-xs rounded-lg transition-all font-medium ${
                 activeTab === "expense"
-                  ? "bg-[#1E2536] text-[#FF5C00] font-bold"
-                  : "text-[#64748B] hover:text-[#94A3B8]"
+                  ? "bg-white/[0.1] text-white font-semibold shadow-sm border border-white/[0.12] dark:bg-white/[0.1] dark:text-white light:bg-slate-900 light:text-white"
+                  : "text-zinc-400 hover:text-zinc-200 dark:text-zinc-400 dark:hover:text-zinc-200 light:text-slate-500 light:hover:text-slate-900"
               }`}
             >
               Expense ({rawCategories.filter((c) => c.type === "expense").length})
@@ -295,10 +295,10 @@ export const CategoryManager: React.FC<CategoryManagerProps> = ({ isModal = fals
                 playSound("tab", true);
                 setActiveTab("income");
               }}
-              className={`px-3 py-1 text-xs font-mono-num rounded uppercase transition-colors ${
+              className={`px-3 py-1 text-xs rounded-lg transition-all font-medium ${
                 activeTab === "income"
-                  ? "bg-[#1E2536] text-[#00FF88] font-bold"
-                  : "text-[#64748B] hover:text-[#94A3B8]"
+                  ? "bg-white/[0.1] text-white font-semibold shadow-sm border border-white/[0.12] dark:bg-white/[0.1] dark:text-white light:bg-slate-900 light:text-white"
+                  : "text-zinc-400 hover:text-zinc-200 dark:text-zinc-400 dark:hover:text-zinc-200 light:text-slate-500 light:hover:text-slate-900"
               }`}
             >
               Income ({rawCategories.filter((c) => c.type === "income").length})
@@ -307,10 +307,10 @@ export const CategoryManager: React.FC<CategoryManagerProps> = ({ isModal = fals
 
           <button
             onClick={handleOpenAdd}
-            className="flex items-center gap-1.5 rounded border border-[#00F0FF]/60 bg-[#00F0FF]/15 px-3 py-1.5 text-xs font-mono-num font-bold text-[#00F0FF] hover:bg-[#00F0FF]/25 transition-colors shadow-[0_0_12px_rgba(0,240,255,0.15)]"
+            className="flex items-center gap-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 px-3.5 py-2 text-xs font-semibold text-white transition-colors shadow-sm"
           >
             <Plus className="h-3.5 w-3.5" />
-            <span>ADD CATEGORY</span>
+            <span>Add Category</span>
           </button>
         </div>
       </div>
@@ -325,7 +325,7 @@ export const CategoryManager: React.FC<CategoryManagerProps> = ({ isModal = fals
           return (
             <div
               key={cat.id}
-              className="flex items-center justify-between p-3 rounded-lg border border-[#232A3B] bg-[#0F131C] hover:border-[#384259] transition-all group"
+              className="flex items-center justify-between p-3.5 rounded-2xl border border-white/[0.08] dark:border-white/[0.08] light:border-slate-200 bg-[var(--bg-surface)] hover:border-white/[0.14] transition-all group shadow-xs"
             >
               <div className="flex items-center gap-3">
                 {/* Reorder Arrows */}
@@ -333,7 +333,7 @@ export const CategoryManager: React.FC<CategoryManagerProps> = ({ isModal = fals
                   <button
                     onClick={() => handleMove(idx, "up")}
                     disabled={isFirst}
-                    className="p-1 rounded text-[#64748B] hover:text-[#00F0FF] hover:bg-[#161B26] disabled:opacity-20 disabled:hover:bg-transparent"
+                    className="p-1 rounded-md text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-white/[0.04] disabled:opacity-20 disabled:hover:bg-transparent transition-colors"
                     title="Move Priority Up"
                   >
                     <ArrowUp className="h-3 w-3" />
@@ -341,7 +341,7 @@ export const CategoryManager: React.FC<CategoryManagerProps> = ({ isModal = fals
                   <button
                     onClick={() => handleMove(idx, "down")}
                     disabled={isLast}
-                    className="p-1 rounded text-[#64748B] hover:text-[#00F0FF] hover:bg-[#161B26] disabled:opacity-20 disabled:hover:bg-transparent"
+                    className="p-1 rounded-md text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-white/[0.04] disabled:opacity-20 disabled:hover:bg-transparent transition-colors"
                     title="Move Priority Down"
                   >
                     <ArrowDown className="h-3 w-3" />
@@ -350,7 +350,7 @@ export const CategoryManager: React.FC<CategoryManagerProps> = ({ isModal = fals
 
                 {/* Icon Preview */}
                 <div
-                  className="flex h-8 w-8 items-center justify-center rounded border border-[#232A3B] bg-[#07090E]"
+                  className="flex h-8 w-8 items-center justify-center rounded-xl border border-white/[0.06] dark:border-white/[0.06] light:border-slate-200 bg-white/[0.02] dark:bg-white/[0.02] light:bg-slate-100"
                   style={{ color: cat.color }}
                 >
                   <IconComp className="h-4 w-4" />
@@ -358,20 +358,20 @@ export const CategoryManager: React.FC<CategoryManagerProps> = ({ isModal = fals
 
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="text-xs font-semibold text-white">{cat.name}</span>
+                    <span className="text-xs font-semibold text-[var(--text-primary)]">{cat.name}</span>
                     {cat.isDefault && (
-                      <span className="text-[9px] font-mono-num text-[#64748B] border border-[#232A3B] rounded px-1">
-                        DEFAULT
+                      <span className="text-[10px] text-[var(--text-muted)] border border-white/[0.08] dark:border-white/[0.08] light:border-slate-200 rounded-full px-2 py-0.2">
+                        Default
                       </span>
                     )}
                   </div>
-                  <div className="text-[10px] font-mono-num text-[#64748B]">
+                  <div className="text-[11px] text-[var(--text-muted)] mt-0.5 font-mono-num">
                     {cat.budgetCap ? (
-                      <span className="text-[#00F0FF]">
+                      <span className="text-emerald-500 tabular-nums">
                         Cap: {formatCurrency(cat.budgetCap, currency, locale)}/mo
                       </span>
                     ) : (
-                      <span>Uncapped Budget</span>
+                      <span>Uncapped</span>
                     )}
                   </div>
                 </div>
@@ -381,14 +381,14 @@ export const CategoryManager: React.FC<CategoryManagerProps> = ({ isModal = fals
               <div className="flex items-center gap-1">
                 <button
                   onClick={() => handleOpenEdit(cat)}
-                  className="p-1.5 rounded text-[#64748B] hover:text-white hover:bg-[#161B26] transition-colors"
+                  className="p-1.5 rounded-lg border border-white/[0.06] dark:border-white/[0.06] light:border-slate-200 bg-white/[0.02] dark:bg-white/[0.02] light:bg-slate-100 text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
                   title="Edit Category"
                 >
                   <Edit2 className="h-3.5 w-3.5" />
                 </button>
                 <button
                   onClick={() => handleInitiateDelete(cat)}
-                  className="p-1.5 rounded text-[#64748B] hover:text-[#FF0055] hover:bg-[#FF0055]/10 transition-colors"
+                  className="p-1.5 rounded-lg border border-white/[0.06] dark:border-white/[0.06] light:border-slate-200 bg-white/[0.02] dark:bg-white/[0.02] light:bg-slate-100 text-[var(--text-muted)] hover:text-rose-500 hover:border-rose-500/30 transition-colors"
                   title="Delete Category"
                 >
                   <Trash2 className="h-3.5 w-3.5" />
@@ -401,46 +401,46 @@ export const CategoryManager: React.FC<CategoryManagerProps> = ({ isModal = fals
 
       {/* Add / Edit Category Dialog */}
       {isEditModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-sm p-3 sm:p-4 overflow-hidden pb-[env(safe-area-inset-bottom)]">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-3 sm:p-4 overflow-hidden pb-[env(safe-area-inset-bottom)]">
           <div
-            className="w-full max-w-md max-h-[calc(100dvh-2rem)] flex flex-col rounded-xl border border-[#232A3B] bg-[#0F131C] shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150"
+            className="w-full max-w-md max-h-[calc(100dvh-2rem)] flex flex-col rounded-2xl border border-white/[0.1] dark:border-white/[0.1] light:border-slate-200 bg-[var(--bg-surface)] shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Sticky Header */}
-            <div className="flex-shrink-0 flex items-center justify-between border-b border-[#232A3B] px-4 py-3 bg-[#07090E]">
+            {/* Header */}
+            <div className="flex-shrink-0 flex items-center justify-between border-b border-white/[0.08] dark:border-white/[0.08] light:border-slate-200 px-5 py-4 bg-[var(--bg-canvas)]/30">
               <div className="flex items-center gap-2">
-                <Tag className="h-4 w-4 text-[#00F0FF]" />
-                <h3 className="font-mono-num text-xs font-bold uppercase tracking-wider text-white">
-                  {editingCategory ? "Configure Category" : `Create New ${activeTab.toUpperCase()} Category`}
+                <Tag className="h-4 w-4 text-emerald-500" />
+                <h3 className="text-sm font-semibold text-[var(--text-primary)]">
+                  {editingCategory ? "Edit Category" : `New ${activeTab === "expense" ? "Expense" : "Income"} Category`}
                 </h3>
               </div>
               <button
                 onClick={() => setIsEditModalOpen(false)}
-                className="text-[#64748B] hover:text-white p-1 rounded hover:bg-[#161B26]"
+                className="text-[var(--text-muted)] hover:text-[var(--text-primary)] p-1 rounded-lg"
               >
                 <X className="h-4 w-4" />
               </button>
             </div>
 
-            {/* Scrollable Form Body */}
+            {/* Form Body */}
             <form onSubmit={handleSaveCategory} className="flex flex-col flex-1 min-h-0 overflow-hidden">
-              <div className="flex-1 min-h-0 overflow-y-auto p-4 space-y-4 custom-scrollbar">
+              <div className="flex-1 min-h-0 overflow-y-auto p-5 space-y-4 custom-scrollbar">
                 <div>
-                  <label className="block text-[10px] font-mono-num uppercase tracking-wider text-[#64748B] mb-1">
-                    Category Title
+                  <label className="block text-[11px] font-medium text-[var(--text-muted)] mb-1">
+                    Category Name
                   </label>
                   <input
                     type="text"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    placeholder="e.g. Freelance Consulting, Online Courses"
+                    placeholder="e.g. Groceries, Freelance, Subscriptions"
                     required
-                    className="w-full rounded border border-[#232A3B] bg-[#07090E] px-3 py-2 text-xs text-white placeholder-[#475569] focus:border-[#00F0FF] focus:outline-none font-mono-num"
+                    className="w-full rounded-xl border border-white/[0.08] dark:border-white/[0.08] light:border-slate-200 bg-[var(--bg-surface)] px-3.5 py-2 text-xs text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:border-emerald-500/50 focus:outline-none transition-colors"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-[10px] font-mono-num uppercase tracking-wider text-[#64748B] mb-1">
+                  <label className="block text-[11px] font-medium text-[var(--text-muted)] mb-1">
                     Monthly Budget Cap ({currency}) [Optional]
                   </label>
                   <input
@@ -448,14 +448,14 @@ export const CategoryManager: React.FC<CategoryManagerProps> = ({ isModal = fals
                     value={budgetCap}
                     onChange={(e) => setBudgetCap(e.target.value)}
                     placeholder="e.g. 5000000"
-                    className="w-full rounded border border-[#232A3B] bg-[#07090E] px-3 py-2 text-xs text-white placeholder-[#475569] focus:border-[#00F0FF] focus:outline-none font-mono-num"
+                    className="w-full rounded-xl border border-white/[0.08] dark:border-white/[0.08] light:border-slate-200 bg-[var(--bg-surface)] px-3.5 py-2 text-xs text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:border-emerald-500/50 focus:outline-none transition-colors font-mono-num"
                   />
                 </div>
 
                 {/* Color Palette Chips */}
                 <div>
-                  <label className="block text-[10px] font-mono-num uppercase tracking-wider text-[#64748B] mb-1.5">
-                    Accent Color Chip
+                  <label className="block text-[11px] font-medium text-[var(--text-muted)] mb-2">
+                    Color Accent
                   </label>
                   <div className="flex flex-wrap gap-2">
                     {COLOR_PALETTES.map((color) => (
@@ -464,7 +464,7 @@ export const CategoryManager: React.FC<CategoryManagerProps> = ({ isModal = fals
                         type="button"
                         onClick={() => setSelectedColor(color)}
                         className={`h-6 w-6 rounded-full border-2 transition-transform ${
-                          selectedColor === color ? "scale-125 border-white" : "border-transparent hover:scale-110"
+                          selectedColor === color ? "scale-125 border-white shadow-sm" : "border-transparent hover:scale-110"
                         }`}
                         style={{ backgroundColor: color }}
                       />
@@ -474,10 +474,10 @@ export const CategoryManager: React.FC<CategoryManagerProps> = ({ isModal = fals
 
                 {/* Icon Grid */}
                 <div>
-                  <label className="block text-[10px] font-mono-num uppercase tracking-wider text-[#64748B] mb-1.5">
-                    Icon Identity
+                  <label className="block text-[11px] font-medium text-[var(--text-muted)] mb-2">
+                    Icon
                   </label>
-                  <div className="grid grid-cols-7 gap-1.5 p-2 rounded bg-[#07090E] border border-[#232A3B] max-h-40 overflow-y-auto custom-scrollbar">
+                  <div className="grid grid-cols-7 gap-1.5 p-2.5 rounded-xl bg-white/[0.02] dark:bg-white/[0.02] light:bg-slate-100 border border-white/[0.06] dark:border-white/[0.06] light:border-slate-200 max-h-40 overflow-y-auto custom-scrollbar">
                     {Object.keys(CATEGORY_ICON_MAP).map((iconKey) => {
                       const Comp = CATEGORY_ICON_MAP[iconKey];
                       const isSelected = selectedIcon === iconKey;
@@ -486,10 +486,10 @@ export const CategoryManager: React.FC<CategoryManagerProps> = ({ isModal = fals
                           key={iconKey}
                           type="button"
                           onClick={() => setSelectedIcon(iconKey)}
-                          className={`flex items-center justify-center p-2 rounded border transition-colors ${
+                          className={`flex items-center justify-center p-2 rounded-lg border transition-colors ${
                             isSelected
-                              ? "border-[#00F0FF] bg-[#00F0FF]/20 text-[#00F0FF]"
-                              : "border-transparent text-[#64748B] hover:text-white hover:bg-[#161B26]"
+                              ? "border-emerald-500 bg-emerald-500/20 text-emerald-400"
+                              : "border-transparent text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-white/[0.04]"
                           }`}
                         >
                           <Comp className="h-4 w-4" />
@@ -500,27 +500,27 @@ export const CategoryManager: React.FC<CategoryManagerProps> = ({ isModal = fals
                 </div>
 
                 {formError && (
-                  <div className="rounded border border-[#FF0055]/40 bg-[#FF0055]/10 p-2 text-xs font-mono-num text-[#FF0055]">
-                    [ERROR]: {formError}
+                  <div className="rounded-xl border border-rose-500/30 bg-rose-500/10 p-2.5 text-xs text-rose-500 font-medium">
+                    {formError}
                   </div>
                 )}
               </div>
 
-              {/* Sticky Footer */}
-              <div className="flex-shrink-0 border-t border-[#232A3B] px-4 py-3 bg-[#07090E] flex gap-2">
+              {/* Footer */}
+              <div className="flex-shrink-0 border-t border-white/[0.08] dark:border-white/[0.08] light:border-slate-200 px-5 py-4 bg-[var(--bg-canvas)]/30 flex gap-2.5">
                 <button
                   type="button"
                   onClick={() => setIsEditModalOpen(false)}
-                  className="flex-1 rounded border border-[#232A3B] bg-[#161B26] py-2 text-xs font-mono-num text-[#94A3B8] hover:text-white"
+                  className="flex-1 rounded-xl border border-white/[0.08] dark:border-white/[0.08] light:border-slate-200 bg-white/[0.03] dark:bg-white/[0.03] light:bg-slate-100 py-2.5 text-xs font-semibold text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
                 >
-                  CANCEL
+                  Cancel
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 flex items-center justify-center gap-1.5 rounded border border-[#00F0FF]/60 bg-[#00F0FF]/15 py-2 text-xs font-bold font-mono-num text-[#00F0FF] hover:bg-[#00F0FF]/25 shadow-[0_0_12px_rgba(0,240,255,0.2)]"
+                  className="flex-1 flex items-center justify-center gap-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 py-2.5 text-xs font-semibold text-white transition-all shadow-sm"
                 >
                   <Check className="h-4 w-4" />
-                  <span>{editingCategory ? "UPDATE CATEGORY" : "CREATE CATEGORY"}</span>
+                  <span>{editingCategory ? "Save Changes" : "Create Category"}</span>
                 </button>
               </div>
             </form>
@@ -530,43 +530,43 @@ export const CategoryManager: React.FC<CategoryManagerProps> = ({ isModal = fals
 
       {/* Delete Confirmation Dialog */}
       {deleteCandidate && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-md p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4">
           <div
-            className="w-full max-w-md rounded-xl border border-[#FF5C00] bg-[#0F131C] shadow-2xl p-5 space-y-4"
+            className="w-full max-w-md rounded-2xl border border-white/[0.1] dark:border-white/[0.1] light:border-slate-200 bg-[var(--bg-surface)] shadow-2xl p-5 sm:p-6 space-y-4"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center gap-2 text-[#FF5C00]">
+            <div className="flex items-center gap-2 text-rose-500">
               <AlertTriangle className="h-5 w-5" />
-              <h4 className="font-mono-num text-sm font-bold uppercase">
-                Confirm Deletion: {deleteCandidate.name}
+              <h4 className="text-sm font-semibold">
+                Delete Category: {deleteCandidate.name}
               </h4>
             </div>
 
-            <p className="text-xs text-[#94A3B8] font-mono-num leading-relaxed">
+            <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
               {affectedTxCount > 0 ? (
                 <>
-                  Warning: <span className="text-white font-bold">{affectedTxCount}</span> active ledger transactions are currently assigned to this category. Deleting it will automatically reassign them to{" "}
-                  <span className="text-[#00F0FF] font-bold">Uncategorized</span> to preserve zero-sum double-entry ledger balance.
+                  Warning: <span className="text-[var(--text-primary)] font-semibold">{affectedTxCount}</span> transactions are currently assigned to this category. Deleting it will reassign them to{" "}
+                  <span className="text-emerald-500 font-semibold">Uncategorized</span> so your balances remain accurate.
                 </>
               ) : (
-                "No transactions are assigned to this category. It can be safely expunged from the ledger."
+                "No transactions are assigned to this category. It can be safely deleted."
               )}
             </p>
 
-            <div className="flex gap-2 pt-2">
+            <div className="flex gap-2.5 pt-2">
               <button
                 onClick={() => setDeleteCandidate(null)}
-                className="flex-1 rounded border border-[#232A3B] bg-[#161B26] py-2 text-xs font-mono-num text-[#94A3B8] hover:text-white"
+                className="flex-1 rounded-xl border border-white/[0.08] dark:border-white/[0.08] light:border-slate-200 bg-white/[0.03] dark:bg-white/[0.03] light:bg-slate-100 py-2.5 text-xs font-semibold text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
               >
-                CANCEL
+                Cancel
               </button>
               <button
                 onClick={handleConfirmDelete}
                 disabled={isDeleting}
-                className="flex-1 flex items-center justify-center gap-1.5 rounded border border-[#FF0055] bg-[#FF0055]/20 py-2 text-xs font-bold font-mono-num text-[#FF0055] hover:bg-[#FF0055]/30 disabled:opacity-50"
+                className="flex-1 flex items-center justify-center gap-1.5 rounded-xl bg-rose-600 hover:bg-rose-500 py-2.5 text-xs font-semibold text-white transition-all shadow-sm disabled:opacity-50"
               >
                 <Trash2 className="h-4 w-4" />
-                <span>{isDeleting ? "EXPUNGING..." : "CONFIRM DELETE"}</span>
+                <span>{isDeleting ? "Deleting..." : "Delete"}</span>
               </button>
             </div>
           </div>
@@ -604,17 +604,17 @@ export const CategoryManagerModal: React.FC = () => {
           setCategoryManagerOpen(false);
         }
       }}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-3 sm:p-6 overflow-hidden pb-[env(safe-area-inset-bottom)]"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-3 sm:p-6 overflow-hidden pb-[env(safe-area-inset-bottom)]"
     >
       <div
-        className="w-full max-w-3xl max-h-[calc(100dvh-2rem)] flex flex-col rounded-xl border border-[#232A3B] bg-[#0F131C] shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150"
+        className="w-full max-w-3xl max-h-[calc(100dvh-2rem)] flex flex-col rounded-2xl border border-white/[0.1] dark:border-white/[0.1] light:border-slate-200 bg-[var(--bg-surface)] shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex-shrink-0 flex items-center justify-between border-b border-[#232A3B] px-4 py-3 bg-[#07090E]">
+        <div className="flex-shrink-0 flex items-center justify-between border-b border-white/[0.08] dark:border-white/[0.08] light:border-slate-200 px-5 py-4 bg-[var(--bg-canvas)]/30">
           <div className="flex items-center gap-2">
-            <Tag className="h-4 w-4 text-[#00F0FF]" />
-            <h3 className="font-mono-num text-xs sm:text-sm font-bold uppercase tracking-wider text-white">
-              Category Architect &amp; Ledger Customization
+            <Tag className="h-4 w-4 text-emerald-500" />
+            <h3 className="text-sm font-semibold text-[var(--text-primary)]">
+              Category Settings
             </h3>
           </div>
           <button
@@ -622,7 +622,7 @@ export const CategoryManagerModal: React.FC = () => {
               playSound("click", soundEnabled);
               setCategoryManagerOpen(false);
             }}
-            className="text-[#64748B] hover:text-white p-1 rounded hover:bg-[#161B26]"
+            className="text-[var(--text-muted)] hover:text-[var(--text-primary)] p-1 rounded-lg"
           >
             <X className="h-4 w-4" />
           </button>

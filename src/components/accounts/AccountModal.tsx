@@ -278,41 +278,41 @@ export const AccountModal: React.FC<AccountModalProps> = ({
           <div className="flex-1 min-h-0 overflow-y-auto p-4 space-y-4 custom-scrollbar">
             {/* Account Name */}
             <div>
-              <label className="block text-[10px] font-mono-num uppercase tracking-wider text-[#64748B] mb-1">
+              <label className="block text-[11px] font-medium text-zinc-400 mb-1">
                 Account Name
               </label>
               <input
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="e.g. BCA Priority, Tokyo Platinum CC, Ledger Cold Wallet"
+                placeholder="e.g. BCA Checking, Platinum CC, Cash"
                 required
-                className="w-full rounded border border-[#232A3B] bg-[#07090E] px-3 py-2 text-xs text-white placeholder-[#475569] focus:border-[#00F0FF] focus:outline-none font-mono-num"
+                className="w-full rounded-xl border border-white/[0.08] dark:border-white/[0.08] light:border-slate-200 bg-white/[0.03] dark:bg-white/[0.03] light:bg-slate-50 px-3.5 py-2.5 text-xs text-white dark:text-white light:text-slate-900 placeholder:text-zinc-500 focus:outline-none focus:border-emerald-500/50 font-mono-num"
               />
             </div>
 
             {/* Type and Currency */}
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-[10px] font-mono-num uppercase tracking-wider text-[#64748B] mb-1">
+                <label className="block text-[11px] font-medium text-zinc-400 mb-1">
                   Account Type
                 </label>
                 <select
                   value={type}
                   onChange={(e) => setType(e.target.value as AccountType)}
-                  className="w-full rounded border border-[#232A3B] bg-[#07090E] px-3 py-2 text-xs text-white focus:border-[#00F0FF] focus:outline-none font-mono-num"
+                  className="w-full rounded-xl border border-white/[0.08] dark:border-white/[0.08] light:border-slate-200 bg-white/[0.03] dark:bg-white/[0.03] light:bg-slate-50 px-3.5 py-2.5 text-xs text-white dark:text-white light:text-slate-900 focus:outline-none focus:border-emerald-500/50 font-mono-num"
                 >
-                  <option value="checking">Checking (Checking/Current)</option>
+                  <option value="checking">Checking / Everyday</option>
                   <option value="savings">Savings (High-Yield)</option>
-                  <option value="credit">Credit Card (Revolving)</option>
+                  <option value="credit">Credit Card</option>
                   <option value="ewallet">E-Wallet (GoPay, OVO, PayPal)</option>
-                  <option value="cash">Cash (Physical Currency)</option>
+                  <option value="cash">Cash (Physical)</option>
                   <option value="investment">Investment / Brokerage</option>
                 </select>
               </div>
 
               <div>
-                <label className="block text-[10px] font-mono-num uppercase tracking-wider text-[#64748B] mb-1">
+                <label className="block text-[11px] font-medium text-zinc-400 mb-1">
                   Currency Code
                 </label>
                 <input
@@ -321,7 +321,7 @@ export const AccountModal: React.FC<AccountModalProps> = ({
                   onChange={(e) => setCurrency(e.target.value.toUpperCase())}
                   placeholder="IDR"
                   maxLength={4}
-                  className="w-full rounded border border-[#232A3B] bg-[#07090E] px-3 py-2 text-xs text-white focus:border-[#00F0FF] focus:outline-none font-mono-num"
+                  className="w-full rounded-xl border border-white/[0.08] dark:border-white/[0.08] light:border-slate-200 bg-white/[0.03] dark:bg-white/[0.03] light:bg-slate-50 px-3.5 py-2.5 text-xs text-white dark:text-white light:text-slate-900 focus:outline-none focus:border-emerald-500/50 font-mono-num"
                 />
               </div>
             </div>
@@ -329,7 +329,7 @@ export const AccountModal: React.FC<AccountModalProps> = ({
             {/* Balances */}
             {!accountToEdit ? (
               <div>
-                <label className="block text-[10px] font-mono-num uppercase tracking-wider text-[#64748B] mb-1">
+                <label className="block text-[11px] font-medium text-zinc-400 mb-1">
                   Initial Opening Balance ({currency})
                 </label>
                 <input
@@ -338,19 +338,19 @@ export const AccountModal: React.FC<AccountModalProps> = ({
                   value={initialBalance}
                   onChange={(e) => setInitialBalance(e.target.value)}
                   placeholder="0"
-                  className="w-full rounded border border-[#232A3B] bg-[#07090E] px-3 py-2 text-xs text-white placeholder-[#475569] focus:border-[#00F0FF] focus:outline-none font-mono-num font-bold"
+                  className="w-full rounded-xl border border-white/[0.08] dark:border-white/[0.08] light:border-slate-200 bg-white/[0.03] dark:bg-white/[0.03] light:bg-slate-50 px-3.5 py-2.5 text-xs text-white dark:text-white light:text-slate-900 placeholder:text-zinc-500 focus:outline-none focus:border-emerald-500/50 font-mono-num font-semibold"
                 />
               </div>
             ) : (
-              <div className="p-3 rounded bg-[#07090E] border border-[#232A3B] space-y-2">
-                <div className="flex items-center justify-between text-[10px] font-mono-num">
-                  <span className="text-[#64748B] uppercase">Current Ledger Balance</span>
-                  <span className="text-white font-bold">
+              <div className="p-3.5 rounded-xl bg-white/[0.02] dark:bg-white/[0.02] light:bg-slate-50 border border-white/[0.06] dark:border-white/[0.06] light:border-slate-200 space-y-2">
+                <div className="flex items-center justify-between text-xs font-mono-num">
+                  <span className="text-zinc-400">Current Ledger Balance</span>
+                  <span className="text-white dark:text-white light:text-slate-900 font-semibold tabular-nums">
                     {formatCurrency(accountToEdit.currentBalance, currency, "id-ID")}
                   </span>
                 </div>
                 <div>
-                  <label className="block text-[10px] font-mono-num uppercase tracking-wider text-[#64748B] mb-1">
+                  <label className="block text-[11px] font-medium text-zinc-400 mb-1">
                     Calibrate Balance (Generates adjustment entry)
                   </label>
                   <input
@@ -358,7 +358,7 @@ export const AccountModal: React.FC<AccountModalProps> = ({
                     step="any"
                     value={currentBalanceInput}
                     onChange={(e) => setCurrentBalanceInput(e.target.value)}
-                    className="w-full rounded border border-[#232A3B] bg-[#161B26] px-3 py-1.5 text-xs text-white font-mono-num"
+                    className="w-full rounded-xl border border-white/[0.08] dark:border-white/[0.08] light:border-slate-200 bg-white/[0.03] dark:bg-white/[0.03] light:bg-white px-3 py-2 text-xs text-white dark:text-white light:text-slate-900 font-mono-num"
                   />
                 </div>
               </div>
@@ -366,9 +366,9 @@ export const AccountModal: React.FC<AccountModalProps> = ({
 
             {/* Credit Card Specific Fields */}
             {type === "credit" && (
-              <div className="grid grid-cols-2 gap-3 p-3 rounded bg-[#07090E] border border-[#232A3B]">
+              <div className="grid grid-cols-2 gap-3 p-3.5 rounded-xl bg-white/[0.02] dark:bg-white/[0.02] light:bg-slate-50 border border-white/[0.06] dark:border-white/[0.06] light:border-slate-200">
                 <div>
-                  <label className="block text-[10px] font-mono-num uppercase tracking-wider text-[#64748B] mb-1">
+                  <label className="block text-[11px] font-medium text-zinc-400 mb-1">
                     Credit Limit ({currency})
                   </label>
                   <input
@@ -376,11 +376,11 @@ export const AccountModal: React.FC<AccountModalProps> = ({
                     value={creditLimit}
                     onChange={(e) => setCreditLimit(e.target.value)}
                     placeholder="e.g. 50000000"
-                    className="w-full rounded border border-[#232A3B] bg-[#161B26] px-3 py-1.5 text-xs text-white font-mono-num"
+                    className="w-full rounded-xl border border-white/[0.08] dark:border-white/[0.08] light:border-slate-200 bg-white/[0.03] dark:bg-white/[0.03] light:bg-white px-3 py-2 text-xs text-white dark:text-white light:text-slate-900 font-mono-num"
                   />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-mono-num uppercase tracking-wider text-[#64748B] mb-1">
+                  <label className="block text-[11px] font-medium text-zinc-400 mb-1">
                     Statement Closing Day
                   </label>
                   <input
@@ -390,7 +390,7 @@ export const AccountModal: React.FC<AccountModalProps> = ({
                     value={statementDay}
                     onChange={(e) => setStatementDay(e.target.value)}
                     placeholder="20"
-                    className="w-full rounded border border-[#232A3B] bg-[#161B26] px-3 py-1.5 text-xs text-white font-mono-num"
+                    className="w-full rounded-xl border border-white/[0.08] dark:border-white/[0.08] light:border-slate-200 bg-white/[0.03] dark:bg-white/[0.03] light:bg-white px-3 py-2 text-xs text-white dark:text-white light:text-slate-900 font-mono-num"
                   />
                 </div>
               </div>
@@ -398,7 +398,7 @@ export const AccountModal: React.FC<AccountModalProps> = ({
 
             {/* Color Palette Chips */}
             <div>
-              <label className="block text-[10px] font-mono-num uppercase tracking-wider text-[#64748B] mb-1.5">
+              <label className="block text-[11px] font-medium text-zinc-400 mb-1.5">
                 Account Color Identity
               </label>
               <div className="flex flex-wrap gap-2">
@@ -408,7 +408,7 @@ export const AccountModal: React.FC<AccountModalProps> = ({
                     type="button"
                     onClick={() => setColor(c)}
                     className={`h-6 w-6 rounded-full border-2 transition-transform ${
-                      color === c ? "scale-125 border-white" : "border-transparent hover:scale-110"
+                      color === c ? "scale-125 border-white dark:border-white light:border-slate-800" : "border-transparent hover:scale-110"
                     }`}
                     style={{ backgroundColor: c }}
                   />
@@ -418,10 +418,10 @@ export const AccountModal: React.FC<AccountModalProps> = ({
 
             {/* Icon Picker */}
             <div>
-              <label className="block text-[10px] font-mono-num uppercase tracking-wider text-[#64748B] mb-1.5">
+              <label className="block text-[11px] font-medium text-zinc-400 mb-1.5">
                 Icon Identity
               </label>
-              <div className="flex flex-wrap gap-2 p-2 rounded bg-[#07090E] border border-[#232A3B]">
+              <div className="flex flex-wrap gap-2 p-2.5 rounded-xl bg-white/[0.02] dark:bg-white/[0.02] light:bg-slate-50 border border-white/[0.06] dark:border-white/[0.06] light:border-slate-200">
                 {Object.keys(ACCOUNT_ICONS).map((iconKey) => {
                   const IconComp = ACCOUNT_ICONS[iconKey];
                   const isSelected = icon === iconKey;
@@ -430,10 +430,10 @@ export const AccountModal: React.FC<AccountModalProps> = ({
                       key={iconKey}
                       type="button"
                       onClick={() => setIcon(iconKey)}
-                      className={`flex items-center justify-center p-2 rounded border transition-colors ${
+                      className={`flex items-center justify-center p-2 rounded-lg border transition-colors ${
                         isSelected
-                          ? "border-[#00F0FF] bg-[#00F0FF]/20 text-[#00F0FF]"
-                          : "border-transparent text-[#64748B] hover:text-white hover:bg-[#161B26]"
+                          ? "border-emerald-500/50 bg-emerald-500/10 text-emerald-400"
+                          : "border-transparent text-zinc-400 hover:text-white light:hover:text-slate-900 hover:bg-white/[0.05]"
                       }`}
                     >
                       <IconComp className="h-4 w-4" />
@@ -444,26 +444,26 @@ export const AccountModal: React.FC<AccountModalProps> = ({
             </div>
 
             {error && (
-              <div className="rounded border border-[#FF0055]/40 bg-[#FF0055]/10 p-2 text-xs font-mono-num text-[#FF0055]">
-                [ERROR]: {error}
+              <div className="rounded-xl border border-rose-500/30 bg-rose-500/10 p-3 text-xs font-mono-num text-rose-400">
+                {error}
               </div>
             )}
 
             {/* Archive / Delete trigger for existing account */}
             {accountToEdit && (
-              <div className="pt-2 border-t border-[#232A3B]">
+              <div className="pt-2 border-t border-white/[0.08] dark:border-white/[0.08] light:border-slate-200">
                 {!showDeleteConfirm ? (
                   <button
                     type="button"
                     onClick={() => setShowDeleteConfirm(true)}
-                    className="text-xs font-mono-num text-[#FF5C00] hover:underline flex items-center gap-1"
+                    className="text-xs text-amber-400 hover:underline flex items-center gap-1.5 font-medium"
                   >
                     <AlertTriangle className="h-3.5 w-3.5" />
-                    Archive or Expunge Account
+                    Archive or Delete Account
                   </button>
                 ) : (
-                  <div className="p-3 rounded bg-[#FF5C00]/10 border border-[#FF5C00]/30 space-y-2">
-                    <p className="text-xs text-[#94A3B8] font-mono-num">
+                  <div className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/20 space-y-2">
+                    <p className="text-xs text-zinc-300 dark:text-zinc-300 light:text-slate-700">
                       {accountToEdit.currentBalance !== 0
                         ? `Account has an active balance of ${formatCurrency(accountToEdit.currentBalance, currency, "id-ID")}. Archiving it will preserve ledger balance integrity.`
                         : "Account has zero balance and can be safely archived or removed."}
@@ -472,7 +472,7 @@ export const AccountModal: React.FC<AccountModalProps> = ({
                       <button
                         type="button"
                         onClick={() => setShowDeleteConfirm(false)}
-                        className="px-3 py-1 rounded border border-[#232A3B] bg-[#161B26] text-xs font-mono-num text-[#94A3B8]"
+                        className="px-3 py-1.5 rounded-lg border border-white/[0.08] dark:border-white/[0.08] light:border-slate-200 bg-white/[0.05] text-xs font-medium text-zinc-300 dark:text-zinc-300 light:text-slate-700"
                       >
                         Cancel
                       </button>
@@ -480,9 +480,9 @@ export const AccountModal: React.FC<AccountModalProps> = ({
                         type="button"
                         onClick={handleArchiveOrDelete}
                         disabled={isSubmitting}
-                        className="px-3 py-1 rounded border border-[#FF0055] bg-[#FF0055]/20 text-xs font-mono-num text-[#FF0055] font-bold"
+                        className="px-3 py-1.5 rounded-lg border border-rose-500/40 bg-rose-500/20 text-xs text-rose-400 font-semibold"
                       >
-                        Confirm Archive / Expunge
+                        Confirm Archive / Delete
                       </button>
                     </div>
                   </div>

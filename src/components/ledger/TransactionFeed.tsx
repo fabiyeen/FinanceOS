@@ -107,55 +107,58 @@ export const TransactionFeed: React.FC = () => {
   const getTypeIcon = (type: TransactionType) => {
     switch (type) {
       case "income":
-        return <ArrowDownLeft className="h-4 w-4 text-[#00FF88]" />;
+        return <ArrowDownLeft className="h-4 w-4 text-emerald-500" />;
       case "expense":
-        return <ArrowUpRight className="h-4 w-4 text-[#FF5C00]" />;
+        return <ArrowUpRight className="h-4 w-4 text-rose-500" />;
       case "transfer":
-        return <ArrowRightLeft className="h-4 w-4 text-[#00F0FF]" />;
+        return <ArrowRightLeft className="h-4 w-4 text-cyan-400" />;
       case "vault_deposit":
       case "vault_withdraw":
-        return <Shield className="h-4 w-4 text-[#9D00FF]" />;
+        return <Shield className="h-4 w-4 text-purple-400" />;
       case "debt_payment":
-        return <Handshake className="h-4 w-4 text-[#FFB800]" />;
+        return <Handshake className="h-4 w-4 text-amber-400" />;
       default:
-        return <ArrowUpRight className="h-4 w-4 text-[#94A3B8]" />;
+        return <ArrowUpRight className="h-4 w-4 text-zinc-400" />;
     }
   };
 
   return (
-    <div className="rounded-2xl overflow-hidden border border-[var(--border-default)] bg-[var(--bg-surface)] shadow-sm">
+    <div className="rounded-2xl overflow-hidden border border-white/[0.08] dark:border-white/[0.08] light:border-slate-200/80 bg-[#0D111A]/60 dark:bg-[#0D111A]/60 light:bg-white shadow-sm transition-colors">
       {/* Top Filter Bar */}
-      <div className="p-3 sm:p-4 border-b border-[var(--border-default)] space-y-3 bg-[var(--bg-canvas)]/40">
+      <div className="p-3 sm:p-4 border-b border-white/[0.06] dark:border-white/[0.06] light:border-slate-200 space-y-3 bg-[var(--bg-canvas)]/30">
         <div className="flex flex-col sm:flex-row gap-2 justify-between items-stretch sm:items-center">
           <div className="flex items-center gap-2">
-            <span className="h-2 w-2 rounded-full bg-[var(--accent-primary)]" />
+            <span className="h-2 w-2 rounded-full bg-emerald-500" />
             <h3 className="text-sm font-semibold text-[var(--text-primary)]">
               Recent Transactions
             </h3>
-            <span className="rounded-md bg-[var(--bg-surface)] border border-[var(--border-default)] px-2 py-0.5 text-xs text-[var(--text-muted)]">
+            <span className="rounded-full bg-white/[0.04] dark:bg-white/[0.04] light:bg-slate-100 border border-white/[0.06] dark:border-white/[0.06] light:border-slate-200 px-2.5 py-0.5 text-xs text-[var(--text-muted)] font-mono-num">
               {filteredTxs.length} records
             </span>
           </div>
 
           {/* Quick Date Range Filters */}
-          <div className="flex items-center gap-1 bg-[var(--bg-surface)] p-1 rounded-xl border border-[var(--border-default)]">
+          <div className="flex items-center gap-1 bg-white/[0.02] dark:bg-white/[0.02] light:bg-slate-100 p-1 rounded-xl border border-white/[0.06] dark:border-white/[0.06] light:border-slate-200">
             <Calendar className="h-3.5 w-3.5 text-[var(--text-muted)] ml-1 mr-0.5" />
-            {(["today", "week", "month", "all"] as const).map((range) => (
-              <button
-                key={range}
-                onClick={() => {
-                  playSound("tab", soundEnabled);
-                  setDateRange(range);
-                }}
-                className={`rounded-lg px-2.5 py-1 text-xs font-medium capitalize transition-colors ${
-                  dateRange === range
-                    ? "bg-[var(--bg-canvas)] text-[var(--text-primary)] border border-[var(--border-default)] shadow-xs"
-                    : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"
-                }`}
-              >
-                {range}
-              </button>
-            ))}
+            {(["today", "week", "month", "all"] as const).map((range) => {
+              const isActive = dateRange === range;
+              return (
+                <button
+                  key={range}
+                  onClick={() => {
+                    playSound("tab", soundEnabled);
+                    setDateRange(range);
+                  }}
+                  className={`rounded-lg px-2.5 py-1 text-xs font-medium capitalize transition-all ${
+                    isActive
+                      ? "bg-white/[0.1] text-white font-medium shadow-sm border border-white/[0.12] dark:bg-white/[0.1] dark:text-white dark:border-white/[0.12] light:bg-slate-900 light:text-white light:border-slate-800"
+                      : "text-zinc-400 hover:text-zinc-200 hover:bg-white/[0.04] border border-transparent dark:text-zinc-400 dark:hover:text-zinc-200 dark:hover:bg-white/[0.04] light:text-slate-500 light:hover:text-slate-900 light:hover:bg-slate-200/60"
+                  }`}
+                >
+                  {range}
+                </button>
+              );
+            })}
           </div>
         </div>
 
@@ -168,7 +171,7 @@ export const TransactionFeed: React.FC = () => {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search description, tag, note..."
-              className="w-full rounded-xl border border-[var(--border-default)] bg-[var(--bg-surface)] pl-8 pr-7 py-2 text-xs text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:border-[var(--accent-primary)] focus:outline-none"
+              className="w-full rounded-xl border border-white/[0.08] dark:border-white/[0.08] light:border-slate-200 bg-[var(--bg-surface)] pl-8 pr-7 py-2 text-xs text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:border-emerald-500/50 focus:outline-none transition-colors"
             />
             {searchQuery && (
               <button
@@ -186,7 +189,7 @@ export const TransactionFeed: React.FC = () => {
             <select
               value={selectedType}
               onChange={(e) => setSelectedType(e.target.value)}
-              className="w-full rounded-xl border border-[var(--border-default)] bg-[var(--bg-surface)] px-2.5 py-2 text-xs text-[var(--text-secondary)] focus:border-[var(--accent-primary)] focus:outline-none"
+              className="w-full rounded-xl border border-white/[0.08] dark:border-white/[0.08] light:border-slate-200 bg-[var(--bg-surface)] px-2.5 py-2 text-xs text-[var(--text-secondary)] focus:border-emerald-500/50 focus:outline-none transition-colors"
             >
               <option value="all">All Types</option>
               <option value="expense">Expense</option>
@@ -203,7 +206,7 @@ export const TransactionFeed: React.FC = () => {
             <select
               value={selectedAccount}
               onChange={(e) => setSelectedAccount(e.target.value)}
-              className="w-full rounded-xl border border-[var(--border-default)] bg-[var(--bg-surface)] px-2.5 py-2 text-xs text-[var(--text-secondary)] focus:border-[var(--accent-primary)] focus:outline-none"
+              className="w-full rounded-xl border border-white/[0.08] dark:border-white/[0.08] light:border-slate-200 bg-[var(--bg-surface)] px-2.5 py-2 text-xs text-[var(--text-secondary)] focus:border-emerald-500/50 focus:outline-none transition-colors"
             >
               <option value="all">All Accounts</option>
               {accounts.map((acc) => (
@@ -216,11 +219,11 @@ export const TransactionFeed: React.FC = () => {
         </div>
       </div>
 
-      {/* Transaction List */}
-      <div className="divide-y divide-[var(--border-default)] max-h-[560px] overflow-y-auto">
+      {/* Transaction List with subtle muted dividers */}
+      <div className="divide-y divide-white/[0.06] dark:divide-white/[0.06] light:divide-slate-200 max-h-[560px] overflow-y-auto">
         {filteredTxs.length === 0 ? (
           <div className="p-8 text-center">
-            <div className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-[var(--bg-canvas)] border border-[var(--border-default)] mb-2 text-[var(--text-muted)]">
+            <div className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/[0.04] border border-white/[0.08] mb-2 text-[var(--text-muted)]">
               <Search className="h-5 w-5" />
             </div>
             <p className="text-xs text-[var(--text-muted)]">
@@ -239,28 +242,28 @@ export const TransactionFeed: React.FC = () => {
             return (
               <div
                 key={tx.id}
-                className="flex items-center justify-between p-3 sm:p-4 hover:bg-[var(--bg-hover)] transition-colors group"
+                className="flex items-center justify-between p-3 sm:p-4 hover:bg-white/[0.02] dark:hover:bg-white/[0.02] light:hover:bg-slate-50/80 transition-colors group"
               >
                 {/* Left info */}
                 <div className="flex items-center gap-3 min-w-0">
-                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-[var(--border-default)] bg-[var(--bg-canvas)]">
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-white/[0.06] dark:border-white/[0.06] light:border-slate-200 bg-white/[0.02] dark:bg-white/[0.02] light:bg-slate-100">
                     {getTypeIcon(tx.type)}
                   </div>
 
                   <div className="min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-xs sm:text-sm font-medium text-[var(--text-primary)] truncate max-w-[200px] sm:max-w-xs">
+                      <span className="text-xs sm:text-sm font-medium text-[var(--text-primary)] truncate max-w-[180px] sm:max-w-xs">
                         {tx.desc}
                       </span>
                       {category && (
-                        <span className="rounded-md bg-[var(--bg-canvas)] border border-[var(--border-default)] px-2 py-0.5 text-[10px] text-[var(--text-secondary)] font-medium">
+                        <span className="rounded-full bg-white/[0.04] dark:bg-white/[0.04] light:bg-slate-100 border border-white/[0.06] dark:border-white/[0.06] light:border-slate-200 text-zinc-400 dark:text-zinc-400 light:text-slate-600 text-[11px] px-2.5 py-0.5 font-medium">
                           {category.name}
                         </span>
                       )}
                       {tx.tags.map((tag) => (
                         <span
                           key={tag}
-                          className="hidden sm:inline-block rounded-md bg-[var(--accent-primary)]/10 text-[10px] text-[var(--accent-primary)] px-1.5 py-0.2"
+                          className="hidden sm:inline-block rounded-full bg-white/[0.04] text-zinc-400 border border-white/[0.06] text-[11px] px-2 py-0.5"
                         >
                           #{tag}
                         </span>
@@ -268,15 +271,15 @@ export const TransactionFeed: React.FC = () => {
                     </div>
 
                     <div className="flex items-center gap-2 mt-0.5 text-[11px] text-[var(--text-muted)]">
-                      <span>{tx.date}</span>
-                      <span>{tx.time}</span>
+                      <span className="font-mono-num">{tx.date}</span>
+                      <span className="font-mono-num">{tx.time}</span>
                       <span>•</span>
                       <span className="text-[var(--text-secondary)]">
                         {fromAcc?.name || tx.fromAccountId}
                         {toAcc && ` → ${toAcc.name}`}
                       </span>
                       {tx.isRecurringInstance && (
-                        <span className="text-[var(--color-amber)] font-medium">[Recurring]</span>
+                        <span className="text-amber-500 font-medium">[Recurring]</span>
                       )}
                     </div>
                   </div>
@@ -286,14 +289,14 @@ export const TransactionFeed: React.FC = () => {
                 <div className="flex items-center gap-2 sm:gap-4 shrink-0 pl-2">
                   <div className="text-right">
                     <div
-                      className={`text-xs sm:text-sm font-semibold tracking-tight transition-all ${
+                      className={`font-mono-num text-xs sm:text-sm font-semibold tracking-tight transition-all tabular-nums ${
                         privacyMode ? "privacy-blur" : ""
                       } ${
                         isPositive
-                          ? "text-[var(--color-emerald)]"
+                          ? "text-emerald-500"
                           : isNegative
-                          ? "text-[var(--color-rose)]"
-                          : "text-[var(--accent-primary)]"
+                          ? "text-rose-500"
+                          : "text-cyan-400"
                       }`}
                     >
                       {isPositive ? "+" : isNegative ? "-" : ""}
@@ -307,7 +310,7 @@ export const TransactionFeed: React.FC = () => {
                   {/* Delete Button */}
                   <button
                     onClick={() => handleDelete(tx.id)}
-                    className="opacity-0 group-hover:opacity-100 p-1.5 rounded-lg text-[var(--text-muted)] hover:text-[var(--color-rose)] hover:bg-[var(--color-rose)]/10 transition-all"
+                    className="opacity-0 group-hover:opacity-100 p-1.5 rounded-lg text-[var(--text-muted)] hover:text-rose-500 hover:bg-rose-500/10 transition-all"
                     title="Delete transaction"
                   >
                     <Trash2 className="h-3.5 w-3.5" />

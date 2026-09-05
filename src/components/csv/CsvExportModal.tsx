@@ -82,54 +82,59 @@ export const CsvExportModal: React.FC = () => {
     <div
       ref={overlayRef}
       onClick={handleBackdropClick}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-sm p-3 sm:p-4 overflow-hidden pb-[env(safe-area-inset-bottom)]"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-3 sm:p-4 overflow-hidden pb-[env(safe-area-inset-bottom)]"
     >
       <div
-        className="w-full max-w-md max-h-[calc(100dvh-2rem)] flex flex-col rounded-xl border border-[#232A3B] bg-[#0F131C] shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150"
+        className="w-full max-w-md max-h-[calc(100dvh-2rem)] flex flex-col rounded-2xl border border-white/[0.08] dark:border-white/[0.08] light:border-slate-200 bg-[var(--bg-surface)] shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex-shrink-0 flex items-center justify-between border-b border-[#232A3B] px-4 py-3 bg-[#07090E]">
-          <div className="flex items-center gap-2">
-            <Download className="h-4 w-4 text-[#00FF88]" />
-            <h3 className="font-mono-num text-xs font-bold uppercase tracking-wider text-white">
-              Export Ledger to CSV
-            </h3>
+        <div className="flex-shrink-0 flex items-center justify-between border-b border-white/[0.08] dark:border-white/[0.08] light:border-slate-200 px-5 py-4 bg-white/[0.02] dark:bg-white/[0.02] light:bg-slate-50/50">
+          <div className="flex items-center gap-2.5">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-400">
+              <Download className="h-4 w-4" />
+            </div>
+            <div>
+              <h3 className="font-mono-num text-xs font-bold uppercase tracking-wider text-white dark:text-white light:text-slate-900">
+                Export to CSV
+              </h3>
+              <p className="text-[11px] text-zinc-400">Download your transactions for spreadsheets</p>
+            </div>
           </div>
           <button
             onClick={() => {
               playSound("click", soundEnabled);
               setCsvExportOpen(false);
             }}
-            className="text-[#64748B] hover:text-white p-1 rounded hover:bg-[#161B26]"
+            className="text-zinc-400 hover:text-white light:hover:text-slate-900 p-1.5 rounded-lg hover:bg-white/[0.05] transition-colors"
           >
             <X className="h-4 w-4" />
           </button>
         </div>
 
-        <div className="flex-1 min-h-0 overflow-y-auto p-4 space-y-4 custom-scrollbar">
+        <div className="flex-1 min-h-0 overflow-y-auto p-5 space-y-4 custom-scrollbar">
           <div>
-            <label className="block text-[10px] font-mono-num uppercase tracking-wider text-[#64748B] mb-1">
+            <label className="block text-[11px] font-medium text-zinc-400 mb-1.5">
               Time Range
             </label>
             <select
               value={dateFilter}
               onChange={(e) => setDateFilter(e.target.value as "all" | "this_month" | "this_year")}
-              className="w-full rounded border border-[#232A3B] bg-[#07090E] px-3 py-2 text-xs text-white focus:border-[#00F0FF] font-mono-num"
+              className="w-full rounded-xl border border-white/[0.08] dark:border-white/[0.08] light:border-slate-200 bg-white/[0.03] dark:bg-white/[0.03] light:bg-slate-50 px-3.5 py-2.5 text-xs text-white dark:text-white light:text-slate-900 focus:outline-none focus:border-emerald-500/50 font-mono-num"
             >
               <option value="this_month">Current Month Only</option>
               <option value="this_year">Current Year ({new Date().getFullYear()})</option>
-              <option value="all">Full Historical Ledger</option>
+              <option value="all">All-time Transactions</option>
             </select>
           </div>
 
           <div>
-            <label className="block text-[10px] font-mono-num uppercase tracking-wider text-[#64748B] mb-1">
+            <label className="block text-[11px] font-medium text-zinc-400 mb-1.5">
               Account Scope
             </label>
             <select
               value={selectedAccountId}
               onChange={(e) => setSelectedAccountId(e.target.value)}
-              className="w-full rounded border border-[#232A3B] bg-[#07090E] px-3 py-2 text-xs text-white focus:border-[#00F0FF] font-mono-num"
+              className="w-full rounded-xl border border-white/[0.08] dark:border-white/[0.08] light:border-slate-200 bg-white/[0.03] dark:bg-white/[0.03] light:bg-slate-50 px-3.5 py-2.5 text-xs text-white dark:text-white light:text-slate-900 focus:outline-none focus:border-emerald-500/50 font-mono-num"
             >
               <option value="all">All Accounts Combined</option>
               {accounts.map((a) => (
@@ -141,13 +146,13 @@ export const CsvExportModal: React.FC = () => {
           </div>
 
           <div>
-            <label className="block text-[10px] font-mono-num uppercase tracking-wider text-[#64748B] mb-1">
+            <label className="block text-[11px] font-medium text-zinc-400 mb-1.5">
               Category Scope
             </label>
             <select
               value={selectedCategoryId}
               onChange={(e) => setSelectedCategoryId(e.target.value)}
-              className="w-full rounded border border-[#232A3B] bg-[#07090E] px-3 py-2 text-xs text-white focus:border-[#00F0FF] font-mono-num"
+              className="w-full rounded-xl border border-white/[0.08] dark:border-white/[0.08] light:border-slate-200 bg-white/[0.03] dark:bg-white/[0.03] light:bg-slate-50 px-3.5 py-2.5 text-xs text-white dark:text-white light:text-slate-900 focus:outline-none focus:border-emerald-500/50 font-mono-num"
             >
               <option value="all">All Categories</option>
               {categories.map((c) => (
@@ -159,13 +164,13 @@ export const CsvExportModal: React.FC = () => {
           </div>
         </div>
 
-        <div className="flex-shrink-0 border-t border-[#232A3B] px-4 py-3 bg-[#07090E]">
+        <div className="flex-shrink-0 border-t border-white/[0.08] dark:border-white/[0.08] light:border-slate-200 px-5 py-4 bg-white/[0.02] dark:bg-white/[0.02] light:bg-slate-50/50">
           <button
             onClick={handleExport}
-            className="flex w-full items-center justify-center gap-2 rounded border border-[#00FF88]/60 bg-[#00FF88]/15 py-2.5 text-xs font-bold font-mono-num text-[#00FF88] hover:bg-[#00FF88]/25 transition-colors shadow-[0_0_12px_rgba(0,255,136,0.15)]"
+            className="flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-semibold py-2.5 text-xs font-mono-num shadow-sm transition-all"
           >
             <Check className="h-4 w-4" />
-            GENERATE &amp; DOWNLOAD CSV
+            Download CSV Export
           </button>
         </div>
       </div>

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useMemo } from "react";
-import { PieChart, Tag } from "lucide-react";
+import { PieChart } from "lucide-react";
 import { Category, Transaction } from "../../lib/types";
 import { formatCurrency, safeAdd } from "../../lib/mathEngine";
 import { useUIStore } from "../../store/useUIStore";
@@ -49,16 +49,16 @@ export const ExpenseTreemap: React.FC<ExpenseTreemapProps> = ({
   }, [transactions, categories, currentYear, currentMonth]);
 
   return (
-    <div className="industrial-card rounded-lg border border-[#232A3B] bg-[#0F131C] p-4 sm:p-5">
+    <div className="rounded-2xl border border-white/[0.08] dark:border-white/[0.08] light:border-slate-200 bg-[var(--bg-surface)] p-5 sm:p-6 shadow-sm overflow-hidden transition-colors">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <PieChart className="h-4 w-4 text-[#00F0FF]" />
-          <h3 className="font-mono-num text-xs sm:text-sm font-bold uppercase tracking-wider text-white">
-            Category Expenditure Breakdown
+          <PieChart className="h-4 w-4 text-emerald-500" />
+          <h3 className="text-sm font-semibold text-[var(--text-primary)]">
+            Category Spending Breakdown
           </h3>
         </div>
         <span
-          className={`text-xs font-mono-num font-bold text-[#FF5C00] ${
+          className={`text-xs font-mono-num font-bold text-rose-500 tabular-nums ${
             privacyMode ? "privacy-blur" : ""
           }`}
         >
@@ -66,33 +66,33 @@ export const ExpenseTreemap: React.FC<ExpenseTreemapProps> = ({
         </span>
       </div>
 
-      <div className="space-y-3">
+      <div className="space-y-3.5">
         {categoryBreakdown.items.length === 0 ? (
-          <p className="text-xs font-mono-num text-[#64748B] text-center py-4">
-            No expenses recorded for the current monthly cycle
+          <p className="text-xs text-[var(--text-muted)] text-center py-6">
+            No expenses recorded for this month
           </p>
         ) : (
           categoryBreakdown.items.map((item) => (
-            <div key={item.id} className="space-y-1">
-              <div className="flex justify-between items-center text-xs font-mono-num">
-                <span className="text-white flex items-center gap-1.5">
+            <div key={item.id} className="space-y-1.5">
+              <div className="flex justify-between items-center text-xs">
+                <span className="text-[var(--text-primary)] font-medium flex items-center gap-2">
                   <span
-                    className="h-2 w-2 rounded-full"
+                    className="h-2.5 w-2.5 rounded-full shrink-0"
                     style={{ backgroundColor: item.color }}
                   />
-                  {item.name}
+                  <span className="truncate max-w-[160px] sm:max-w-xs">{item.name}</span>
                 </span>
-                <span className="text-[#94A3B8] flex items-center gap-2">
-                  <span className={privacyMode ? "privacy-blur" : ""}>
+                <span className="text-[var(--text-secondary)] flex items-center gap-3 font-mono-num">
+                  <span className={`tabular-nums ${privacyMode ? "privacy-blur" : ""}`}>
                     {formatCurrency(item.amount, "IDR", "id-ID")}
                   </span>
-                  <span className="text-[#00F0FF] font-bold w-12 text-right">
+                  <span className="text-emerald-500 font-semibold w-12 text-right tabular-nums">
                     {item.percent}%
                   </span>
                 </span>
               </div>
 
-              <div className="h-1.5 w-full rounded-full bg-[#161B26] overflow-hidden">
+              <div className="h-2 w-full rounded-full bg-white/[0.05] dark:bg-white/[0.05] light:bg-slate-200 overflow-hidden">
                 <div
                   className="h-full rounded-full transition-all duration-500"
                   style={{

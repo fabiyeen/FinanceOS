@@ -144,7 +144,7 @@ export const DebtTracker: React.FC = () => {
                     Remaining
                   </div>
                   <div
-                    className={`text-base font-bold mt-0.5 ${
+                    className={`text-base font-bold mt-0.5 font-mono-num tabular-nums ${
                       privacyMode ? "privacy-blur" : ""
                     } ${isOwe ? "text-[var(--color-rose)]" : "text-[var(--color-emerald)]"}`}
                   >
@@ -152,7 +152,7 @@ export const DebtTracker: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="text-right text-[11px] text-[var(--text-muted)]">
+                <div className="text-right text-[11px] text-[var(--text-muted)] font-mono-num tabular-nums">
                   <div>Total: {formatCurrency(debt.amount, currency, locale)}</div>
                   <div>Paid: {formatCurrency(debt.paidAmount, currency, locale)}</div>
                   {debt.dueDate && <div className="text-[var(--color-amber)] font-medium">Due: {debt.dueDate}</div>}

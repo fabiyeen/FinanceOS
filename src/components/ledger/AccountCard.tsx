@@ -57,7 +57,6 @@ export const AccountCard: React.FC<AccountCardProps> = ({
 
   // Credit Card Headroom Calculations
   const creditLimit = account.creditLimit || 0;
-  // If balance is negative (-4,250,000), we owe 4,250,000
   const balanceOwed = account.currentBalance < 0 ? Math.abs(account.currentBalance) : 0;
   const availableCredit = creditLimit > 0 ? Math.max(0, safeSub(creditLimit, balanceOwed)) : 0;
   const creditUtilizationRatio = creditLimit > 0 ? Math.min(100, Math.round((balanceOwed / creditLimit) * 100)) : 0;
@@ -78,7 +77,7 @@ export const AccountCard: React.FC<AccountCardProps> = ({
   };
 
   return (
-    <div className="industrial-card rounded-lg border border-[#232A3B] bg-[#0F131C] p-4 relative overflow-hidden group hover:border-[#384259] transition-all">
+    <div className="rounded-2xl border border-white/[0.08] dark:border-white/[0.08] light:border-slate-200 bg-[var(--bg-surface)] p-4 sm:p-5 relative overflow-hidden group hover:border-white/[0.14] transition-all shadow-xs">
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-3">
           {/* Priority Reordering Controls */}
@@ -88,8 +87,8 @@ export const AccountCard: React.FC<AccountCardProps> = ({
                 type="button"
                 onClick={onMoveUp}
                 disabled={!canMoveUp}
-                className="p-1 rounded text-[#64748B] hover:text-[#00F0FF] hover:bg-[#161B26] disabled:opacity-20 disabled:hover:bg-transparent"
-                title="Move Wallet Priority Up"
+                className="p-1 rounded-md text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-white/[0.04] disabled:opacity-20 disabled:hover:bg-transparent transition-colors"
+                title="Move Priority Up"
               >
                 <ArrowUp className="h-3 w-3" />
               </button>
@@ -97,8 +96,8 @@ export const AccountCard: React.FC<AccountCardProps> = ({
                 type="button"
                 onClick={onMoveDown}
                 disabled={!canMoveDown}
-                className="p-1 rounded text-[#64748B] hover:text-[#00F0FF] hover:bg-[#161B26] disabled:opacity-20 disabled:hover:bg-transparent"
-                title="Move Wallet Priority Down"
+                className="p-1 rounded-md text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-white/[0.04] disabled:opacity-20 disabled:hover:bg-transparent transition-colors"
+                title="Move Priority Down"
               >
                 <ArrowDown className="h-3 w-3" />
               </button>
@@ -106,20 +105,20 @@ export const AccountCard: React.FC<AccountCardProps> = ({
           )}
 
           <div
-            className="flex h-9 w-9 items-center justify-center rounded border border-[#232A3B] bg-[#07090E]"
+            className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/[0.06] dark:border-white/[0.06] light:border-slate-200 bg-white/[0.02] dark:bg-white/[0.02] light:bg-slate-100"
             style={{ color: account.color }}
           >
             <Icon className="h-5 w-5" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h4 className="text-xs sm:text-sm font-semibold text-white">{account.name}</h4>
-              <span className="rounded bg-[#1E2536] border border-[#232A3B] px-1.5 py-0.2 text-[9px] font-mono-num uppercase text-[#94A3B8]">
+              <h4 className="text-xs sm:text-sm font-semibold text-[var(--text-primary)]">{account.name}</h4>
+              <span className="rounded-full bg-white/[0.04] dark:bg-white/[0.04] light:bg-slate-100 border border-white/[0.06] dark:border-white/[0.06] light:border-slate-200 px-2 py-0.5 text-[10px] text-[var(--text-muted)] capitalize font-medium">
                 {account.type}
               </span>
             </div>
-            <div className="text-[10px] font-mono-num text-[#64748B] mt-0.5">
-              CURRENCY: {account.currency}
+            <div className="text-[10px] text-[var(--text-muted)] mt-0.5 font-mono-num">
+              Currency: {account.currency}
             </div>
           </div>
         </div>
@@ -128,15 +127,15 @@ export const AccountCard: React.FC<AccountCardProps> = ({
         <div className="flex items-center gap-1">
           <button
             onClick={handleEditAccount}
-            className="rounded border border-[#232A3B] bg-[#07090E] p-1.5 text-[#64748B] hover:text-white hover:border-[#384259] transition-colors"
-            title="Configure account settings"
+            className="rounded-lg border border-white/[0.06] dark:border-white/[0.06] light:border-slate-200 bg-white/[0.02] dark:bg-white/[0.02] light:bg-slate-100 p-1.5 text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
+            title="Edit account"
           >
             <Edit2 className="h-3.5 w-3.5" />
           </button>
           <button
             onClick={handleQuickTransfer}
-            className="rounded border border-[#232A3B] bg-[#07090E] p-1.5 text-[#64748B] hover:text-[#00F0FF] hover:border-[#00F0FF]/40 transition-colors"
-            title="Initiate transfer from this account"
+            className="rounded-lg border border-white/[0.06] dark:border-white/[0.06] light:border-slate-200 bg-white/[0.02] dark:bg-white/[0.02] light:bg-slate-100 p-1.5 text-[var(--text-muted)] hover:text-cyan-400 transition-colors"
+            title="Transfer from account"
           >
             <ArrowRightLeft className="h-3.5 w-3.5" />
           </button>
@@ -144,13 +143,13 @@ export const AccountCard: React.FC<AccountCardProps> = ({
       </div>
 
       {/* Balance Readout */}
-      <div className="mt-4 pt-3 border-t border-[var(--border-subtle)] flex items-end justify-between">
+      <div className="mt-4 pt-3 border-t border-white/[0.06] dark:border-white/[0.06] light:border-slate-200 flex items-end justify-between">
         <div>
           <span className="text-[11px] font-medium text-[var(--text-muted)]">
             {isCredit ? "Balance Owed" : "Available Balance"}
           </span>
           <div
-            className={`font-mono-num text-base sm:text-lg font-bold tracking-tight transition-all ${
+            className={`font-mono-num text-base sm:text-lg font-bold tracking-tight transition-all tabular-nums ${
               privacyMode ? "privacy-blur" : ""
             } ${
               isCredit
@@ -176,7 +175,7 @@ export const AccountCard: React.FC<AccountCardProps> = ({
             <span className="text-[11px] font-medium text-[var(--text-muted)]">
               Statement
             </span>
-            <div className="text-xs font-mono-num text-amber-500 font-medium">
+            <div className="text-xs font-mono-num text-amber-500 font-medium tabular-nums">
               Day {account.statementClosingDay}
             </div>
           </div>
@@ -185,16 +184,16 @@ export const AccountCard: React.FC<AccountCardProps> = ({
 
       {/* Credit Card Specific Utilization & Limit Bar */}
       {isCredit && creditLimit > 0 && (
-        <div className="mt-3 pt-2 border-t border-[var(--border-subtle)]">
+        <div className="mt-3 pt-2.5 border-t border-white/[0.06] dark:border-white/[0.06] light:border-slate-200">
           <div className="flex justify-between text-xs text-[var(--text-secondary)] mb-1">
-            <span>Utilization: {creditUtilizationRatio}%</span>
+            <span>Utilization: <span className="font-mono-num tabular-nums font-semibold">{creditUtilizationRatio}%</span></span>
             <span className={privacyMode ? "privacy-blur" : ""}>
-              Available Credit: {formatCurrency(availableCredit, account.currency, "id-ID")}
+              Available: <span className="font-mono-num tabular-nums">{formatCurrency(availableCredit, account.currency, "id-ID")}</span>
             </span>
           </div>
-          <div className="h-1.5 w-full rounded-full bg-[var(--bg-void)] overflow-hidden">
+          <div className="h-2 w-full rounded-full bg-white/[0.05] dark:bg-white/[0.05] light:bg-slate-200 overflow-hidden">
             <div
-              className={`h-full transition-all ${
+              className={`h-full rounded-full transition-all ${
                 creditUtilizationRatio > 75
                   ? "bg-rose-500"
                   : creditUtilizationRatio > 40
@@ -205,7 +204,7 @@ export const AccountCard: React.FC<AccountCardProps> = ({
             />
           </div>
           <div className="flex justify-between text-[11px] text-[var(--text-muted)] mt-1">
-            <span>Limit: {formatCurrency(creditLimit, account.currency, "id-ID")}</span>
+            <span>Limit: <span className="font-mono-num tabular-nums">{formatCurrency(creditLimit, account.currency, "id-ID")}</span></span>
           </div>
         </div>
       )}

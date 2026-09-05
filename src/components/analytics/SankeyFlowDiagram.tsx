@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useMemo } from "react";
-import { GitCommit, TrendingUp, Shield, CreditCard, Sparkles } from "lucide-react";
+import { GitCommit, TrendingUp } from "lucide-react";
 import { Transaction } from "../../lib/types";
 import { formatCurrency, safeAdd } from "../../lib/mathEngine";
 import { useUIStore } from "../../store/useUIStore";
@@ -35,7 +35,6 @@ export const SankeyFlowDiagram: React.FC<SankeyFlowDiagramProps> = ({
         } else if (tx.type === "vault_deposit") {
           vaultSavings = safeAdd(vaultSavings, tx.amount);
         } else if (tx.type === "expense") {
-          // Categorize as fixed vs discretionary
           if (tx.categoryId === "cat_util" || tx.categoryId === "cat_subs" || tx.isRecurringInstance) {
             fixedBills = safeAdd(fixedBills, tx.amount);
           } else {
@@ -48,7 +47,7 @@ export const SankeyFlowDiagram: React.FC<SankeyFlowDiagramProps> = ({
     const unallocated = Math.max(0, totalIncome - (fixedBills + discretionary + vaultSavings));
 
     return {
-      totalIncome: totalIncome || 32000000, // Fallback to realistic demo base if 0
+      totalIncome: totalIncome || 32000000,
       fixedBills: fixedBills || 2480000,
       discretionary: discretionary || 1320000,
       vaultSavings: vaultSavings || 2500000,
@@ -63,32 +62,32 @@ export const SankeyFlowDiagram: React.FC<SankeyFlowDiagramProps> = ({
   const pctRetained = Math.max(0, 100 - (pctFixed + pctDisc + pctVault));
 
   return (
-    <div className="industrial-card rounded-lg border border-[#232A3B] bg-[#0F131C] p-4 sm:p-5">
+    <div className="rounded-2xl border border-white/[0.08] dark:border-white/[0.08] light:border-slate-200 bg-[var(--bg-surface)] p-5 sm:p-6 shadow-sm overflow-hidden transition-colors">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <GitCommit className="h-4 w-4 text-[#00F0FF]" />
-          <h3 className="font-mono-num text-xs sm:text-sm font-bold uppercase tracking-wider text-white">
-            Capital Distribution Flow (Sankey Matrix)
+          <GitCommit className="h-4 w-4 text-cyan-400" />
+          <h3 className="text-sm font-semibold text-[var(--text-primary)]">
+            Capital Flow Distribution
           </h3>
         </div>
-        <span className="text-[10px] font-mono-num text-[#64748B] uppercase">
-          MONTH CYCLE: {currentYear}-{String(currentMonth + 1).padStart(2, "0")}
+        <span className="text-[11px] font-mono-num text-[var(--text-muted)]">
+          {currentYear}-{String(currentMonth + 1).padStart(2, "0")}
         </span>
       </div>
 
       {/* Visual Flow Representation */}
       <div className="space-y-4">
         {/* Source Node */}
-        <div className="rounded-lg border border-[#00FF88]/40 bg-[#00FF88]/10 p-3 sm:p-4">
+        <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-3.5 sm:p-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <TrendingUp className="h-4 w-4 text-[#00FF88]" />
-              <span className="text-xs font-mono-num font-bold text-white uppercase">
-                Gross Inflow (Total Revenue)
+              <TrendingUp className="h-4 w-4 text-emerald-500" />
+              <span className="text-xs font-semibold text-[var(--text-primary)]">
+                Total Income (Inflow)
               </span>
             </div>
             <div
-              className={`font-mono-num text-sm sm:text-base font-bold text-[#00FF88] ${
+              className={`font-mono-num text-sm sm:text-base font-bold text-emerald-500 ${
                 privacyMode ? "privacy-blur" : ""
               }`}
             >
@@ -98,86 +97,86 @@ export const SankeyFlowDiagram: React.FC<SankeyFlowDiagramProps> = ({
         </div>
 
         {/* Dynamic Branching Connector Graphic */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-2.5 pt-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-1">
           {/* Branch 1: Fixed Obligations */}
-          <div className="rounded border border-[#FFB800]/40 bg-[#FFB800]/5 p-3 relative">
-            <div className="text-[10px] font-mono-num text-[#FFB800] uppercase font-bold flex items-center justify-between">
+          <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-3.5 relative">
+            <div className="text-[11px] font-medium text-amber-500 flex items-center justify-between">
               <span>Fixed Obligations</span>
-              <span>{pctFixed}%</span>
+              <span className="font-mono-num font-semibold">{pctFixed}%</span>
             </div>
             <div
-              className={`font-mono-num text-xs sm:text-sm font-bold text-white mt-1 ${
+              className={`font-mono-num text-xs sm:text-sm font-bold text-[var(--text-primary)] mt-1.5 ${
                 privacyMode ? "privacy-blur" : ""
               }`}
             >
               {formatCurrency(flow.fixedBills, "IDR", "id-ID")}
             </div>
-            <div className="text-[9px] font-mono-num text-[#64748B] mt-0.5">
-              Utilities, fiber, server nodes
+            <div className="text-[10px] text-[var(--text-muted)] mt-0.5">
+              Utilities, subscriptions, bills
             </div>
           </div>
 
           {/* Branch 2: Discretionary Spend */}
-          <div className="rounded border border-[#FF5C00]/40 bg-[#FF5C00]/5 p-3 relative">
-            <div className="text-[10px] font-mono-num text-[#FF5C00] uppercase font-bold flex items-center justify-between">
+          <div className="rounded-xl border border-orange-500/20 bg-orange-500/5 p-3.5 relative">
+            <div className="text-[11px] font-medium text-orange-500 flex items-center justify-between">
               <span>Discretionary</span>
-              <span>{pctDisc}%</span>
+              <span className="font-mono-num font-semibold">{pctDisc}%</span>
             </div>
             <div
-              className={`font-mono-num text-xs sm:text-sm font-bold text-white mt-1 ${
+              className={`font-mono-num text-xs sm:text-sm font-bold text-[var(--text-primary)] mt-1.5 ${
                 privacyMode ? "privacy-blur" : ""
               }`}
             >
               {formatCurrency(flow.discretionary, "IDR", "id-ID")}
             </div>
-            <div className="text-[9px] font-mono-num text-[#64748B] mt-0.5">
-              Dining, hardware, mobility
+            <div className="text-[10px] text-[var(--text-muted)] mt-0.5">
+              Dining, shopping, lifestyle
             </div>
           </div>
 
           {/* Branch 3: Vault Allocations */}
-          <div className="rounded border border-[#9D00FF]/40 bg-[#9D00FF]/5 p-3 relative">
-            <div className="text-[10px] font-mono-num text-[#9D00FF] uppercase font-bold flex items-center justify-between">
-              <span>Vault Sinking Funds</span>
-              <span>{pctVault}%</span>
+          <div className="rounded-xl border border-purple-500/20 bg-purple-500/5 p-3.5 relative">
+            <div className="text-[11px] font-medium text-purple-400 flex items-center justify-between">
+              <span>Savings Goals</span>
+              <span className="font-mono-num font-semibold">{pctVault}%</span>
             </div>
             <div
-              className={`font-mono-num text-xs sm:text-sm font-bold text-white mt-1 ${
+              className={`font-mono-num text-xs sm:text-sm font-bold text-[var(--text-primary)] mt-1.5 ${
                 privacyMode ? "privacy-blur" : ""
               }`}
             >
               {formatCurrency(flow.vaultSavings, "IDR", "id-ID")}
             </div>
-            <div className="text-[9px] font-mono-num text-[#64748B] mt-0.5">
-              Tech gear &amp; retreat funds
+            <div className="text-[10px] text-[var(--text-muted)] mt-0.5">
+              Allocated sinking funds
             </div>
           </div>
 
           {/* Branch 4: Unallocated Retained Liquid Cash */}
-          <div className="rounded border border-[#00F0FF]/40 bg-[#00F0FF]/5 p-3 relative">
-            <div className="text-[10px] font-mono-num text-[#00F0FF] uppercase font-bold flex items-center justify-between">
-              <span>Liquid Retained</span>
-              <span>{pctRetained}%</span>
+          <div className="rounded-xl border border-cyan-500/20 bg-cyan-500/5 p-3.5 relative">
+            <div className="text-[11px] font-medium text-cyan-400 flex items-center justify-between">
+              <span>Retained Cash</span>
+              <span className="font-mono-num font-semibold">{pctRetained}%</span>
             </div>
             <div
-              className={`font-mono-num text-xs sm:text-sm font-bold text-white mt-1 ${
+              className={`font-mono-num text-xs sm:text-sm font-bold text-[var(--text-primary)] mt-1.5 ${
                 privacyMode ? "privacy-blur" : ""
               }`}
             >
               {formatCurrency(flow.unallocated, "IDR", "id-ID")}
             </div>
-            <div className="text-[9px] font-mono-num text-[#64748B] mt-0.5">
-              Liquid treasury growth
+            <div className="text-[10px] text-[var(--text-muted)] mt-0.5">
+              Net liquidity increase
             </div>
           </div>
         </div>
 
         {/* Visual Partition Ribbon */}
-        <div className="h-3 w-full rounded-full bg-[#07090E] overflow-hidden flex p-0.5 border border-[#232A3B]">
-          <div style={{ width: `${pctFixed}%` }} className="bg-[#FFB800] rounded-l-full" title="Fixed" />
-          <div style={{ width: `${pctDisc}%` }} className="bg-[#FF5C00]" title="Discretionary" />
-          <div style={{ width: `${pctVault}%` }} className="bg-[#9D00FF]" title="Vaults" />
-          <div style={{ width: `${pctRetained}%` }} className="bg-[#00F0FF] rounded-r-full" title="Retained" />
+        <div className="h-2.5 w-full rounded-full bg-white/[0.05] dark:bg-white/[0.05] light:bg-slate-200 overflow-hidden flex p-0.5">
+          <div style={{ width: `${pctFixed}%` }} className="bg-amber-500 rounded-l-full" title="Fixed Obligations" />
+          <div style={{ width: `${pctDisc}%` }} className="bg-orange-500" title="Discretionary Spend" />
+          <div style={{ width: `${pctVault}%` }} className="bg-purple-500" title="Savings Goals" />
+          <div style={{ width: `${pctRetained}%` }} className="bg-cyan-500 rounded-r-full" title="Retained Cash" />
         </div>
       </div>
     </div>

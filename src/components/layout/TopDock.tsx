@@ -167,8 +167,8 @@ export const TopDock: React.FC = () => {
             </button>
           </div>
 
-          {/* Center: Live Net Worth Ticker */}
-          <div className="flex items-center gap-2">
+          {/* Center: Live Net Worth Ticker (Hidden on extra small mobile screens to prevent header wrapping) */}
+          <div className="hidden sm:flex items-center gap-2">
             <div className="text-right sm:text-center">
               <div className="text-[11px] font-medium tracking-wide text-[var(--text-muted)]">
                 Net Worth

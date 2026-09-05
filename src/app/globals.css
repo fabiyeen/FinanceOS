@@ -3,14 +3,26 @@
 @layer base {
   :root, .dark {
     --bg-void: #0B0F17;
+    --bg-canvas: #0B0F17;
+    --bg-surface: #0F172A;
     --bg-surface-1: #0F172A;
     --bg-surface-2: #1E293B;
     --bg-surface-3: #334155;
-    --border-industrial: #334155;
-    --border-subtle: #1E293B;
+    --bg-hover: rgba(255, 255, 255, 0.04);
+    
+    --border-default: rgba(255, 255, 255, 0.08);
+    --border-subtle: rgba(255, 255, 255, 0.05);
+    --border-industrial: rgba(255, 255, 255, 0.12);
     --card-bg: #0F172A;
     --card-surface: #1E293B;
     
+    --accent-primary: #10B981;
+    --color-emerald: #10B981;
+    --color-amber: #F59E0B;
+    --color-rose: #F43F5E;
+    --color-cyan: #00F0FF;
+    --color-orange: #F97316;
+
     --accent-cyan: #00F0FF;
     --accent-emerald: #10B981;
     --accent-amber: #F59E0B;
@@ -27,15 +39,27 @@
   }
 
   .light {
-    --bg-void: #F9FAFB;
+    --bg-void: #F8FAFC;
+    --bg-canvas: #F8FAFC;
+    --bg-surface: #FFFFFF;
     --bg-surface-1: #FFFFFF;
-    --bg-surface-2: #F3F4F6;
-    --bg-surface-3: #E5E7EB;
-    --border-industrial: #E5E7EB;
-    --border-subtle: #E5E7EB;
-    --card-bg: #FFFFFF;
-    --card-surface: #F9FAFB;
+    --bg-surface-2: #F1F5F9;
+    --bg-surface-3: #E2E8F0;
+    --bg-hover: rgba(0, 0, 0, 0.03);
     
+    --border-default: #E2E8F0;
+    --border-subtle: #EDF2F7;
+    --border-industrial: #CBD5E1;
+    --card-bg: #FFFFFF;
+    --card-surface: #F8FAFC;
+    
+    --accent-primary: #059669;
+    --color-emerald: #059669;
+    --color-amber: #D97706;
+    --color-rose: #E11D48;
+    --color-cyan: #0284C7;
+    --color-orange: #EA580C;
+
     --accent-cyan: #0284C7;
     --accent-emerald: #059669;
     --accent-amber: #D97706;
@@ -45,22 +69,34 @@
     --accent-rose: #E11D48;
     --accent-blue: #2563EB;
 
-    --text-primary: #111827;
-    --text-secondary: #4B5563;
-    --text-muted: #6B7280;
-    --text-ghost: #9CA3AF;
+    --text-primary: #0F172A;
+    --text-secondary: #475569;
+    --text-muted: #64748B;
+    --text-ghost: #94A3B8;
   }
 
   .midnight-oled {
     --bg-void: #000000;
-    --bg-surface-1: #121212;
-    --bg-surface-2: #1E1E1E;
-    --bg-surface-3: #2A2A2A;
-    --border-industrial: #262626;
-    --border-subtle: #1F1F1F;
-    --card-bg: #121212;
-    --card-surface: #181818;
+    --bg-canvas: #000000;
+    --bg-surface: #0A0A0A;
+    --bg-surface-1: #0A0A0A;
+    --bg-surface-2: #141414;
+    --bg-surface-3: #1F1F1F;
+    --bg-hover: rgba(255, 255, 255, 0.05);
     
+    --border-default: rgba(255, 255, 255, 0.10);
+    --border-subtle: rgba(255, 255, 255, 0.06);
+    --border-industrial: rgba(255, 255, 255, 0.15);
+    --card-bg: #0A0A0A;
+    --card-surface: #141414;
+    
+    --accent-primary: #10B981;
+    --color-emerald: #10B981;
+    --color-amber: #F59E0B;
+    --color-rose: #F43F5E;
+    --color-cyan: #00F0FF;
+    --color-orange: #F97316;
+
     --accent-cyan: #00F0FF;
     --accent-emerald: #10B981;
     --accent-amber: #F59E0B;
@@ -90,20 +126,21 @@
 .font-mono-num {
   font-family: var(--font-geist-mono), "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
   font-feature-settings: "tnum" 1, "zero" 1, "cv01" 1;
+  font-variant-numeric: tabular-nums;
 }
 
 /* Grounded Minimalist Surface Cards */
 .industrial-card {
   background: var(--card-bg, #0F172A);
-  border: 1px solid var(--border-subtle, #1E293B);
-  border-radius: 0.75rem;
+  border: 1px solid var(--border-default, rgba(255, 255, 255, 0.08));
+  border-radius: 1rem;
   box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.08), 0 1px 2px -1px rgba(0, 0, 0, 0.08);
   position: relative;
   transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.2s ease;
 }
 
 .industrial-card:hover {
-  border-color: var(--border-industrial, #334155);
+  border-color: var(--border-industrial, rgba(255, 255, 255, 0.14));
 }
 
 .industrial-border-cyan {

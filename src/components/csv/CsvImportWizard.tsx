@@ -156,19 +156,24 @@ export const CsvImportWizard: React.FC = () => {
     <div
       ref={overlayRef}
       onClick={handleBackdropClick}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-sm p-3 sm:p-6 overflow-hidden pb-[env(safe-area-inset-bottom)]"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-3 sm:p-6 overflow-hidden pb-[env(safe-area-inset-bottom)]"
     >
       <div
-        className="w-full max-w-3xl max-h-[calc(100dvh-2rem)] flex flex-col rounded-xl border border-[#232A3B] bg-[#0F131C] shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150"
+        className="w-full max-w-3xl max-h-[calc(100dvh-2rem)] flex flex-col rounded-2xl border border-white/[0.08] dark:border-white/[0.08] light:border-slate-200 bg-[var(--bg-surface)] shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Sticky Header */}
-        <div className="flex-shrink-0 flex items-center justify-between border-b border-[#232A3B] px-4 py-3 bg-[#07090E]">
-          <div className="flex items-center gap-2">
-            <FileSpreadsheet className="h-4 w-4 text-[#FFB800]" />
-            <h3 className="font-mono-num text-xs sm:text-sm font-bold uppercase tracking-wider text-white">
-              CSV Statement Import Wizard (Step {step} of 3)
-            </h3>
+        <div className="flex-shrink-0 flex items-center justify-between border-b border-white/[0.08] dark:border-white/[0.08] light:border-slate-200 px-5 py-4 bg-white/[0.02] dark:bg-white/[0.02] light:bg-slate-50/50">
+          <div className="flex items-center gap-2.5">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-400">
+              <FileSpreadsheet className="h-4 w-4" />
+            </div>
+            <div>
+              <h3 className="font-mono-num text-xs sm:text-sm font-bold uppercase tracking-wider text-white dark:text-white light:text-slate-900">
+                Import CSV Statement (Step {step} of 3)
+              </h3>
+              <p className="text-[11px] text-zinc-400">Import bank or credit card statements into your ledger</p>
+            </div>
           </div>
           <button
             onClick={() => {
@@ -176,7 +181,7 @@ export const CsvImportWizard: React.FC = () => {
               setCsvImportOpen(false);
               setStep(1);
             }}
-            className="text-[#64748B] hover:text-white p-1 rounded hover:bg-[#161B26]"
+            className="text-zinc-400 hover:text-white light:hover:text-slate-900 p-1.5 rounded-lg hover:bg-white/[0.05] transition-colors"
           >
             <X className="h-4 w-4" />
           </button>
@@ -188,20 +193,20 @@ export const CsvImportWizard: React.FC = () => {
         {/* Step 1: Upload */}
         {step === 1 && (
           <div className="p-8 text-center space-y-4">
-            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-dashed border-[#00F0FF]/40 bg-[#00F0FF]/5 text-[#00F0FF]">
-              <Upload className="h-8 w-8" />
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-dashed border-emerald-500/30 bg-emerald-500/5 text-emerald-400">
+              <Upload className="h-7 w-7" />
             </div>
             <div>
-              <h4 className="text-sm font-bold text-white uppercase font-mono-num">
-                Drop your bank or credit card CSV statement
+              <h4 className="text-sm font-semibold text-white dark:text-white light:text-slate-900">
+                Choose your CSV statement file
               </h4>
-              <p className="text-xs text-[#94A3B8] font-mono-num mt-1">
+              <p className="text-xs text-zinc-400 mt-1">
                 Auto-detects comma (,), semicolon (;), and tab delimiters
               </p>
             </div>
 
-            <label className="inline-block cursor-pointer rounded border border-[#00F0FF]/60 bg-[#00F0FF]/15 px-4 py-2 text-xs font-bold font-mono-num text-[#00F0FF] hover:bg-[#00F0FF]/25 transition-colors">
-              SELECT .CSV FILE
+            <label className="inline-block cursor-pointer rounded-xl bg-white/[0.06] hover:bg-white/[0.1] dark:bg-white/[0.06] dark:hover:bg-white/[0.1] light:bg-slate-100 light:hover:bg-slate-200 text-white dark:text-white light:text-slate-800 border border-white/[0.08] dark:border-white/[0.08] light:border-slate-200 px-5 py-2.5 text-xs font-semibold font-mono-num transition-all">
+              Select CSV File
               <input
                 type="file"
                 accept=".csv"
@@ -214,28 +219,28 @@ export const CsvImportWizard: React.FC = () => {
 
         {/* Step 2: Column Mapping */}
         {step === 2 && (
-          <div className="p-4 sm:p-6 space-y-4">
+          <div className="p-5 sm:p-6 space-y-4">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-mono-num text-[#94A3B8]">
+              <span className="text-xs font-mono-num text-zinc-400">
                 Detected {rawRows.length} rows • Delimiter: [{detectedDelimiter === "\t" ? "TAB" : detectedDelimiter}]
               </span>
               <button
                 onClick={() => setStep(1)}
-                className="text-xs font-mono-num text-[#64748B] hover:text-white"
+                className="text-xs font-mono-num text-zinc-400 hover:text-white light:hover:text-slate-900"
               >
                 Choose Different File
               </button>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3 rounded bg-[#07090E] border border-[#232A3B]">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 p-4 rounded-xl bg-white/[0.02] dark:bg-white/[0.02] light:bg-slate-50/50 border border-white/[0.06] dark:border-white/[0.06] light:border-slate-200">
               <div>
-                <label className="block text-[10px] font-mono-num uppercase text-[#00F0FF] mb-1">
+                <label className="block text-[11px] font-medium text-emerald-400 mb-1.5">
                   * Date Column
                 </label>
                 <select
                   value={mapping.date}
                   onChange={(e) => setMapping({ ...mapping, date: e.target.value })}
-                  className="w-full rounded border border-[#232A3B] bg-[#161B26] px-2 py-1 text-xs text-white focus:border-[#00F0FF] font-mono-num"
+                  className="w-full rounded-xl border border-white/[0.08] dark:border-white/[0.08] light:border-slate-200 bg-white/[0.03] dark:bg-white/[0.03] light:bg-white px-3 py-2 text-xs text-white dark:text-white light:text-slate-900 focus:outline-none focus:border-emerald-500/50 font-mono-num"
                 >
                   <option value="">-- Select Header --</option>
                   {csvHeaders.map((h) => (
@@ -247,13 +252,13 @@ export const CsvImportWizard: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-[10px] font-mono-num uppercase text-[#00F0FF] mb-1">
+                <label className="block text-[11px] font-medium text-emerald-400 mb-1.5">
                   * Amount Column
                 </label>
                 <select
                   value={mapping.amount}
                   onChange={(e) => setMapping({ ...mapping, amount: e.target.value })}
-                  className="w-full rounded border border-[#232A3B] bg-[#161B26] px-2 py-1 text-xs text-white focus:border-[#00F0FF] font-mono-num"
+                  className="w-full rounded-xl border border-white/[0.08] dark:border-white/[0.08] light:border-slate-200 bg-white/[0.03] dark:bg-white/[0.03] light:bg-white px-3 py-2 text-xs text-white dark:text-white light:text-slate-900 focus:outline-none focus:border-emerald-500/50 font-mono-num"
                 >
                   <option value="">-- Select Header --</option>
                   {csvHeaders.map((h) => (
@@ -265,13 +270,13 @@ export const CsvImportWizard: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-[10px] font-mono-num uppercase text-[#00F0FF] mb-1">
+                <label className="block text-[11px] font-medium text-emerald-400 mb-1.5">
                   * Description Column
                 </label>
                 <select
                   value={mapping.desc}
                   onChange={(e) => setMapping({ ...mapping, desc: e.target.value })}
-                  className="w-full rounded border border-[#232A3B] bg-[#161B26] px-2 py-1 text-xs text-white focus:border-[#00F0FF] font-mono-num"
+                  className="w-full rounded-xl border border-white/[0.08] dark:border-white/[0.08] light:border-slate-200 bg-white/[0.03] dark:bg-white/[0.03] light:bg-white px-3 py-2 text-xs text-white dark:text-white light:text-slate-900 focus:outline-none focus:border-emerald-500/50 font-mono-num"
                 >
                   <option value="">-- Select Header --</option>
                   {csvHeaders.map((h) => (
@@ -283,13 +288,13 @@ export const CsvImportWizard: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-[10px] font-mono-num uppercase text-[#94A3B8] mb-1">
+                <label className="block text-[11px] font-medium text-zinc-400 mb-1.5">
                   Type Column (Optional)
                 </label>
                 <select
                   value={mapping.type || ""}
                   onChange={(e) => setMapping({ ...mapping, type: e.target.value })}
-                  className="w-full rounded border border-[#232A3B] bg-[#161B26] px-2 py-1 text-xs text-white focus:border-[#00F0FF] font-mono-num"
+                  className="w-full rounded-xl border border-white/[0.08] dark:border-white/[0.08] light:border-slate-200 bg-white/[0.03] dark:bg-white/[0.03] light:bg-white px-3 py-2 text-xs text-white dark:text-white light:text-slate-900 focus:outline-none focus:border-emerald-500/50 font-mono-num"
                 >
                   <option value="">-- None (Default: Expense) --</option>
                   {csvHeaders.map((h) => (
@@ -303,9 +308,9 @@ export const CsvImportWizard: React.FC = () => {
 
             <button
               onClick={handleProceedToValidation}
-              className="flex w-full items-center justify-center gap-2 rounded border border-[#00F0FF]/60 bg-[#00F0FF]/15 py-2.5 text-xs font-bold font-mono-num text-[#00F0FF] hover:bg-[#00F0FF]/25 transition-colors"
+              className="flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-semibold py-2.5 text-xs font-mono-num shadow-sm transition-all"
             >
-              <span>PROCEED TO PREVIEW &amp; DEDUPLICATION</span>
+              <span>Proceed to Preview</span>
               <ArrowRight className="h-4 w-4" />
             </button>
           </div>
@@ -313,13 +318,13 @@ export const CsvImportWizard: React.FC = () => {
 
         {/* Step 3: Validation & Deduplication Preview */}
         {step === 3 && (
-          <div className="p-4 sm:p-6 space-y-4">
+          <div className="p-5 sm:p-6 space-y-4">
             <div className="flex items-center justify-between flex-wrap gap-2">
               <div className="flex items-center gap-3 text-xs font-mono-num">
-                <span className="text-[#00FF88]">
+                <span className="text-emerald-400 font-medium">
                   Valid: {processedRows.filter((r) => r.isValid).length}
                 </span>
-                <span className="text-[#FF5C00]">
+                <span className="text-amber-400 font-medium">
                   Duplicates: {processedRows.filter((r) => r.isDuplicate).length}
                 </span>
               </div>
@@ -330,56 +335,56 @@ export const CsvImportWizard: React.FC = () => {
                   id="skipDupes"
                   checked={skipDuplicates}
                   onChange={(e) => setSkipDuplicates(e.target.checked)}
-                  className="rounded border-[#232A3B] bg-[#07090E] text-[#00F0FF] focus:ring-0"
+                  className="rounded border-white/20 bg-white/[0.05] text-emerald-500 focus:ring-0"
                 />
-                <label htmlFor="skipDupes" className="text-xs font-mono-num text-[#94A3B8]">
+                <label htmlFor="skipDupes" className="text-xs font-mono-num text-zinc-400">
                   Skip Duplicate Entries
                 </label>
               </div>
             </div>
 
             {/* Preview Table */}
-            <div className="max-h-64 overflow-y-auto rounded border border-[#232A3B] bg-[#07090E]">
+            <div className="max-h-64 overflow-y-auto rounded-xl border border-white/[0.08] dark:border-white/[0.08] light:border-slate-200 bg-white/[0.02] dark:bg-white/[0.02] light:bg-slate-50/30">
               <table className="w-full text-left text-xs font-mono-num">
-                <thead className="sticky top-0 bg-[#0F131C] border-b border-[#232A3B] text-[10px] text-[#64748B] uppercase">
+                <thead className="sticky top-0 bg-[var(--bg-surface)] border-b border-white/[0.08] dark:border-white/[0.08] light:border-slate-200 text-[10px] text-zinc-400 uppercase">
                   <tr>
-                    <th className="p-2">Date</th>
-                    <th className="p-2">Description</th>
-                    <th className="p-2 text-right">Amount</th>
-                    <th className="p-2">Type</th>
-                    <th className="p-2">Status</th>
+                    <th className="p-2.5">Date</th>
+                    <th className="p-2.5">Description</th>
+                    <th className="p-2.5 text-right">Amount</th>
+                    <th className="p-2.5">Type</th>
+                    <th className="p-2.5">Status</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#232A3B]/60">
+                <tbody className="divide-y divide-white/[0.05] dark:divide-white/[0.05] light:divide-slate-200">
                   {processedRows.slice(0, 50).map((row, i) => (
                     <tr
                       key={i}
-                      className={`hover:bg-[#161B26] ${
-                        row.isDuplicate ? "opacity-60 bg-[#FF5C00]/5" : ""
+                      className={`hover:bg-white/[0.02] dark:hover:bg-white/[0.02] light:hover:bg-slate-100/50 ${
+                        row.isDuplicate ? "opacity-60 bg-amber-500/5" : ""
                       }`}
                     >
-                      <td className="p-2 text-[#94A3B8]">{row.mapped.date}</td>
-                      <td className="p-2 text-white truncate max-w-[180px]">
+                      <td className="p-2.5 text-zinc-400">{row.mapped.date}</td>
+                      <td className="p-2.5 text-white dark:text-white light:text-slate-900 truncate max-w-[180px]">
                         {row.mapped.desc}
                       </td>
-                      <td className="p-2 text-right font-bold text-white">
+                      <td className="p-2.5 text-right font-medium text-white dark:text-white light:text-slate-900">
                         {formatCurrency(row.mapped.amount || 0, currency, locale)}
                       </td>
-                      <td className="p-2 uppercase text-[#64748B]">
+                      <td className="p-2.5 uppercase text-zinc-400">
                         {row.mapped.type}
                       </td>
-                      <td className="p-2">
+                      <td className="p-2.5">
                         {row.isDuplicate ? (
-                          <span className="rounded bg-[#FF5C00]/15 text-[#FF5C00] px-1.5 py-0.5 text-[9px]">
-                            DUPLICATE
+                          <span className="rounded-full bg-amber-500/10 text-amber-400 px-2 py-0.5 text-[10px] font-medium border border-amber-500/20">
+                            Duplicate
                           </span>
                         ) : row.isValid ? (
-                          <span className="rounded bg-[#00FF88]/15 text-[#00FF88] px-1.5 py-0.5 text-[9px]">
-                            READY
+                          <span className="rounded-full bg-emerald-500/10 text-emerald-400 px-2 py-0.5 text-[10px] font-medium border border-emerald-500/20">
+                            Ready
                           </span>
                         ) : (
-                          <span className="rounded bg-[#FF0055]/15 text-[#FF0055] px-1.5 py-0.5 text-[9px]">
-                            ERROR
+                          <span className="rounded-full bg-rose-500/10 text-rose-400 px-2 py-0.5 text-[10px] font-medium border border-rose-500/20">
+                            Error
                           </span>
                         )}
                       </td>
@@ -389,21 +394,21 @@ export const CsvImportWizard: React.FC = () => {
               </table>
             </div>
 
-            <div className="flex gap-2">
+            <div className="flex gap-2.5 pt-2">
               <button
                 onClick={() => setStep(2)}
-                className="rounded border border-[#232A3B] bg-[#161B26] px-4 py-2 text-xs font-mono-num text-[#94A3B8] hover:text-white"
+                className="rounded-xl border border-white/[0.08] dark:border-white/[0.08] light:border-slate-200 bg-white/[0.03] hover:bg-white/[0.06] dark:bg-white/[0.03] light:bg-slate-100 px-4 py-2.5 text-xs font-medium text-zinc-300 dark:text-zinc-300 light:text-slate-700 transition-colors"
               >
                 Back
               </button>
               <button
                 onClick={handleCommitImport}
                 disabled={isImporting}
-                className="flex-1 flex items-center justify-center gap-2 rounded border border-[#00FF88]/60 bg-[#00FF88]/15 py-2.5 text-xs font-bold font-mono-num text-[#00FF88] hover:bg-[#00FF88]/25 transition-colors disabled:opacity-50"
+                className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-semibold py-2.5 text-xs font-mono-num shadow-sm transition-all disabled:opacity-50"
               >
                 <Check className="h-4 w-4" />
                 <span>
-                  {isImporting ? "BATCH IMPORTING..." : "COMMIT TO FINANCEOS LEDGER"}
+                  {isImporting ? "Importing..." : "Add to Transactions"}
                 </span>
               </button>
             </div>
