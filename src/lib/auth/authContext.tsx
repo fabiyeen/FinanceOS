@@ -51,7 +51,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const parsed: AuthUser = JSON.parse(cached);
         setUser(parsed);
         setActiveUserDatabase(parsed.uid);
-        initializeDatabaseIfEmpty(parsed.uid, parsed.isDemo).catch(console.error);
+        if (parsed.isDemo) {
+          initializeDatabaseIfEmpty(parsed.uid, true).catch(console.error);
+        }
       }
     } catch {
       // Ignore parse error
@@ -69,7 +71,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setUser(authUser);
           localStorage.setItem(LOCAL_SESSION_KEY, JSON.stringify(authUser));
           setActiveUserDatabase(authUser.uid);
-          await initializeDatabaseIfEmpty(authUser.uid, false);
+          // Note: Real Firebase tenants are hydrated downstream from Firestore in AuthGate -> initFirestoreSync
         } else {
           // If no local demo user either, clear user
           const cached = localStorage.getItem(LOCAL_SESSION_KEY);
@@ -100,7 +102,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setUser(authUser);
         localStorage.setItem(LOCAL_SESSION_KEY, JSON.stringify(authUser));
         setActiveUserDatabase(authUser.uid);
-        await initializeDatabaseIfEmpty(authUser.uid, false);
       } else {
         // Local offline multi-tenant account verification
         const mockAccounts: Record<string, { pass: string; name: string }> = JSON.parse(
@@ -150,7 +151,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setUser(authUser);
         localStorage.setItem(LOCAL_SESSION_KEY, JSON.stringify(authUser));
         setActiveUserDatabase(authUser.uid);
-        await initializeDatabaseIfEmpty(authUser.uid, false);
       } else {
         const mockAccounts: Record<string, { pass: string; name: string }> = JSON.parse(
           localStorage.getItem(LOCAL_USERS_KEY) || "{}"

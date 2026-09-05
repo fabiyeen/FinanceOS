@@ -460,3 +460,64 @@ export function formatCurrency(
     return `${currency} ${amount.toLocaleString()}`;
   }
 }
+
+/**
+ * Recalculates account, vault, and debt balances from initial balances and all ledger transactions.
+ * Guarantees zero-sum consistency across multi-device synchronizations without destructive zeroing.
+ */
+export function recalculateLedgerBalances(
+  accounts: Account[],
+  transactions: Transaction[],
+  vaults: Vault[] = [],
+  debts: Debt[] = []
+): { accounts: Account[]; vaults: Vault[]; debts: Debt[] } {
+  if (accounts.length === 0) {
+    return { accounts, vaults, debts };
+  }
+
+  // If there are no transactions, ensure currentBalance defaults to initialBalance if undefined/NaN
+  if (transactions.length === 0) {
+    return {
+      accounts: accounts.map((a) => ({
+        ...a,
+        currentBalance:
+          typeof a.currentBalance === "number" && !isNaN(a.currentBalance)
+            ? a.currentBalance
+            : (a.initialBalance ?? 0),
+      })),
+      vaults,
+      debts,
+    };
+  }
+
+  // Clone objects starting from initial baseline
+  let currentAccounts = accounts.map((a) => ({
+    ...a,
+    currentBalance:
+      typeof a.initialBalance === "number" && !isNaN(a.initialBalance) ? a.initialBalance : 0,
+  }));
+  let currentVaults = vaults.map((v) => ({ ...v, currentAmount: 0 }));
+  let currentDebts = debts.map((d) => ({ ...d, paidAmount: 0 }));
+
+  // Sort transactions chronologically: date, then time, then createdAt
+  const sortedTxs = [...transactions].sort((a, b) => {
+    const aKey = `${a.date || ""}T${a.time || "00:00"}_${a.createdAt || ""}`;
+    const bKey = `${b.date || ""}T${b.time || "00:00"}_${b.createdAt || ""}`;
+    return aKey.localeCompare(bKey);
+  });
+
+  for (const tx of sortedTxs) {
+    const res = applyTransaction(tx, currentAccounts, currentVaults, currentDebts);
+    if (!res.error) {
+      currentAccounts = res.accounts;
+      currentVaults = res.vaults;
+      currentDebts = res.debts;
+    }
+  }
+
+  return {
+    accounts: currentAccounts,
+    vaults: currentVaults,
+    debts: currentDebts,
+  };
+}

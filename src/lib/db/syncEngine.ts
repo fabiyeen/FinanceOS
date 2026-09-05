@@ -1,4 +1,4 @@
-import { applyTransaction } from "../mathEngine";
+import { applyTransaction, recalculateLedgerBalances } from "../mathEngine";
 import {
   Account,
   Category,
@@ -143,12 +143,20 @@ export async function drainSyncQueue(
 
 /**
  * Unified Account mutations (Dexie + Firestore + offline queue)
+ * Strictly preserves currentBalance to prevent balance zeroing on multi-device sync
  */
 export async function saveAccount(account: Account, userId?: string): Promise<void> {
   const activeUserId = userId || getCurrentActiveUserId();
   const userDb = getDatabaseForUser(activeUserId);
-  await userDb.accounts.put(account);
-  await pushToCloud("accounts", account.id, "create", account as unknown as Record<string, unknown>, activeUserId);
+  const accountWithBalance: Account = {
+    ...account,
+    currentBalance:
+      typeof account.currentBalance === "number" && !isNaN(account.currentBalance)
+        ? account.currentBalance
+        : (account.initialBalance ?? 0),
+  };
+  await userDb.accounts.put(accountWithBalance);
+  await pushToCloud("accounts", accountWithBalance.id, "create", accountWithBalance as unknown as Record<string, unknown>, activeUserId);
 }
 
 export async function deleteAccount(accountId: string, userId?: string): Promise<void> {
@@ -221,6 +229,7 @@ export async function saveSettings(settings: UserSettings, userId?: string): Pro
 
 /**
  * Initializes database for specified user if empty
+ * Note: Never calls syncAllLocalDataToFirestore here to avoid an empty second device overwriting Firestore.
  */
 export async function initializeDatabaseIfEmpty(
   userId: string = "default",
@@ -265,12 +274,6 @@ export async function initializeDatabaseIfEmpty(
       });
     }
   });
-
-  if (!shouldSeedFullDemo && isSyncEligible(userId)) {
-    syncAllLocalDataToFirestore(userId).catch((err) => {
-      console.warn("[SyncEngine] Background initial baseline sync notice:", err);
-    });
-  }
 
   return true;
 }
@@ -446,7 +449,8 @@ export async function deleteTransactionWithLedgerSync(
 
 /**
  * Hydrates local Dexie tables from Firestore cloud documents.
- * Merges missing records bidirectionally.
+ * Strictly ONE-WAY (Firestore -> Local Dexie).
+ * NEVER pushes empty local state back to Firestore on initial mount.
  */
 export async function hydrateFromFirestore(userId: string): Promise<boolean> {
   if (typeof window === "undefined" || !isSyncEligible(userId) || !firestore) {
@@ -480,25 +484,44 @@ export async function hydrateFromFirestore(userId: string): Promise<boolean> {
       !categoriesSnap.empty;
 
     if (hasAnyRemoteData) {
-      // 1. Seed remote Firestore records into local Dexie tables
-      if (!accountsSnap.empty) {
-        const remoteAccounts = accountsSnap.docs.map((d) => ({ id: d.id, ...d.data() } as Account));
+      // 1. Seed remote Firestore records into local Dexie tables using bulkPut
+      let remoteAccounts = accountsSnap.docs.map((d) => {
+        const data = d.data();
+        return {
+          id: d.id,
+          ...data,
+          currentBalance:
+            typeof data.currentBalance === "number" && !isNaN(data.currentBalance)
+              ? data.currentBalance
+              : (data.initialBalance ?? 0),
+        } as Account;
+      });
+      let remoteTxs = transactionsSnap.docs.map((d) => ({ id: d.id, ...d.data() } as Transaction));
+      let remoteVaults = vaultsSnap.docs.map((d) => ({ id: d.id, ...d.data() } as Vault));
+      let remoteDebts = debtsSnap.docs.map((d) => ({ id: d.id, ...d.data() } as Debt));
+      const remoteCategories = categoriesSnap.docs.map((d) => ({ id: d.id, ...d.data() } as Category));
+
+      // Recalculate ledger balances from transactions to guarantee zero-sum consistency
+      if (remoteTxs.length > 0 && remoteAccounts.length > 0) {
+        const recalculated = recalculateLedgerBalances(remoteAccounts, remoteTxs, remoteVaults, remoteDebts);
+        remoteAccounts = recalculated.accounts;
+        remoteVaults = recalculated.vaults;
+        remoteDebts = recalculated.debts;
+      }
+
+      if (remoteAccounts.length > 0) {
         await userDb.accounts.bulkPut(remoteAccounts);
       }
-      if (!transactionsSnap.empty) {
-        const remoteTxs = transactionsSnap.docs.map((d) => ({ id: d.id, ...d.data() } as Transaction));
+      if (remoteTxs.length > 0) {
         await userDb.transactions.bulkPut(remoteTxs);
       }
-      if (!vaultsSnap.empty) {
-        const remoteVaults = vaultsSnap.docs.map((d) => ({ id: d.id, ...d.data() } as Vault));
+      if (remoteVaults.length > 0) {
         await userDb.vaults.bulkPut(remoteVaults);
       }
-      if (!debtsSnap.empty) {
-        const remoteDebts = debtsSnap.docs.map((d) => ({ id: d.id, ...d.data() } as Debt));
+      if (remoteDebts.length > 0) {
         await userDb.debts.bulkPut(remoteDebts);
       }
-      if (!categoriesSnap.empty) {
-        const remoteCategories = categoriesSnap.docs.map((d) => ({ id: d.id, ...d.data() } as Category));
+      if (remoteCategories.length > 0) {
         await userDb.categories.bulkPut(remoteCategories);
       }
       if (!settingsSnap.empty) {
@@ -508,51 +531,15 @@ export async function hydrateFromFirestore(userId: string): Promise<boolean> {
         }
       }
 
-      // 2. Also ensure local records not present in Firestore are pushed up (e.g. created offline prior)
-      const remoteAccountIds = new Set(accountsSnap.docs.map((d) => d.id));
-      const localAccounts = await userDb.accounts.toArray();
-      for (const acc of localAccounts) {
-        if (!remoteAccountIds.has(acc.id)) {
-          await pushToCloud("accounts", acc.id, "create", acc as unknown as Record<string, unknown>, userId);
-        }
-      }
-
-      const remoteCatIds = new Set(categoriesSnap.docs.map((d) => d.id));
-      const localCategories = await userDb.categories.toArray();
-      for (const cat of localCategories) {
-        if (!remoteCatIds.has(cat.id)) {
-          await pushToCloud("categories", cat.id, "create", cat as unknown as Record<string, unknown>, userId);
-        }
-      }
-
-      const remoteTxIds = new Set(transactionsSnap.docs.map((d) => d.id));
-      const localTxs = await userDb.transactions.toArray();
-      for (const tx of localTxs) {
-        if (!remoteTxIds.has(tx.id)) {
-          await pushToCloud("transactions", tx.id, "create", tx as unknown as Record<string, unknown>, userId);
-        }
-      }
-
-      const remoteVaultIds = new Set(vaultsSnap.docs.map((d) => d.id));
-      const localVaults = await userDb.vaults.toArray();
-      for (const v of localVaults) {
-        if (!remoteVaultIds.has(v.id)) {
-          await pushToCloud("vaults", v.id, "create", v as unknown as Record<string, unknown>, userId);
-        }
-      }
-
-      const remoteDebtIds = new Set(debtsSnap.docs.map((d) => d.id));
-      const localDebts = await userDb.debts.toArray();
-      for (const d of localDebts) {
-        if (!remoteDebtIds.has(d.id)) {
-          await pushToCloud("debts", d.id, "create", d as unknown as Record<string, unknown>, userId);
-        }
-      }
-
+      // CRITICAL: Hydration is strictly ONE-WAY (Firestore -> Local Dexie).
+      // DO NOT perform an automatic bidirectional merge that pushes empty or default local arrays to the cloud.
       return true;
     } else {
-      // Cloud is completely empty for this user: initialize baseline and push to Firestore
-      await initializeDatabaseIfEmpty(userId, false);
+      // Cloud is completely empty for this user (brand new registration)
+      const localCount = await userDb.accounts.count();
+      if (localCount === 0) {
+        await initializeDatabaseIfEmpty(userId, false);
+      }
       await syncAllLocalDataToFirestore(userId);
       return true;
     }
@@ -574,7 +561,7 @@ export function initFirestoreSync(userId: string): () => void {
   const unsubs: (() => void)[] = [];
   const userDb = getDatabaseForUser(userId);
 
-  // 1. Initial hydration pull
+  // 1. Initial hydration pull (strictly one-way Firestore -> Local Dexie)
   hydrateFromFirestore(userId)
     .then(() => {
       if (isCleanedUp) return;
@@ -584,7 +571,7 @@ export function initFirestoreSync(userId: string): () => void {
       console.warn("[SyncEngine] Hydration error in initFirestoreSync:", err);
     });
 
-  // 2. Real-time onSnapshot listeners on user collections
+  // 2. Real-time onSnapshot listeners on user collections (non-destructive granular updates)
   const subcollections: Array<{
     name: "accounts" | "transactions" | "vaults" | "debts" | "categories" | "settings";
     table: any;
@@ -605,15 +592,49 @@ export function initFirestoreSync(userId: string): () => void {
       (snapshot) => {
         if (isCleanedUp) return;
         snapshot.docChanges().forEach(async (change) => {
-          // If the change has pending local writes, this client initiated it; ignore to avoid echo
+          // If the change has pending local writes, this client initiated it; ignore to avoid echo loops
           if (change.doc.metadata.hasPendingWrites) return;
 
           const docData = { id: change.doc.id, ...change.doc.data() };
           try {
             if (change.type === "added" || change.type === "modified") {
+              if (name === "accounts") {
+                const acc = docData as Account;
+                if (typeof acc.currentBalance !== "number" || isNaN(acc.currentBalance)) {
+                  acc.currentBalance = acc.initialBalance ?? 0;
+                }
+              }
               await table.put(docData);
+
+              // When remote transactions arrive, recompute ledger balances across accounts, vaults, and debts
+              if (name === "transactions") {
+                const allAccounts = await userDb.accounts.toArray();
+                const allTxs = await userDb.transactions.toArray();
+                if (allAccounts.length > 0 && allTxs.length > 0) {
+                  const allVaults = await userDb.vaults.toArray();
+                  const allDebts = await userDb.debts.toArray();
+                  const rec = recalculateLedgerBalances(allAccounts, allTxs, allVaults, allDebts);
+                  await userDb.accounts.bulkPut(rec.accounts);
+                  await userDb.vaults.bulkPut(rec.vaults);
+                  await userDb.debts.bulkPut(rec.debts);
+                }
+              }
             } else if (change.type === "removed") {
               await table.delete(change.doc.id);
+
+              // When remote transactions are removed, recompute ledger balances
+              if (name === "transactions") {
+                const allAccounts = await userDb.accounts.toArray();
+                const allTxs = await userDb.transactions.toArray();
+                if (allAccounts.length > 0) {
+                  const allVaults = await userDb.vaults.toArray();
+                  const allDebts = await userDb.debts.toArray();
+                  const rec = recalculateLedgerBalances(allAccounts, allTxs, allVaults, allDebts);
+                  await userDb.accounts.bulkPut(rec.accounts);
+                  await userDb.vaults.bulkPut(rec.vaults);
+                  await userDb.debts.bulkPut(rec.debts);
+                }
+              }
             }
           } catch (err) {
             console.warn(`[SyncEngine] onSnapshot error applying ${name}/${change.doc.id}:`, err);
