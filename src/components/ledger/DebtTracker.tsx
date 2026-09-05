@@ -8,8 +8,11 @@ import { useUIStore } from "../../store/useUIStore";
 import { playSound, triggerHaptic } from "../../lib/audioHaptics";
 import { db } from "../../lib/db/dexie";
 import { useLiveQuery } from "dexie-react-hooks";
+import { useAuth } from "../../lib/auth/authContext";
+import { saveDebt } from "../../lib/db/syncEngine";
 
 export const DebtTracker: React.FC = () => {
+  const { user } = useAuth();
   const { privacyMode, soundEnabled, openQuickTx } = useUIStore();
 
   const debts = useLiveQuery(() => db.debts.toArray()) ?? [];
@@ -47,7 +50,7 @@ export const DebtTracker: React.FC = () => {
       createdAt: new Date().toISOString(),
     };
 
-    await db.debts.add(newDebt);
+    await saveDebt(newDebt, user?.uid);
     playSound("success", soundEnabled);
     setIsAddOpen(false);
     setCounterparty("");

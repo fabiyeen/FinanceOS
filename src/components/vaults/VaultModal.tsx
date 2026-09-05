@@ -22,9 +22,7 @@ import { Account, Vault } from "../../lib/types";
 import { db } from "../../lib/db/dexie";
 import { useLiveQuery } from "dexie-react-hooks";
 import { useAuth } from "../../lib/auth/authContext";
-import { getFirebaseServices } from "../../lib/firebase/config";
-import { doc, setDoc, deleteDoc } from "firebase/firestore";
-import { addTransactionWithLedgerSync } from "../../lib/db/syncEngine";
+import { addTransactionWithLedgerSync, saveVault, deleteVault } from "../../lib/db/syncEngine";
 import { playSound, triggerHaptic } from "../../lib/audioHaptics";
 import { formatCurrency } from "../../lib/mathEngine";
 
@@ -195,8 +193,6 @@ export function VaultModal({
         });
       } else {
         // Direct Dexie + Firestore persistence
-        const { firestore } = getFirebaseServices();
-
         if (targetVault) {
           // Update existing vault
           const updatedVault: Vault = {
@@ -209,15 +205,7 @@ export function VaultModal({
             icon: selectedIcon,
           };
 
-          await db.vaults.put(updatedVault);
-
-          if (firestore && user?.uid && !user.isDemo) {
-            try {
-              await setDoc(doc(firestore, `users/${user.uid}/vaults/${updatedVault.id}`), updatedVault);
-            } catch (err) {
-              console.warn("[VaultModal] Cloud sync error:", err);
-            }
-          }
+          await saveVault(updatedVault, user?.uid);
         } else {
           // Create new vault
           const count = await db.vaults.count();
@@ -234,15 +222,7 @@ export function VaultModal({
             order: count,
           };
 
-          await db.vaults.add(newVault);
-
-          if (firestore && user?.uid && !user.isDemo) {
-            try {
-              await setDoc(doc(firestore, `users/${user.uid}/vaults/${newVault.id}`), newVault);
-            } catch (err) {
-              console.warn("[VaultModal] Cloud sync error:", err);
-            }
-          }
+          await saveVault(newVault, user?.uid);
         }
       }
 
@@ -261,8 +241,6 @@ export function VaultModal({
     if (!targetVault) return;
     setIsSubmitting(true);
     playSound("click", true);
-
-    const { firestore } = getFirebaseServices();
 
     try {
       if (targetVault.currentAmount > 0) {
@@ -289,15 +267,7 @@ export function VaultModal({
       }
 
       // Delete the vault
-      await db.vaults.delete(targetVault.id);
-
-      if (firestore && user?.uid && !user.isDemo) {
-        try {
-          await deleteDoc(doc(firestore, `users/${user.uid}/vaults/${targetVault.id}`));
-        } catch (err) {
-          console.warn("[VaultModal] Cloud sync error on delete:", err);
-        }
-      }
+      await deleteVault(targetVault.id, user?.uid);
 
       playSound("success", true);
       triggerHaptic(20);

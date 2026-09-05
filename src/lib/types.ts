@@ -142,7 +142,7 @@ export interface UserSettings {
 export interface SyncQueueItem {
   id: string;
   action: "create" | "update" | "delete";
-  collection: "accounts" | "transactions" | "debts" | "recurring" | "vaults" | "settings";
+  collection: "accounts" | "transactions" | "debts" | "recurring" | "vaults" | "settings" | "categories";
   payload: Record<string, unknown>;
   timestamp: number;
   status: "pending" | "syncing" | "failed";

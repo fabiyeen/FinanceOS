@@ -10,8 +10,7 @@ import { playSound, triggerHaptic } from "../../lib/audioHaptics";
 import { db } from "../../lib/db/dexie";
 import { useLiveQuery } from "dexie-react-hooks";
 import { useAuth } from "../../lib/auth/authContext";
-import { getFirebaseServices } from "../../lib/firebase/config";
-import { doc, setDoc } from "firebase/firestore";
+import { saveAccount } from "../../lib/db/syncEngine";
 
 export const AccountDrawer: React.FC = () => {
   const { user } = useAuth();
@@ -65,19 +64,8 @@ export const AccountDrawer: React.FC = () => {
       targetItem.order = index;
     }
 
-    await db.accounts.bulkPut([currentItem, targetItem]);
-
-    const { firestore } = getFirebaseServices();
-    if (firestore && user?.uid && !user.isDemo) {
-      try {
-        await Promise.all([
-          setDoc(doc(firestore, `users/${user.uid}/accounts/${currentItem.id}`), currentItem, { merge: true }),
-          setDoc(doc(firestore, `users/${user.uid}/accounts/${targetItem.id}`), targetItem, { merge: true }),
-        ]);
-      } catch (err) {
-        console.warn("[AccountDrawer] Order sync notice:", err);
-      }
-    }
+    await saveAccount(currentItem, user?.uid);
+    await saveAccount(targetItem, user?.uid);
   };
 
   return (

@@ -9,6 +9,7 @@ import { useUIStore } from "../../store/useUIStore";
 import { db } from "../../lib/db/dexie";
 import { useLiveQuery } from "dexie-react-hooks";
 import { Shield } from "lucide-react";
+import { initFirestoreSync } from "../../lib/db/syncEngine";
 
 export const AuthGate: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, loading } = useAuth();
@@ -17,6 +18,15 @@ export const AuthGate: React.FC<{ children: React.ReactNode }> = ({ children }) 
 
   const [isPinSettingsOpen, setIsPinSettingsOpen] = useState(false);
   const lastActiveRef = useRef<number>(Date.now());
+
+  // Two-Way Realtime Cloud Sync Lifecycle
+  useEffect(() => {
+    if (!user || user.isDemo) return;
+    const unsubscribe = initFirestoreSync(user.uid);
+    return () => {
+      unsubscribe();
+    };
+  }, [user?.uid, user?.isDemo]);
 
   // Inactivity Auto-lock Timer
   useEffect(() => {

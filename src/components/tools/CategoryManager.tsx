@@ -46,8 +46,7 @@ import { playSound, triggerHaptic } from "../../lib/audioHaptics";
 import { db } from "../../lib/db/dexie";
 import { useLiveQuery } from "dexie-react-hooks";
 import { useAuth } from "../../lib/auth/authContext";
-import { getFirebaseServices } from "../../lib/firebase/config";
-import { doc, setDoc, deleteDoc } from "firebase/firestore";
+import { saveCategory, deleteCategory } from "../../lib/db/syncEngine";
 import { useUIStore } from "../../store/useUIStore";
 
 // Icon dictionary for safe dynamic rendering
@@ -160,8 +159,6 @@ export const CategoryManager: React.FC<CategoryManagerProps> = ({ isModal = fals
     }
 
     const parsedCap = budgetCap ? parseFloat(budgetCap) : undefined;
-    const { firestore } = getFirebaseServices();
-
     if (editingCategory) {
       // Edit existing
       const updated: Category = {
@@ -172,15 +169,7 @@ export const CategoryManager: React.FC<CategoryManagerProps> = ({ isModal = fals
         budgetCap: parsedCap,
       };
 
-      await db.categories.put(updated);
-
-      if (firestore && user?.uid && !user.isDemo) {
-        try {
-          await setDoc(doc(firestore, `users/${user.uid}/categories/${updated.id}`), updated, { merge: true });
-        } catch (err) {
-          console.warn("[CategoryManager] Cloud sync notice:", err);
-        }
-      }
+      await saveCategory(updated, user?.uid);
     } else {
       // Create new
       const maxOrder = categories.reduce((max, c) => Math.max(max, c.order ?? 0), -1);
@@ -194,15 +183,7 @@ export const CategoryManager: React.FC<CategoryManagerProps> = ({ isModal = fals
         order: maxOrder + 1,
       };
 
-      await db.categories.add(newCat);
-
-      if (firestore && user?.uid && !user.isDemo) {
-        try {
-          await setDoc(doc(firestore, `users/${user.uid}/categories/${newCat.id}`), newCat);
-        } catch (err) {
-          console.warn("[CategoryManager] Cloud sync notice:", err);
-        }
-      }
+      await saveCategory(newCat, user?.uid);
     }
 
     playSound("success", true);
@@ -230,19 +211,8 @@ export const CategoryManager: React.FC<CategoryManagerProps> = ({ isModal = fals
       targetItem.order = index;
     }
 
-    await db.categories.bulkPut([currentItem, targetItem]);
-
-    const { firestore } = getFirebaseServices();
-    if (firestore && user?.uid && !user.isDemo) {
-      try {
-        await Promise.all([
-          setDoc(doc(firestore, `users/${user.uid}/categories/${currentItem.id}`), currentItem, { merge: true }),
-          setDoc(doc(firestore, `users/${user.uid}/categories/${targetItem.id}`), targetItem, { merge: true }),
-        ]);
-      } catch (err) {
-        console.warn("[CategoryManager] Order sync notice:", err);
-      }
-    }
+    await saveCategory(currentItem, user?.uid);
+    await saveCategory(targetItem, user?.uid);
   };
 
   const handleInitiateDelete = async (cat: Category) => {
@@ -260,8 +230,6 @@ export const CategoryManager: React.FC<CategoryManagerProps> = ({ isModal = fals
     playSound("click", true);
     triggerHaptic(40);
 
-    const { firestore } = getFirebaseServices();
-
     try {
       if (affectedTxCount > 0) {
         // Find or create fallback uncategorized bucket
@@ -275,23 +243,15 @@ export const CategoryManager: React.FC<CategoryManagerProps> = ({ isModal = fals
             color: "#708090",
             order: 999,
           };
-          await db.categories.add(uncat);
-          if (firestore && user?.uid && !user.isDemo) {
-            await setDoc(doc(firestore, `users/${user.uid}/categories/${uncat.id}`), uncat);
-          }
+          await saveCategory(uncat, user?.uid);
         }
 
         // Reassign affected transactions
         await db.transactions.where("categoryId").equals(deleteCandidate.id).modify({ categoryId: uncat.id });
       }
 
-      // Delete from Dexie
-      await db.categories.delete(deleteCandidate.id);
-
-      // Delete from Firestore
-      if (firestore && user?.uid && !user.isDemo) {
-        await deleteDoc(doc(firestore, `users/${user.uid}/categories/${deleteCandidate.id}`));
-      }
+      // Delete category locally and from cloud
+      await deleteCategory(deleteCandidate.id, user?.uid);
 
       playSound("delete", true);
       setDeleteCandidate(null);

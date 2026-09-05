@@ -21,9 +21,7 @@ import { formatCurrency, safeSub } from "../../lib/mathEngine";
 import { playSound, triggerHaptic } from "../../lib/audioHaptics";
 import { db } from "../../lib/db/dexie";
 import { useAuth } from "../../lib/auth/authContext";
-import { getFirebaseServices } from "../../lib/firebase/config";
-import { doc, setDoc, deleteDoc } from "firebase/firestore";
-import { addTransactionWithLedgerSync } from "../../lib/db/syncEngine";
+import { addTransactionWithLedgerSync, saveAccount, deleteAccount } from "../../lib/db/syncEngine";
 
 export const ACCOUNT_ICONS: Record<string, React.ElementType> = {
   Landmark,
@@ -141,7 +139,6 @@ export const AccountModal: React.FC<AccountModalProps> = ({
 
     const credLim = type === "credit" ? parseFloat(creditLimit) || 0 : undefined;
     const stmtDay = type === "credit" ? parseInt(statementDay) || 20 : undefined;
-    const { firestore } = getFirebaseServices();
 
     try {
       if (accountToEdit) {
@@ -180,15 +177,7 @@ export const AccountModal: React.FC<AccountModalProps> = ({
           statementClosingDay: stmtDay,
         };
 
-        await db.accounts.put(updated);
-
-        if (firestore && user?.uid && !user.isDemo) {
-          try {
-            await setDoc(doc(firestore, `users/${user.uid}/accounts/${updated.id}`), updated, { merge: true });
-          } catch (err) {
-            console.warn("[AccountModal] Cloud sync error:", err);
-          }
-        }
+        await saveAccount(updated, user?.uid);
       } else {
         // Create new account
         const existingAccounts = await db.accounts.toArray();
@@ -208,15 +197,7 @@ export const AccountModal: React.FC<AccountModalProps> = ({
           statementClosingDay: stmtDay,
         };
 
-        await db.accounts.add(newAcc);
-
-        if (firestore && user?.uid && !user.isDemo) {
-          try {
-            await setDoc(doc(firestore, `users/${user.uid}/accounts/${newAcc.id}`), newAcc);
-          } catch (err) {
-            console.warn("[AccountModal] Cloud sync error:", err);
-          }
-        }
+        await saveAccount(newAcc, user?.uid);
       }
 
       playSound("success", true);
@@ -234,8 +215,6 @@ export const AccountModal: React.FC<AccountModalProps> = ({
     setIsSubmitting(true);
     playSound("click", true);
 
-    const { firestore } = getFirebaseServices();
-
     try {
       // Check if transactions exist
       const txCount = await db.transactions
@@ -248,16 +227,10 @@ export const AccountModal: React.FC<AccountModalProps> = ({
       if (txCount > 0 || accountToEdit.currentBalance !== 0) {
         // Archive account rather than hard deleting to preserve ledger audit trail
         const archived = { ...accountToEdit, isArchived: true };
-        await db.accounts.put(archived);
-        if (firestore && user?.uid && !user.isDemo) {
-          await setDoc(doc(firestore, `users/${user.uid}/accounts/${archived.id}`), archived, { merge: true });
-        }
+        await saveAccount(archived, user?.uid);
       } else {
         // Safe to hard delete
-        await db.accounts.delete(accountToEdit.id);
-        if (firestore && user?.uid && !user.isDemo) {
-          await deleteDoc(doc(firestore, `users/${user.uid}/accounts/${accountToEdit.id}`));
-        }
+        await deleteAccount(accountToEdit.id, user?.uid);
       }
 
       playSound("delete", true);

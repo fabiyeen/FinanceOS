@@ -72,6 +72,7 @@ export async function executeNuclearReset(userId: string): Promise<void> {
       "debts",
       "recurring",
       "vaults",
+      "categories",
       "tags",
       "syncQueue",
     ];
@@ -88,6 +89,14 @@ export async function executeNuclearReset(userId: string): Promise<void> {
       } catch (err) {
         console.warn(`[Nuclear Reset] Firestore clean warning on ${sub}:`, err);
       }
+    }
+
+    // Reseed fresh factory baseline accounts, categories, and settings to Firestore
+    try {
+      const { syncAllLocalDataToFirestore } = await import("./syncEngine");
+      await syncAllLocalDataToFirestore(userId);
+    } catch (err) {
+      console.warn("[Nuclear Reset] Firestore baseline reseed warning:", err);
     }
   }
 }
