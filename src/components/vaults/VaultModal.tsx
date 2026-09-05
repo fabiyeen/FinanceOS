@@ -152,6 +152,13 @@ export function VaultModal({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isOpen, onClose]);
 
+  const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (e.target === overlayRef.current) {
+      playSound("click", true);
+      onClose();
+    }
+  };
+
   if (!isOpen) return null;
 
   // Format currency helpers - numbers only
@@ -283,26 +290,26 @@ export function VaultModal({
   return (
     <div
       ref={overlayRef}
-      onClick={(e) => e.target === overlayRef.current && onClose()}
-      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/80 backdrop-blur-md overflow-y-auto pb-[env(safe-area-inset-bottom)]"
+      onClick={handleBackdropClick}
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 md:p-6 bg-black/70 backdrop-blur-sm overflow-hidden"
     >
       <div
         role="dialog"
         aria-modal="true"
-        className="w-full max-w-lg max-h-[calc(100dvh-2rem)] flex flex-col rounded-xl border border-[#232A3B] bg-[#0F131C] shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150"
+        className="w-full sm:max-w-lg max-h-[92dvh] sm:max-h-[calc(100dvh-2rem)] flex flex-col rounded-t-2xl sm:rounded-2xl border border-[var(--border-subtle)] bg-[var(--card-bg)] shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150"
       >
         {/* Sticky Header */}
-        <div className="flex items-center justify-between px-5 py-3.5 border-b border-[#232A3B] bg-[#07090E] flex-shrink-0">
+        <div className="flex items-center justify-between px-5 py-3.5 border-b border-[var(--border-subtle)] bg-[var(--card-surface)] flex-shrink-0">
           <div className="flex items-center gap-2">
-            <Shield className="w-4 h-4 text-[#00F0FF]" />
-            <h2 className="text-xs sm:text-sm font-mono-num font-bold tracking-wider text-white uppercase">
-              {targetVault ? `Update Vault: ${targetVault.title}` : "Create Capital Sinking Vault"}
+            <span className="h-2 w-2 rounded-full bg-emerald-500" />
+            <h2 className="text-sm font-semibold tracking-tight text-[var(--text-primary)]">
+              {targetVault ? `Edit Goal: ${targetVault.title}` : "New Savings Goal"}
             </h2>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="p-1.5 text-zinc-400 hover:text-white rounded-md hover:bg-[#161B26] transition-colors"
+            className="p-2 text-[var(--text-muted)] hover:text-[var(--text-primary)] rounded-lg hover:bg-[var(--bg-surface-2)] transition-colors min-h-[40px] min-w-[40px] flex items-center justify-center"
           >
             <X className="w-4 h-4" />
           </button>
@@ -315,30 +322,30 @@ export function VaultModal({
           className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4 custom-scrollbar min-h-0"
         >
           {errorMsg && (
-            <div className="p-3 text-xs font-mono-num border border-red-500/50 bg-red-950/30 text-red-400 rounded-md">
+            <div className="p-3 text-xs border border-rose-500/40 bg-rose-500/10 text-rose-500 rounded-xl">
               {errorMsg}
             </div>
           )}
 
           {/* Title */}
           <div>
-            <label className="block text-[11px] font-mono-num uppercase tracking-wider text-zinc-400 mb-1.5">
-              Vault Goal Title
+            <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5">
+              Goal Title
             </label>
             <input
               type="text"
               required
-              placeholder="e.g. Shibuya Tech Lab Gear, Emergency Runway, Tokyo Trip"
+              placeholder="e.g. Emergency Fund, New Laptop, Vacation"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="w-full px-3 py-2 text-sm bg-[#07090E] border border-[#232A3B] focus:border-[#00F0FF] rounded-md text-white placeholder:text-zinc-600 outline-none transition-colors font-mono-num"
+              className="w-full px-3.5 py-2.5 text-sm bg-[var(--card-surface)] border border-[var(--border-subtle)] focus:border-emerald-500 rounded-xl text-[var(--text-primary)] placeholder:[var(--text-muted)] outline-none transition-colors min-h-[44px]"
             />
           </div>
 
           {/* Target Amount */}
           <div>
-            <label className="block text-[11px] font-mono-num uppercase tracking-wider text-zinc-400 mb-1.5">
-              Target Allocation Amount ({currency})
+            <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5">
+              Target Amount ({currency})
             </label>
             <div className="relative">
               <input
@@ -348,7 +355,7 @@ export function VaultModal({
                 placeholder="0"
                 value={targetAmountRaw ? Number(targetAmountRaw).toLocaleString("id-ID") : ""}
                 onChange={handleAmountChange}
-                className="w-full px-3 py-2 text-sm bg-[#07090E] border border-[#232A3B] focus:border-[#00F0FF] rounded-md text-white placeholder:text-zinc-600 outline-none transition-colors font-mono-num"
+                className="w-full px-3.5 py-2.5 text-sm bg-[var(--card-surface)] border border-[var(--border-subtle)] focus:border-emerald-500 rounded-xl text-[var(--text-primary)] placeholder:[var(--text-muted)] outline-none transition-colors font-mono-num min-h-[44px]"
               />
               {targetAmountRaw && (
                 <span className="absolute right-3 top-2 text-xs font-mono-num text-[#94A3B8]">
@@ -361,13 +368,13 @@ export function VaultModal({
           {/* Liquid Wallet & Deadline Row */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-[11px] font-mono-num uppercase tracking-wider text-zinc-400 mb-1.5">
-                Primary Liquid Backing Wallet
+              <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5">
+                Payment Account
               </label>
               <select
                 value={assignedAccountId}
                 onChange={(e) => setAssignedAccountId(e.target.value)}
-                className="w-full px-3 py-2 text-sm bg-[#07090E] border border-[#232A3B] focus:border-[#00F0FF] rounded-md text-white outline-none transition-colors font-mono-num"
+                className="w-full px-3.5 py-2.5 text-xs bg-[var(--card-surface)] border border-[var(--border-subtle)] focus:border-emerald-500 rounded-xl text-[var(--text-primary)] outline-none transition-colors min-h-[44px]"
               >
                 {liquidAccounts.length === 0 && <option value="">No Accounts Available</option>}
                 {liquidAccounts.map((acc) => (
@@ -379,22 +386,22 @@ export function VaultModal({
             </div>
 
             <div>
-              <label className="block text-[11px] font-mono-num uppercase tracking-wider text-zinc-400 mb-1.5">
-                Target Deadline Date (Optional)
+              <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5">
+                Target Date (Optional)
               </label>
               <input
                 type="date"
                 value={targetDate}
                 onChange={(e) => setTargetDate(e.target.value)}
-                className="w-full px-3 py-2 text-sm bg-[#07090E] border border-[#232A3B] focus:border-[#00F0FF] rounded-md text-white outline-none transition-colors font-mono-num"
+                className="w-full px-3.5 py-2.5 text-xs bg-[var(--card-surface)] border border-[var(--border-subtle)] focus:border-emerald-500 rounded-xl text-[var(--text-primary)] outline-none transition-colors min-h-[44px]"
               />
             </div>
           </div>
 
           {/* Accent Color Chips */}
           <div>
-            <label className="block text-[11px] font-mono-num uppercase tracking-wider text-zinc-400 mb-2">
-              Vault Accent Color
+            <label className="block text-xs font-medium text-[var(--text-secondary)] mb-2">
+              Accent Color
             </label>
             <div className="flex items-center gap-3">
               {VAULT_COLORS.map((c) => {
@@ -408,9 +415,9 @@ export function VaultModal({
                       setSelectedColor(c.hex);
                     }}
                     style={{ backgroundColor: c.hex }}
-                    className={`w-7 h-7 rounded-full transition-transform flex items-center justify-center ${
+                    className={`w-8 h-8 rounded-full transition-transform flex items-center justify-center min-h-[32px] min-w-[32px] ${
                       isSelected
-                        ? "ring-2 ring-white ring-offset-2 ring-offset-[#0F131C] scale-110"
+                        ? "ring-2 ring-emerald-500 ring-offset-2 ring-offset-[var(--card-bg)] scale-110"
                         : "opacity-80 hover:opacity-100 hover:scale-105"
                     }`}
                   >
@@ -421,12 +428,12 @@ export function VaultModal({
             </div>
           </div>
 
-          {/* Icon Identity Picker */}
+          {/* Icon Picker */}
           <div>
-            <label className="block text-[11px] font-mono-num uppercase tracking-wider text-zinc-400 mb-2">
-              Icon Identity
+            <label className="block text-xs font-medium text-[var(--text-secondary)] mb-2">
+              Icon
             </label>
-            <div className="grid grid-cols-6 gap-2 p-3 bg-[#07090E] border border-[#232A3B] rounded-lg">
+            <div className="grid grid-cols-6 gap-2 p-3 bg-[var(--bg-void)] border border-[var(--border-subtle)] rounded-xl">
               {VAULT_ICONS.map((item) => {
                 const IconComponent = item.icon;
                 const isSelected =
@@ -440,65 +447,65 @@ export function VaultModal({
                       playSound("click", true);
                       setSelectedIcon(item.id);
                     }}
-                    className={`p-2.5 rounded-md flex items-center justify-center transition-all ${
+                    className={`p-2.5 rounded-lg flex items-center justify-center transition-all min-h-[44px] min-w-[44px] ${
                       isSelected
-                        ? "border border-[#00F0FF] bg-[#00F0FF]/15 text-[#00F0FF] shadow-[0_0_10px_rgba(0,240,255,0.2)]"
-                        : "border border-transparent text-zinc-500 hover:text-zinc-300 hover:bg-[#161B26]"
+                        ? "border border-emerald-500 bg-emerald-500/15 text-emerald-500 font-semibold shadow-sm"
+                        : "border border-transparent text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--card-surface)]"
                     }`}
                   >
-                    <IconComponent className="w-4 h-4" />
+                    <IconComponent className="w-5 h-5" />
                   </button>
                 );
               })}
             </div>
           </div>
 
-          {/* Danger Zone: Delete or Liquidate Vault for existing vaults */}
+          {/* Delete or Liquidate Goal for existing goals */}
           {targetVault && (
-            <div className="border-t border-[#232A3B] pt-4 mt-2">
+            <div className="border-t border-[var(--border-subtle)] pt-4 mt-2">
               {!showDeleteConfirm ? (
                 <button
                   type="button"
                   onClick={() => setShowDeleteConfirm(true)}
-                  className="flex items-center gap-1.5 text-xs text-[#FF0055] hover:text-[#FF3377] transition-colors font-mono-num"
+                  className="flex items-center gap-1.5 text-xs text-rose-500 hover:text-rose-400 transition-colors font-medium min-h-[44px]"
                 >
                   <Trash2 className="h-3.5 w-3.5" />
                   <span>
                     {targetVault.currentAmount > 0
-                      ? "LIQUIDATE & DELETE VAULT"
-                      : "DELETE CAPITAL SINKING VAULT"}
+                      ? "Withdraw Funds & Delete Goal"
+                      : "Delete Savings Goal"}
                   </span>
                 </button>
               ) : (
-                <div className="rounded border border-[#FF0055]/40 bg-[#FF0055]/10 p-3 space-y-3 animate-in fade-in duration-150">
+                <div className="rounded-xl border border-rose-500/30 bg-rose-500/10 p-3.5 space-y-3 animate-in fade-in duration-150">
                   <div className="space-y-1">
-                    <p className="text-xs font-bold text-[#FF0055] font-mono-num">
-                      CONFIRM VAULT DESTRUCTION
+                    <p className="text-xs font-semibold text-rose-500">
+                      Confirm Delete Goal
                     </p>
                     {targetVault.currentAmount > 0 ? (
-                      <p className="text-[11px] text-[#94A3B8] font-mono-num">
-                        This vault holds{" "}
-                        <strong className="text-white">
+                      <p className="text-xs text-[var(--text-secondary)]">
+                        This goal holds{" "}
+                        <strong className="text-[var(--text-primary)]">
                           {formatCurrency(targetVault.currentAmount, currency, locale)}
                         </strong>
                         . Select an account to receive the refunded balance upon closure:
                       </p>
                     ) : (
-                      <p className="text-[11px] text-[#94A3B8] font-mono-num">
-                        Are you sure you want to delete this vault? This action cannot be undone.
+                      <p className="text-xs text-[var(--text-secondary)]">
+                        Are you sure you want to delete this savings goal? This action cannot be undone.
                       </p>
                     )}
                   </div>
 
                   {targetVault.currentAmount > 0 && (
                     <div>
-                      <label className="block text-[10px] font-mono-num uppercase text-[#64748B] mb-1">
+                      <label className="block text-xs font-medium text-[var(--text-muted)] mb-1">
                         Refund Destination Account
                       </label>
                       <select
                         value={liquidationTargetAccountId}
                         onChange={(e) => setLiquidationTargetAccountId(e.target.value)}
-                        className="w-full rounded border border-[#232A3B] bg-[#07090E] px-3 py-1.5 text-xs text-white focus:border-[#FF0055] focus:outline-none font-mono-num"
+                        className="w-full rounded-xl border border-[var(--border-subtle)] bg-[var(--card-surface)] px-3 py-2 text-xs text-[var(--text-primary)] focus:border-rose-500 focus:outline-none min-h-[44px]"
                       >
                         {liquidAccounts.map((acc) => (
                           <option key={acc.id} value={acc.id}>
@@ -514,16 +521,16 @@ export function VaultModal({
                       type="button"
                       onClick={handleLiquidateAndDelete}
                       disabled={isSubmitting}
-                      className="flex-1 rounded border border-[#FF0055] bg-[#FF0055]/20 py-1.5 text-xs font-mono-num font-bold text-[#FF0055] hover:bg-[#FF0055]/30 transition-colors disabled:opacity-50"
+                      className="flex-1 rounded-xl bg-rose-600 hover:bg-rose-500 py-2 text-xs font-semibold text-white transition-colors disabled:opacity-50 min-h-[44px]"
                     >
-                      {isSubmitting ? "PROCESSING..." : "CONFIRM PURGE"}
+                      {isSubmitting ? "Processing..." : "Delete Goal"}
                     </button>
                     <button
                       type="button"
                       onClick={() => setShowDeleteConfirm(false)}
-                      className="rounded border border-[#232A3B] bg-[#07090E] px-3 py-1.5 text-xs text-[#94A3B8] hover:text-white"
+                      className="rounded-xl border border-[var(--border-subtle)] bg-[var(--card-surface)] px-3 py-2 text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)] min-h-[44px]"
                     >
-                      CANCEL
+                      Cancel
                     </button>
                   </div>
                 </div>
@@ -533,12 +540,12 @@ export function VaultModal({
         </form>
 
         {/* Sticky Footer */}
-        <div className="flex items-center justify-end gap-3 px-5 py-3 border-t border-[#232A3B] bg-[#07090E] flex-shrink-0">
+        <div className="flex items-center justify-end gap-3 px-5 py-3.5 border-t border-[var(--border-subtle)] bg-[var(--card-surface)] flex-shrink-0">
           <button
             type="button"
             onClick={onClose}
             disabled={isSubmitting}
-            className="px-4 py-2 text-xs font-mono-num tracking-wider uppercase text-zinc-400 hover:text-white rounded-md hover:bg-[#161B26] transition-colors"
+            className="px-4 py-2.5 text-xs font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] rounded-xl hover:bg-[var(--bg-surface-2)] transition-colors min-h-[44px]"
           >
             Cancel
           </button>
@@ -546,10 +553,10 @@ export function VaultModal({
             type="submit"
             form="vault-form"
             disabled={isSubmitting}
-            className="flex items-center gap-2 px-5 py-2 text-xs font-mono-num font-bold tracking-wider uppercase bg-[#00F0FF]/15 text-[#00F0FF] border border-[#00F0FF] hover:bg-[#00F0FF] hover:text-black rounded-md transition-all disabled:opacity-50 shadow-[0_0_12px_rgba(0,240,255,0.2)]"
+            className="flex items-center gap-2 px-5 py-2.5 text-xs font-semibold bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 hover:opacity-90 rounded-xl transition-all disabled:opacity-50 shadow-sm min-h-[44px]"
           >
             <Check className="w-3.5 h-3.5 stroke-[3]" />
-            {isSubmitting ? "COMMITTING..." : targetVault ? "UPDATE VAULT" : "CREATE VAULT"}
+            {isSubmitting ? "Saving..." : targetVault ? "Save Changes" : "Create Goal"}
           </button>
         </div>
       </div>

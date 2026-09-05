@@ -123,15 +123,15 @@ export const UniversalCmdBar: React.FC = () => {
     <div
       ref={overlayRef}
       onClick={handleBackdropClick}
-      className="fixed inset-0 z-50 flex items-start justify-center bg-black/80 backdrop-blur-sm p-3 sm:p-4 pt-12 sm:pt-20 animate-in fade-in duration-150 overflow-hidden"
+      className="fixed inset-0 z-50 flex items-start justify-center bg-black/60 backdrop-blur-sm p-3 sm:p-4 pt-12 sm:pt-20 animate-in fade-in duration-150 overflow-hidden"
     >
       <div
-        className="w-full max-w-xl max-h-[calc(100dvh-4rem)] flex flex-col rounded-xl border border-[#232A3B] bg-[#0F131C] shadow-[0_10px_40px_rgba(0,0,0,0.8)] overflow-hidden"
+        className="w-full max-w-xl max-h-[calc(100dvh-4rem)] flex flex-col rounded-2xl border border-[var(--border-default)] bg-[var(--bg-surface)] shadow-2xl overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Input Bar */}
-        <div className="flex-shrink-0 flex items-center border-b border-[#232A3B] px-3.5 py-3 bg-[#07090E]">
-          <Command className="h-4 w-4 text-[#00F0FF] mr-2.5 shrink-0" />
+        <div className="flex-shrink-0 flex items-center border-b border-[var(--border-default)] px-4 py-3 bg-[var(--bg-surface)]">
+          <Command className="h-4 w-4 text-[var(--accent-primary)] mr-3 shrink-0" />
           <input
             ref={inputRef}
             type="text"
@@ -145,71 +145,71 @@ export const UniversalCmdBar: React.FC = () => {
                 handleClose();
               }
             }}
-            placeholder="Natural language: 'Spent 50k on Ramen BCA' or command..."
-            className="w-full bg-transparent text-sm text-white placeholder-[#64748B] focus:outline-none font-mono-num"
+            placeholder="Type 'Spent 50k on Coffee BCA' or search actions..."
+            className="w-full bg-transparent text-sm text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:outline-none"
           />
-          <kbd className="hidden sm:inline-block rounded border border-[#232A3B] bg-[#161B26] px-1.5 py-0.5 text-[10px] text-[#64748B] font-mono-num">
+          <kbd className="hidden sm:inline-block rounded-md border border-[var(--border-default)] bg-[var(--bg-canvas)] px-1.5 py-0.5 text-[10px] text-[var(--text-muted)] font-mono">
             ESC
           </kbd>
         </div>
 
         {/* Live NLP Feedback Bar */}
         {parsed && parsed.amount && parsed.amount > 0 ? (
-          <div className="border-b border-[#232A3B] bg-[#161B26]/60 px-4 py-3">
+          <div className="border-b border-[var(--border-default)] bg-[var(--bg-canvas)] px-4 py-3">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-[10px] font-mono-num uppercase tracking-wider text-[#00F0FF] flex items-center gap-1">
+              <span className="text-[11px] font-semibold text-[var(--accent-primary)] flex items-center gap-1">
                 <Zap className="h-3 w-3" />
                 Parsed Transaction
               </span>
-              <span className="text-[10px] font-mono-num text-[#64748B]">
-                CONFIDENCE: {Math.round(parsed.confidence * 100)}%
+              <span className="text-[10px] text-[var(--text-muted)]">
+                Confidence: {Math.round(parsed.confidence * 100)}%
               </span>
             </div>
 
-            <div className="flex flex-wrap gap-2 text-xs font-mono-num">
-              <span className="rounded bg-[#00F0FF]/15 border border-[#00F0FF]/40 px-2 py-0.5 text-[#00F0FF] font-bold">
+            <div className="flex flex-wrap gap-2 text-xs">
+              <span className="rounded-md bg-[var(--accent-primary)]/10 border border-[var(--accent-primary)]/30 px-2 py-0.5 text-[var(--accent-primary)] font-semibold">
                 {formatCurrency(parsed.amount, currency, locale)}
               </span>
-              <span className="rounded bg-[#1E2536] border border-[#232A3B] px-2 py-0.5 text-white uppercase">
-                TYPE: {parsed.type}
+              <span className="rounded-md bg-[var(--bg-surface)] border border-[var(--border-default)] px-2 py-0.5 text-[var(--text-primary)] uppercase text-[11px]">
+                Type: {parsed.type}
               </span>
               {parsed.desc && (
-                <span className="rounded bg-[#1E2536] border border-[#232A3B] px-2 py-0.5 text-[#94A3B8]">
+                <span className="rounded-md bg-[var(--bg-surface)] border border-[var(--border-default)] px-2 py-0.5 text-[var(--text-secondary)] text-[11px]">
                   &quot;{parsed.desc}&quot;
                 </span>
               )}
               {parsed.fromAccountId && (
-                <span className="rounded bg-[#1E2536] border border-[#232A3B] px-2 py-0.5 text-[#00FF88]">
-                  FROM: {accounts.find((a) => a.id === parsed.fromAccountId)?.name || parsed.fromAccountId}
+                <span className="rounded-md bg-[var(--bg-surface)] border border-[var(--border-default)] px-2 py-0.5 text-[var(--color-emerald)] text-[11px]">
+                  From: {accounts.find((a) => a.id === parsed.fromAccountId)?.name || parsed.fromAccountId}
                 </span>
               )}
               {parsed.toAccountId && (
-                <span className="rounded bg-[#1E2536] border border-[#232A3B] px-2 py-0.5 text-[#00F0FF]">
-                  TO: {accounts.find((a) => a.id === parsed.toAccountId)?.name || parsed.toAccountId}
+                <span className="rounded-md bg-[var(--bg-surface)] border border-[var(--border-default)] px-2 py-0.5 text-[var(--accent-primary)] text-[11px]">
+                  To: {accounts.find((a) => a.id === parsed.toAccountId)?.name || parsed.toAccountId}
                 </span>
               )}
             </div>
 
             <button
               onClick={handleExecute}
-              className="mt-3 flex w-full items-center justify-center gap-1.5 rounded border border-[#00FF88]/50 bg-[#00FF88]/15 py-1.5 text-xs font-bold text-[#00FF88] hover:bg-[#00FF88]/25 transition-all font-mono-num"
+              className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-lg bg-[var(--accent-primary)] py-2 text-xs font-semibold text-white hover:opacity-90 transition-opacity"
             >
               <Check className="h-3.5 w-3.5" />
-              PRESS ENTER TO COMMIT TO LEDGER
+              <span>Press Enter to Save</span>
             </button>
           </div>
         ) : null}
 
         {statusMessage && (
-          <div className="px-4 py-2 text-xs font-mono-num text-[#00FF88] bg-[#00FF88]/10 border-b border-[#232A3B]">
+          <div className="px-4 py-2 text-xs text-[var(--color-emerald)] bg-[var(--color-emerald)]/10 border-b border-[var(--border-default)]">
             {statusMessage}
           </div>
         )}
 
         {/* Quick Commands List */}
         <div className="p-2 space-y-1 max-h-72 overflow-y-auto">
-          <div className="px-2 py-1 text-[10px] font-mono-num uppercase tracking-wider text-[#64748B]">
-            System Actions &amp; Navigation
+          <div className="px-2 py-1 text-[10px] uppercase font-semibold tracking-wider text-[var(--text-muted)]">
+            Quick Actions &amp; Navigation
           </div>
 
           <button
@@ -217,13 +217,13 @@ export const UniversalCmdBar: React.FC = () => {
               setCmdBarOpen(false);
               openQuickTx();
             }}
-            className="flex w-full items-center justify-between rounded px-2.5 py-2 text-xs text-[#F1F5F9] hover:bg-[#161B26] transition-colors"
+            className="flex w-full items-center justify-between rounded-lg px-2.5 py-2 text-xs text-[var(--text-primary)] hover:bg-[var(--bg-hover)] transition-colors"
           >
             <div className="flex items-center gap-2">
-              <Plus className="h-4 w-4 text-[#00F0FF]" />
-              <span>Open Detailed Transaction Modal</span>
+              <Plus className="h-4 w-4 text-[var(--accent-primary)]" />
+              <span>New Transaction</span>
             </div>
-            <ArrowRight className="h-3.5 w-3.5 text-[#64748B]" />
+            <ArrowRight className="h-3.5 w-3.5 text-[var(--text-muted)]" />
           </button>
 
           <button
@@ -231,13 +231,13 @@ export const UniversalCmdBar: React.FC = () => {
               setCmdBarOpen(false);
               setCsvImportOpen(true);
             }}
-            className="flex w-full items-center justify-between rounded px-2.5 py-2 text-xs text-[#F1F5F9] hover:bg-[#161B26] transition-colors"
+            className="flex w-full items-center justify-between rounded-lg px-2.5 py-2 text-xs text-[var(--text-primary)] hover:bg-[var(--bg-hover)] transition-colors"
           >
             <div className="flex items-center gap-2">
-              <FileSpreadsheet className="h-4 w-4 text-[#FFB800]" />
-              <span>Import CSV Bank Statement</span>
+              <FileSpreadsheet className="h-4 w-4 text-[var(--color-amber)]" />
+              <span>Import CSV Statement</span>
             </div>
-            <ArrowRight className="h-3.5 w-3.5 text-[#64748B]" />
+            <ArrowRight className="h-3.5 w-3.5 text-[var(--text-muted)]" />
           </button>
 
           <button
@@ -245,13 +245,13 @@ export const UniversalCmdBar: React.FC = () => {
               setCmdBarOpen(false);
               setCsvExportOpen(true);
             }}
-            className="flex w-full items-center justify-between rounded px-2.5 py-2 text-xs text-[#F1F5F9] hover:bg-[#161B26] transition-colors"
+            className="flex w-full items-center justify-between rounded-lg px-2.5 py-2 text-xs text-[var(--text-primary)] hover:bg-[var(--bg-hover)] transition-colors"
           >
             <div className="flex items-center gap-2">
-              <Download className="h-4 w-4 text-[#00FF88]" />
-              <span>Export Ledger to CSV</span>
+              <Download className="h-4 w-4 text-[var(--color-emerald)]" />
+              <span>Export Transactions to CSV</span>
             </div>
-            <ArrowRight className="h-3.5 w-3.5 text-[#64748B]" />
+            <ArrowRight className="h-3.5 w-3.5 text-[var(--text-muted)]" />
           </button>
 
           <button
@@ -259,13 +259,13 @@ export const UniversalCmdBar: React.FC = () => {
               togglePrivacyMode();
               setCmdBarOpen(false);
             }}
-            className="flex w-full items-center justify-between rounded px-2.5 py-2 text-xs text-[#F1F5F9] hover:bg-[#161B26] transition-colors"
+            className="flex w-full items-center justify-between rounded-lg px-2.5 py-2 text-xs text-[var(--text-primary)] hover:bg-[var(--bg-hover)] transition-colors"
           >
             <div className="flex items-center gap-2">
-              <Shield className="h-4 w-4 text-[#FF5C00]" />
-              <span>Toggle Privacy Blinder Mode</span>
+              <Shield className="h-4 w-4 text-[var(--accent-primary)]" />
+              <span>Hide / Show Balances</span>
             </div>
-            <span className="text-[10px] font-mono-num text-[#64748B]">CTRL+H</span>
+            <span className="text-[10px] text-[var(--text-muted)] font-mono">CTRL+H</span>
           </button>
 
           <button
@@ -274,13 +274,13 @@ export const UniversalCmdBar: React.FC = () => {
               setStatusMessage(`Executed ${executed} due recurring rules`);
               playSound("success", soundEnabled);
             }}
-            className="flex w-full items-center justify-between rounded px-2.5 py-2 text-xs text-[#F1F5F9] hover:bg-[#161B26] transition-colors"
+            className="flex w-full items-center justify-between rounded-lg px-2.5 py-2 text-xs text-[var(--text-primary)] hover:bg-[var(--bg-hover)] transition-colors"
           >
             <div className="flex items-center gap-2">
-              <Zap className="h-4 w-4 text-[#9D00FF]" />
-              <span>Trigger Due Recurring Subscriptions</span>
+              <Zap className="h-4 w-4 text-[var(--accent-primary)]" />
+              <span>Process Due Recurring Transactions</span>
             </div>
-            <span className="text-[10px] font-mono-num text-[#64748B]">AUTO-SYNC</span>
+            <span className="text-[10px] text-[var(--text-muted)] font-mono">AUTO</span>
           </button>
 
           <button
@@ -288,20 +288,20 @@ export const UniversalCmdBar: React.FC = () => {
               setCmdBarOpen(false);
               setLocked(true);
             }}
-            className="flex w-full items-center justify-between rounded px-2.5 py-2 text-xs text-[#F1F5F9] hover:bg-[#161B26] transition-colors"
+            className="flex w-full items-center justify-between rounded-lg px-2.5 py-2 text-xs text-[var(--text-primary)] hover:bg-[var(--bg-hover)] transition-colors"
           >
             <div className="flex items-center gap-2">
-              <Lock className="h-4 w-4 text-[#64748B]" />
-              <span>Lock App Session (WebAuthn / PIN)</span>
+              <Lock className="h-4 w-4 text-[var(--text-muted)]" />
+              <span>Lock Screen</span>
             </div>
-            <ArrowRight className="h-3.5 w-3.5 text-[#64748B]" />
+            <ArrowRight className="h-3.5 w-3.5 text-[var(--text-muted)]" />
           </button>
         </div>
 
         {/* Footer */}
-        <div className="border-t border-[#232A3B] bg-[#07090E] px-3.5 py-2 flex items-center justify-between text-[10px] text-[#64748B] font-mono-num">
-          <span>Neo-Tokyo Ledger Dispatch</span>
-          <span>ENTER: COMMIT • ESC: DISMISS</span>
+        <div className="border-t border-[var(--border-default)] bg-[var(--bg-canvas)] px-4 py-2 flex items-center justify-between text-[11px] text-[var(--text-muted)]">
+          <span>Quick Actions</span>
+          <span>Enter: Save • Esc: Close</span>
         </div>
       </div>
     </div>

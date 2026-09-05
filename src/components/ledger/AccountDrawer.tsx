@@ -106,12 +106,12 @@ export const AccountDrawer: React.FC = () => {
           </div>
         </div>
 
-        <div className="industrial-card rounded-lg p-4 border border-[#232A3B] bg-[#0F131C] flex flex-col justify-between">
+        <div className="industrial-card rounded-xl p-4 border border-[var(--border-subtle)] bg-[var(--card-bg)] flex flex-col justify-between">
           <div>
-            <div className="text-[10px] font-mono-num uppercase tracking-wider text-[#64748B]">
-              Quick Liquidity Routing
+            <div className="text-xs font-medium text-[var(--text-muted)]">
+              Quick Transfer
             </div>
-            <div className="text-xs font-mono-num text-white mt-1">
+            <div className="text-xs font-semibold text-[var(--text-primary)] mt-1">
               Internal Rebalancing
             </div>
           </div>
@@ -121,10 +121,10 @@ export const AccountDrawer: React.FC = () => {
               triggerHaptic(15);
               openQuickTx({ type: "transfer" });
             }}
-            className="flex items-center gap-1.5 rounded border border-[#00F0FF]/50 bg-[#00F0FF]/10 px-3 py-2 text-xs font-mono-num text-[#00F0FF] hover:bg-[#00F0FF]/20 transition-colors mt-2"
+            className="flex items-center gap-1.5 rounded-lg border border-[var(--border-subtle)] bg-[var(--card-surface)] px-3 py-2 text-xs text-emerald-500 hover:border-emerald-500/50 transition-colors mt-2 font-medium min-h-[40px]"
           >
             <ArrowRightLeft className="h-3.5 w-3.5" />
-            <span>INTER-ACCOUNT TRANSFER</span>
+            <span>Transfer Funds</span>
           </button>
         </div>
       </div>
@@ -132,9 +132,9 @@ export const AccountDrawer: React.FC = () => {
       {/* Account Cards Header & Add Button */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Wallet className="h-4 w-4 text-[#00F0FF]" />
-          <h3 className="font-mono-num text-sm font-bold uppercase tracking-wider text-white">
-            Active Accounts &amp; Priority ({activeAccounts.length})
+          <Wallet className="h-4 w-4 text-emerald-500" />
+          <h3 className="text-sm font-semibold text-[var(--text-primary)]">
+            Accounts &amp; Wallets ({activeAccounts.length})
           </h3>
         </div>
         <button
@@ -143,10 +143,10 @@ export const AccountDrawer: React.FC = () => {
             triggerHaptic(15);
             openAccountModal();
           }}
-          className="flex items-center gap-1.5 rounded border border-[#00F0FF]/60 bg-[#00F0FF]/15 px-3 py-1.5 text-xs font-mono-num font-bold text-[#00F0FF] hover:bg-[#00F0FF]/25 transition-colors shadow-[0_0_12px_rgba(0,240,255,0.15)]"
+          className="flex items-center gap-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 px-3 py-1.5 text-xs font-semibold text-white transition-colors shadow-sm min-h-[36px]"
         >
           <Plus className="h-3.5 w-3.5" />
-          <span>ADD ACCOUNT</span>
+          <span>+ Add Account</span>
         </button>
       </div>
 

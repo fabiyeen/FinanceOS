@@ -123,23 +123,23 @@ export const TransactionFeed: React.FC = () => {
   };
 
   return (
-    <div className="industrial-card rounded-lg overflow-hidden border border-[#232A3B] bg-[#0F131C]">
+    <div className="rounded-2xl overflow-hidden border border-[var(--border-default)] bg-[var(--bg-surface)] shadow-sm">
       {/* Top Filter Bar */}
-      <div className="p-3 sm:p-4 border-b border-[#232A3B] space-y-3 bg-[#07090E]/60">
+      <div className="p-3 sm:p-4 border-b border-[var(--border-default)] space-y-3 bg-[var(--bg-canvas)]/40">
         <div className="flex flex-col sm:flex-row gap-2 justify-between items-stretch sm:items-center">
           <div className="flex items-center gap-2">
-            <span className="h-2 w-2 rounded-full bg-[#00F0FF]" />
-            <h3 className="font-mono-num text-xs sm:text-sm font-bold uppercase tracking-wider text-white">
-              Ledger Feed
+            <span className="h-2 w-2 rounded-full bg-[var(--accent-primary)]" />
+            <h3 className="text-sm font-semibold text-[var(--text-primary)]">
+              Recent Transactions
             </h3>
-            <span className="rounded bg-[#161B26] border border-[#232A3B] px-1.5 py-0.5 font-mono-num text-[10px] text-[#64748B]">
-              {filteredTxs.length} ENTRIES
+            <span className="rounded-md bg-[var(--bg-surface)] border border-[var(--border-default)] px-2 py-0.5 text-xs text-[var(--text-muted)]">
+              {filteredTxs.length} records
             </span>
           </div>
 
           {/* Quick Date Range Filters */}
-          <div className="flex items-center gap-1 bg-[#0F131C] p-1 rounded border border-[#232A3B]">
-            <Calendar className="h-3 w-3 text-[#64748B] ml-1 mr-0.5" />
+          <div className="flex items-center gap-1 bg-[var(--bg-surface)] p-1 rounded-xl border border-[var(--border-default)]">
+            <Calendar className="h-3.5 w-3.5 text-[var(--text-muted)] ml-1 mr-0.5" />
             {(["today", "week", "month", "all"] as const).map((range) => (
               <button
                 key={range}
@@ -147,10 +147,10 @@ export const TransactionFeed: React.FC = () => {
                   playSound("tab", soundEnabled);
                   setDateRange(range);
                 }}
-                className={`rounded px-2 py-0.5 text-[10px] font-mono-num uppercase transition-colors ${
+                className={`rounded-lg px-2.5 py-1 text-xs font-medium capitalize transition-colors ${
                   dateRange === range
-                    ? "bg-[#1E2536] text-[#00F0FF] border border-[#384259]"
-                    : "text-[#64748B] hover:text-[#94A3B8]"
+                    ? "bg-[var(--bg-canvas)] text-[var(--text-primary)] border border-[var(--border-default)] shadow-xs"
+                    : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"
                 }`}
               >
                 {range}
@@ -162,39 +162,39 @@ export const TransactionFeed: React.FC = () => {
         {/* Search & Dropdown Filters */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
           <div className="relative">
-            <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-[#64748B]" />
+            <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-[var(--text-muted)]" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search description, tag, note..."
-              className="w-full rounded border border-[#232A3B] bg-[#0F131C] pl-8 pr-7 py-1.5 text-xs text-white placeholder-[#475569] focus:border-[#00F0FF] focus:outline-none font-mono-num"
+              className="w-full rounded-xl border border-[var(--border-default)] bg-[var(--bg-surface)] pl-8 pr-7 py-2 text-xs text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:border-[var(--accent-primary)] focus:outline-none"
             />
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery("")}
-                className="absolute right-2 top-2 text-[#64748B] hover:text-white"
+                className="absolute right-2.5 top-2.5 text-[var(--text-muted)] hover:text-[var(--text-primary)]"
               >
-                <X className="h-3 w-3" />
+                <X className="h-3.5 w-3.5" />
               </button>
             )}
           </div>
 
           {/* Type Filter */}
           <div className="flex items-center gap-1.5">
-            <Filter className="h-3 w-3 text-[#64748B]" />
+            <Filter className="h-3.5 w-3.5 text-[var(--text-muted)] shrink-0 ml-1" />
             <select
               value={selectedType}
               onChange={(e) => setSelectedType(e.target.value)}
-              className="w-full rounded border border-[#232A3B] bg-[#0F131C] px-2 py-1.5 text-xs text-[#94A3B8] focus:border-[#00F0FF] focus:outline-none font-mono-num"
+              className="w-full rounded-xl border border-[var(--border-default)] bg-[var(--bg-surface)] px-2.5 py-2 text-xs text-[var(--text-secondary)] focus:border-[var(--accent-primary)] focus:outline-none"
             >
-              <option value="all">ALL TYPES</option>
-              <option value="expense">EXPENSE</option>
-              <option value="income">INCOME</option>
-              <option value="transfer">TRANSFER</option>
-              <option value="vault_deposit">VAULT DEPOSIT</option>
-              <option value="vault_withdraw">VAULT WITHDRAW</option>
-              <option value="debt_payment">DEBT PAYMENT</option>
+              <option value="all">All Types</option>
+              <option value="expense">Expense</option>
+              <option value="income">Income</option>
+              <option value="transfer">Transfer</option>
+              <option value="vault_deposit">Savings Deposit</option>
+              <option value="vault_withdraw">Savings Withdraw</option>
+              <option value="debt_payment">Debt Payment</option>
             </select>
           </div>
 
@@ -203,9 +203,9 @@ export const TransactionFeed: React.FC = () => {
             <select
               value={selectedAccount}
               onChange={(e) => setSelectedAccount(e.target.value)}
-              className="w-full rounded border border-[#232A3B] bg-[#0F131C] px-2 py-1.5 text-xs text-[#94A3B8] focus:border-[#00F0FF] focus:outline-none font-mono-num"
+              className="w-full rounded-xl border border-[var(--border-default)] bg-[var(--bg-surface)] px-2.5 py-2 text-xs text-[var(--text-secondary)] focus:border-[var(--accent-primary)] focus:outline-none"
             >
-              <option value="all">ALL ACCOUNTS</option>
+              <option value="all">All Accounts</option>
               {accounts.map((acc) => (
                 <option key={acc.id} value={acc.id}>
                   {acc.name}
@@ -217,14 +217,14 @@ export const TransactionFeed: React.FC = () => {
       </div>
 
       {/* Transaction List */}
-      <div className="divide-y divide-[#232A3B] max-h-[560px] overflow-y-auto">
+      <div className="divide-y divide-[var(--border-default)] max-h-[560px] overflow-y-auto">
         {filteredTxs.length === 0 ? (
           <div className="p-8 text-center">
-            <div className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-[#161B26] border border-[#232A3B] mb-2 text-[#64748B]">
+            <div className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-[var(--bg-canvas)] border border-[var(--border-default)] mb-2 text-[var(--text-muted)]">
               <Search className="h-5 w-5" />
             </div>
-            <p className="text-xs font-mono-num text-[#64748B] uppercase tracking-wider">
-              No matching ledger records located
+            <p className="text-xs text-[var(--text-muted)]">
+              No matching transactions found
             </p>
           </div>
         ) : (
@@ -239,44 +239,44 @@ export const TransactionFeed: React.FC = () => {
             return (
               <div
                 key={tx.id}
-                className="flex items-center justify-between p-3 sm:p-4 hover:bg-[#161B26]/50 transition-colors group"
+                className="flex items-center justify-between p-3 sm:p-4 hover:bg-[var(--bg-hover)] transition-colors group"
               >
                 {/* Left info */}
                 <div className="flex items-center gap-3 min-w-0">
-                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded border border-[#232A3B] bg-[#07090E]">
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-[var(--border-default)] bg-[var(--bg-canvas)]">
                     {getTypeIcon(tx.type)}
                   </div>
 
                   <div className="min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-xs sm:text-sm font-medium text-white truncate max-w-[200px] sm:max-w-xs">
+                      <span className="text-xs sm:text-sm font-medium text-[var(--text-primary)] truncate max-w-[200px] sm:max-w-xs">
                         {tx.desc}
                       </span>
                       {category && (
-                        <span className="rounded bg-[#1E2536] border border-[#232A3B] px-1.5 py-0.2 text-[10px] text-[#94A3B8] font-mono-num">
+                        <span className="rounded-md bg-[var(--bg-canvas)] border border-[var(--border-default)] px-2 py-0.5 text-[10px] text-[var(--text-secondary)] font-medium">
                           {category.name}
                         </span>
                       )}
                       {tx.tags.map((tag) => (
                         <span
                           key={tag}
-                          className="hidden sm:inline-block rounded bg-[#00F0FF]/10 text-[9px] text-[#00F0FF] px-1.5 font-mono-num"
+                          className="hidden sm:inline-block rounded-md bg-[var(--accent-primary)]/10 text-[10px] text-[var(--accent-primary)] px-1.5 py-0.2"
                         >
                           #{tag}
                         </span>
                       ))}
                     </div>
 
-                    <div className="flex items-center gap-2 mt-0.5 text-[11px] font-mono-num text-[#64748B]">
+                    <div className="flex items-center gap-2 mt-0.5 text-[11px] text-[var(--text-muted)]">
                       <span>{tx.date}</span>
                       <span>{tx.time}</span>
                       <span>•</span>
-                      <span className="text-[#94A3B8]">
+                      <span className="text-[var(--text-secondary)]">
                         {fromAcc?.name || tx.fromAccountId}
                         {toAcc && ` → ${toAcc.name}`}
                       </span>
                       {tx.isRecurringInstance && (
-                        <span className="text-[#FFB800]">[AUTO-REC]</span>
+                        <span className="text-[var(--color-amber)] font-medium">[Recurring]</span>
                       )}
                     </div>
                   </div>
@@ -286,29 +286,29 @@ export const TransactionFeed: React.FC = () => {
                 <div className="flex items-center gap-2 sm:gap-4 shrink-0 pl-2">
                   <div className="text-right">
                     <div
-                      className={`font-mono-num text-xs sm:text-sm font-bold tracking-tight transition-all ${
+                      className={`text-xs sm:text-sm font-semibold tracking-tight transition-all ${
                         privacyMode ? "privacy-blur" : ""
                       } ${
                         isPositive
-                          ? "text-[#00FF88]"
+                          ? "text-[var(--color-emerald)]"
                           : isNegative
-                          ? "text-[#FF5C00]"
-                          : "text-[#00F0FF]"
+                          ? "text-[var(--color-rose)]"
+                          : "text-[var(--accent-primary)]"
                       }`}
                     >
                       {isPositive ? "+" : isNegative ? "-" : ""}
                       {formatCurrency(tx.amount, currency, locale)}
                     </div>
-                    <div className="text-[9px] font-mono-num text-[#64748B] uppercase">
-                      {tx.type}
+                    <div className="text-[10px] text-[var(--text-muted)] capitalize">
+                      {tx.type.replace("_", " ")}
                     </div>
                   </div>
 
                   {/* Delete Button */}
                   <button
                     onClick={() => handleDelete(tx.id)}
-                    className="opacity-0 group-hover:opacity-100 p-1.5 rounded text-[#64748B] hover:text-[#FF5C00] hover:bg-[#FF5C00]/10 transition-all"
-                    title="Delete record & reverse ledger impact"
+                    className="opacity-0 group-hover:opacity-100 p-1.5 rounded-lg text-[var(--text-muted)] hover:text-[var(--color-rose)] hover:bg-[var(--color-rose)]/10 transition-all"
+                    title="Delete transaction"
                   >
                     <Trash2 className="h-3.5 w-3.5" />
                   </button>

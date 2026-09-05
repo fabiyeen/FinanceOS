@@ -433,7 +433,7 @@ export const CategoryManager: React.FC<CategoryManagerProps> = ({ isModal = fals
                     type="text"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    placeholder="e.g. Cyber Security, Syndicate Consulting"
+                    placeholder="e.g. Freelance Consulting, Online Courses"
                     required
                     className="w-full rounded border border-[#232A3B] bg-[#07090E] px-3 py-2 text-xs text-white placeholder-[#475569] focus:border-[#00F0FF] focus:outline-none font-mono-num"
                   />

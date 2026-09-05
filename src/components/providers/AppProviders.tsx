@@ -14,6 +14,8 @@ import { VaultModal } from "../vaults/VaultModal";
 import { CategoryManagerModal } from "../tools/CategoryManager";
 import { useUIStore } from "../../store/useUIStore";
 
+import { ThemeProvider } from "./ThemeProvider";
+
 export const AppProviders: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const {
     isAccountModalOpen,
@@ -40,12 +42,13 @@ export const AppProviders: React.FC<{ children: React.ReactNode }> = ({ children
 
   return (
     <AuthProvider>
-      <AuthGate>
-        <div className="min-h-screen flex flex-col bg-[#07090E] text-[#F1F5F9] pb-24 selection:bg-[#00F0FF]/30 selection:text-white">
-          <TopDock />
-          <main className="flex-1 w-full max-w-7xl mx-auto px-3 sm:px-6 py-4 sm:py-6">
-            {children}
-          </main>
+      <ThemeProvider>
+        <AuthGate>
+          <div className="min-h-screen flex flex-col bg-[var(--bg-void)] text-[var(--text-primary)] pb-24 selection:bg-emerald-500/20 selection:text-emerald-500 transition-colors duration-150">
+            <TopDock />
+            <main className="flex-1 w-full max-w-7xl mx-auto px-3 sm:px-6 py-4 sm:py-6">
+              {children}
+            </main>
           <BottomDeck />
 
           {/* Ephemeral Modals */}
@@ -66,6 +69,7 @@ export const AppProviders: React.FC<{ children: React.ReactNode }> = ({ children
           <CategoryManagerModal />
         </div>
       </AuthGate>
+      </ThemeProvider>
     </AuthProvider>
   );
 };

@@ -137,7 +137,7 @@ export const VaultCard: React.FC<VaultCardProps> = ({ vault }) => {
           {isReached && (
             <button
               onClick={triggerCelebrate}
-              className="rounded-full bg-[#00FF88]/15 border border-[#00FF88]/40 p-1 text-[#00FF88] hover:scale-110 transition-transform"
+              className="rounded-full bg-emerald-500/15 border border-emerald-500/40 p-1 text-emerald-500 hover:scale-110 transition-transform"
               title="Goal Reached! Click to celebrate"
             >
               <CheckCircle className="h-4 w-4" />
@@ -145,8 +145,8 @@ export const VaultCard: React.FC<VaultCardProps> = ({ vault }) => {
           )}
           <button
             onClick={handleEditVault}
-            className="rounded border border-[#232A3B] bg-[#07090E] p-1.5 text-[#64748B] hover:text-white hover:border-[#384259] transition-colors"
-            title="Configure Vault Parameters"
+            className="rounded-lg border border-[var(--border-subtle)] bg-[var(--card-surface)] p-1.5 text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:border-[var(--border-industrial)] transition-colors"
+            title="Edit Goal"
           >
             <Edit2 className="h-3.5 w-3.5" />
           </button>
@@ -156,28 +156,28 @@ export const VaultCard: React.FC<VaultCardProps> = ({ vault }) => {
       {/* Progress Bar & Badges */}
       <div className="mt-4 space-y-1.5">
         <div className="flex items-center justify-between text-xs font-mono-num">
-          <span className="text-[#94A3B8]">[ALLOCATION PROGRESS]</span>
+          <span className="text-[var(--text-muted)]">Progress</span>
           <span
-            className={`font-bold ${
-              isReached ? "text-[#00FF88]" : "text-[#00F0FF]"
+            className={`font-semibold ${
+              isReached ? "text-emerald-500" : "text-[var(--text-primary)]"
             }`}
           >
             {progress.toFixed(1)}%
           </span>
         </div>
 
-        <div className="h-2 w-full rounded-full bg-[#161B26] overflow-hidden">
+        <div className="h-2 w-full rounded-full bg-[var(--bg-void)] overflow-hidden">
           <div
             className={`h-full transition-all duration-500 ${
               isReached
-                ? "bg-[#00FF88] shadow-[0_0_8px_#00FF88]"
-                : "bg-[#00F0FF] shadow-[0_0_8px_#00F0FF]"
+                ? "bg-emerald-500"
+                : "bg-emerald-500"
             }`}
             style={{ width: `${progress}%` }}
           />
         </div>
 
-        <div className="flex items-center justify-between text-[10px] font-mono-num text-[#64748B] pt-0.5">
+        <div className="flex items-center justify-between text-[11px] font-mono-num text-[var(--text-muted)] pt-0.5">
           <span className={privacyMode ? "privacy-blur" : ""}>
             Current: {formatCurrency(vault.currentAmount, "IDR", "id-ID")}
           </span>
@@ -186,32 +186,32 @@ export const VaultCard: React.FC<VaultCardProps> = ({ vault }) => {
       </div>
 
       {/* Footer Actions */}
-      <div className="mt-4 pt-3 border-t border-[#232A3B]/60 flex items-center justify-between">
-        <div className="text-[10px] font-mono-num text-[#94A3B8]">
+      <div className="mt-4 pt-3 border-t border-[var(--border-subtle)] flex items-center justify-between">
+        <div className="text-xs text-[var(--text-secondary)] font-mono-num">
           {!isReached ? (
             <span className={privacyMode ? "privacy-blur" : ""}>
               Remaining: {formatCurrency(remaining, "IDR", "id-ID")}
             </span>
           ) : (
-            <span className="text-[#00FF88]">TARGET FULLY FUNDED</span>
+            <span className="text-emerald-500 font-medium">Goal Achieved! 🎉</span>
           )}
         </div>
 
         <div className="flex items-center gap-1.5">
           <button
             onClick={handleDeposit}
-            className="flex items-center gap-1 rounded border border-[#232A3B] bg-[#161B26] px-2 py-1 text-[10px] font-mono-num text-[#00F0FF] hover:border-[#00F0FF]/50 transition-colors"
+            className="flex items-center gap-1 rounded-lg border border-[var(--border-subtle)] bg-[var(--card-surface)] px-2.5 py-1 text-xs text-emerald-500 hover:border-emerald-500/50 transition-colors font-medium"
           >
-            <ArrowDownRight className="h-3 w-3" />
-            DEPOSIT
+            <ArrowDownRight className="h-3.5 w-3.5" />
+            <span>Deposit</span>
           </button>
           <button
             onClick={handleWithdraw}
             disabled={vault.currentAmount <= 0}
-            className="flex items-center gap-1 rounded border border-[#232A3B] bg-[#161B26] px-2 py-1 text-[10px] font-mono-num text-[#FF5C00] hover:border-[#FF5C00]/50 transition-colors disabled:opacity-40"
+            className="flex items-center gap-1 rounded-lg border border-[var(--border-subtle)] bg-[var(--card-surface)] px-2.5 py-1 text-xs text-rose-500 hover:border-rose-500/50 transition-colors disabled:opacity-40 font-medium"
           >
-            <ArrowUpLeft className="h-3 w-3" />
-            WITHDRAW
+            <ArrowUpLeft className="h-3.5 w-3.5" />
+            <span>Withdraw</span>
           </button>
         </div>
       </div>

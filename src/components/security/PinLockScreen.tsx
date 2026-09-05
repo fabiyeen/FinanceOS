@@ -102,9 +102,9 @@ export const PinLockScreen: React.FC<PinLockScreenProps> = ({
 
     if (nextFailed >= 3) {
       setLockoutRemaining(30);
-      setError("SECURITY LOCKOUT: 3 FAILED ATTEMPTS. WAIT 30 SECONDS");
+      setError("Too many failed attempts. Please wait 30 seconds.");
     } else {
-      setError(`INCORRECT PIN (${3 - nextFailed} ATTEMPTS REMAINING)`);
+      setError(`Incorrect passcode (${3 - nextFailed} attempts remaining)`);
     }
   };
 
@@ -131,7 +131,7 @@ export const PinLockScreen: React.FC<PinLockScreenProps> = ({
         onOpenPinSettings?.();
       } else {
         playSound("alert", soundEnabled);
-        setForgotError("Password verification failed. Incorrect password.");
+        setForgotError("Incorrect account password.");
       }
     } finally {
       setIsVerifyingPassword(false);
@@ -164,7 +164,7 @@ export const PinLockScreen: React.FC<PinLockScreenProps> = ({
         setPin("");
         onUnlockSuccess?.();
       } else {
-        setError("Biometric sensor not available on this device");
+        setError("Biometrics not available on this device");
       }
     } catch {
       setError("Biometric authentication cancelled");
@@ -174,23 +174,23 @@ export const PinLockScreen: React.FC<PinLockScreenProps> = ({
   const isDefaultPin = !settings?.security?.isPinSet;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#07090E] p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[var(--bg-canvas)] p-4">
       <div className="w-full max-w-xs text-center space-y-6">
         {/* Lock Shield Icon */}
-        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl border border-[#00F0FF]/40 bg-[#0F131C] shadow-[0_0_30px_rgba(0,240,255,0.2)]">
-          <Lock className="h-8 w-8 text-[#00F0FF]" />
+        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-[var(--border-default)] bg-[var(--bg-surface)] shadow-sm">
+          <Lock className="h-6 w-6 text-[var(--accent-primary)]" />
         </div>
 
         <div>
-          <h2 className="font-mono-num text-sm font-bold uppercase tracking-widest text-white">
-            FINANCE_OS // LOCKED
+          <h2 className="text-base font-semibold text-[var(--text-primary)]">
+            Enter Passcode
           </h2>
-          <p className="text-[11px] font-mono-num text-[#64748B] mt-1">
-            Operative: {user?.displayName || user?.email || "Agent"}
+          <p className="text-xs text-[var(--text-muted)] mt-1">
+            {user?.displayName || user?.email || "FinanceOS"}
           </p>
           {isDefaultPin && (
-            <div className="mt-2 rounded border border-[#FFB800]/40 bg-[#FFB800]/10 px-2 py-1 text-[10px] font-mono-num text-[#FFB800]">
-              [DEFAULT PIN 0000 ACTIVE]
+            <div className="mt-2 inline-block rounded-md border border-[var(--color-amber)]/30 bg-[var(--color-amber)]/10 px-2.5 py-0.5 text-[11px] font-medium text-[var(--color-amber)]">
+              Default passcode is 0000
             </div>
           )}
         </div>
@@ -200,24 +200,24 @@ export const PinLockScreen: React.FC<PinLockScreenProps> = ({
           {[0, 1, 2, 3, 4, 5].map((idx) => (
             <div
               key={idx}
-              className={`h-3.5 w-3.5 rounded-full border transition-all ${
+              className={`h-3 w-3 rounded-full border transition-all ${
                 pin.length > idx
-                  ? "border-[#00F0FF] bg-[#00F0FF] shadow-[0_0_8px_#00F0FF]"
-                  : "border-[#232A3B] bg-[#161B26]"
+                  ? "border-[var(--accent-primary)] bg-[var(--accent-primary)]"
+                  : "border-[var(--border-default)] bg-[var(--bg-surface)]"
               }`}
             />
           ))}
         </div>
 
         {error && (
-          <div className="text-[10px] font-mono-num text-[#FF0055] animate-pulse">
+          <div className="text-xs font-medium text-[var(--color-rose)] animate-pulse">
             {error}
           </div>
         )}
 
         {lockoutRemaining > 0 && (
-          <div className="text-xs font-mono-num text-[#FF5C00] font-bold">
-            LOCKOUT COOLDOWN: {lockoutRemaining}s
+          <div className="text-xs font-medium text-[var(--color-amber)]">
+            Please wait: {lockoutRemaining}s
           </div>
         )}
 
@@ -239,9 +239,9 @@ export const PinLockScreen: React.FC<PinLockScreenProps> = ({
                   handleDigit(k);
                 }
               }}
-              className={`flex h-12 w-full items-center justify-center rounded-lg border border-[#232A3B] bg-[#0F131C] font-mono-num text-sm font-bold text-white transition-all hover:bg-[#1E2536] active:scale-95 disabled:opacity-30 ${
-                k === "CLR" ? "text-[#FF5C00]" : ""
-              } ${k === "DEL" ? "text-[#94A3B8]" : ""}`}
+              className={`flex h-12 w-full items-center justify-center rounded-xl border border-[var(--border-default)] bg-[var(--bg-surface)] text-sm font-semibold text-[var(--text-primary)] transition-all hover:bg-[var(--bg-hover)] active:scale-95 disabled:opacity-30 ${
+                k === "CLR" ? "text-[var(--color-rose)] text-xs" : ""
+              } ${k === "DEL" ? "text-[var(--text-muted)] text-xs" : ""}`}
             >
               {k}
             </button>
@@ -253,46 +253,46 @@ export const PinLockScreen: React.FC<PinLockScreenProps> = ({
           <button
             type="button"
             onClick={handleBiometricPrompt}
-            className="flex items-center justify-center gap-2 mx-auto rounded border border-[#00F0FF]/40 bg-[#00F0FF]/10 px-4 py-2 text-xs font-mono-num text-[#00F0FF] hover:bg-[#00F0FF]/20 transition-colors"
+            className="flex items-center justify-center gap-2 mx-auto rounded-lg border border-[var(--border-default)] bg-[var(--bg-surface)] px-4 py-2 text-xs font-medium text-[var(--text-primary)] hover:bg-[var(--bg-hover)] transition-colors"
           >
-            <Fingerprint className="h-4 w-4" />
-            <span>BIOMETRIC PASSKEY</span>
+            <Fingerprint className="h-4 w-4 text-[var(--accent-primary)]" />
+            <span>Use Biometrics</span>
           </button>
 
           <button
             type="button"
             onClick={() => setIsForgotOpen(true)}
-            className="text-[11px] font-mono-num text-[#64748B] hover:text-[#94A3B8] transition-colors"
+            className="text-xs text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
           >
-            Forgot PIN? Unlock with Account Password
+            Forgot passcode? Unlock with password
           </button>
         </div>
       </div>
 
       {/* Forgot PIN Recovery Modal */}
       {isForgotOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-md p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
           <div
-            className="w-full max-w-sm rounded-lg border border-[#232A3B] bg-[#0F131C] p-5 shadow-2xl space-y-4"
+            className="w-full max-w-sm rounded-2xl border border-[var(--border-default)] bg-[var(--bg-surface)] p-5 shadow-2xl space-y-4"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between border-b border-[#232A3B] pb-3">
+            <div className="flex items-center justify-between border-b border-[var(--border-default)] pb-3">
               <div className="flex items-center gap-2">
-                <KeyRound className="h-4 w-4 text-[#FFB800]" />
-                <h3 className="font-mono-num text-xs font-bold uppercase tracking-wider text-white">
+                <KeyRound className="h-4 w-4 text-[var(--color-amber)]" />
+                <h3 className="text-xs font-semibold uppercase tracking-wider text-[var(--text-primary)]">
                   Account Password Recovery
                 </h3>
               </div>
               <button
                 onClick={() => setIsForgotOpen(false)}
-                className="text-[#64748B] hover:text-white"
+                className="text-[var(--text-muted)] hover:text-[var(--text-primary)]"
               >
                 <X className="h-4 w-4" />
               </button>
             </div>
 
-            <p className="text-xs font-mono-num text-[#94A3B8]">
-              Enter your account password for <span className="text-white font-bold">{user?.email}</span> to unlock the session and reconfigure your PIN.
+            <p className="text-xs text-[var(--text-muted)]">
+              Enter your account password for <span className="text-[var(--text-primary)] font-medium">{user?.email}</span> to unlock the session and change your passcode.
             </p>
 
             <form onSubmit={handlePasswordRecovery} className="space-y-3">
@@ -300,13 +300,13 @@ export const PinLockScreen: React.FC<PinLockScreenProps> = ({
                 type="password"
                 value={accountPassword}
                 onChange={(e) => setAccountPassword(e.target.value)}
-                placeholder="Account password..."
+                placeholder="Account password"
                 required
-                className="w-full rounded border border-[#232A3B] bg-[#07090E] px-3 py-2 text-xs text-white placeholder-[#475569] focus:border-[#00F0FF] focus:outline-none font-mono-num"
+                className="w-full rounded-lg border border-[var(--border-default)] bg-[var(--bg-canvas)] px-3 py-2 text-xs text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:border-[var(--accent-primary)] focus:outline-none"
               />
 
               {forgotError && (
-                <div className="text-[10px] font-mono-num text-[#FF0055]">
+                <div className="text-xs text-[var(--color-rose)]">
                   {forgotError}
                 </div>
               )}
@@ -314,10 +314,10 @@ export const PinLockScreen: React.FC<PinLockScreenProps> = ({
               <button
                 type="submit"
                 disabled={isVerifyingPassword}
-                className="flex w-full items-center justify-center gap-1.5 rounded border border-[#FFB800]/60 bg-[#FFB800]/15 py-2 text-xs font-bold font-mono-num text-[#FFB800] hover:bg-[#FFB800]/25 transition-colors disabled:opacity-50"
+                className="flex w-full items-center justify-center gap-1.5 rounded-lg bg-[var(--accent-primary)] py-2 text-xs font-semibold text-white hover:opacity-90 transition-opacity disabled:opacity-50"
               >
                 <Check className="h-4 w-4" />
-                <span>{isVerifyingPassword ? "VERIFYING..." : "VERIFY & UNLOCK"}</span>
+                <span>{isVerifyingPassword ? "Verifying..." : "Unlock"}</span>
               </button>
             </form>
           </div>

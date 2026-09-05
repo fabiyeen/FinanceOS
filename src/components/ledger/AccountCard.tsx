@@ -144,10 +144,10 @@ export const AccountCard: React.FC<AccountCardProps> = ({
       </div>
 
       {/* Balance Readout */}
-      <div className="mt-4 pt-3 border-t border-[#232A3B]/60 flex items-end justify-between">
+      <div className="mt-4 pt-3 border-t border-[var(--border-subtle)] flex items-end justify-between">
         <div>
-          <span className="text-[9px] font-mono-num uppercase tracking-wider text-[#64748B]">
-            {isCredit ? "CURRENT BALANCE OWED" : "AVAILABLE BALANCE"}
+          <span className="text-[11px] font-medium text-[var(--text-muted)]">
+            {isCredit ? "Balance Owed" : "Available Balance"}
           </span>
           <div
             className={`font-mono-num text-base sm:text-lg font-bold tracking-tight transition-all ${
@@ -155,11 +155,11 @@ export const AccountCard: React.FC<AccountCardProps> = ({
             } ${
               isCredit
                 ? balanceOwed > 0
-                  ? "text-[#FF5C00]"
-                  : "text-[#00FF88]"
+                  ? "text-rose-500"
+                  : "text-emerald-500"
                 : account.currentBalance >= 0
-                ? "text-white"
-                : "text-[#FF5C00]"
+                ? "text-[var(--text-primary)]"
+                : "text-rose-500"
             }`}
           >
             {isCredit && balanceOwed > 0 ? "-" : ""}
@@ -173,10 +173,10 @@ export const AccountCard: React.FC<AccountCardProps> = ({
 
         {isCredit && account.statementClosingDay && (
           <div className="text-right">
-            <span className="text-[9px] font-mono-num uppercase tracking-wider text-[#64748B]">
-              STATEMENT
+            <span className="text-[11px] font-medium text-[var(--text-muted)]">
+              Statement
             </span>
-            <div className="text-[11px] font-mono-num text-[#FFB800]">
+            <div className="text-xs font-mono-num text-amber-500 font-medium">
               Day {account.statementClosingDay}
             </div>
           </div>
@@ -185,26 +185,26 @@ export const AccountCard: React.FC<AccountCardProps> = ({
 
       {/* Credit Card Specific Utilization & Limit Bar */}
       {isCredit && creditLimit > 0 && (
-        <div className="mt-3 pt-2 border-t border-[#232A3B]/40">
-          <div className="flex justify-between text-[10px] font-mono-num text-[#94A3B8] mb-1">
+        <div className="mt-3 pt-2 border-t border-[var(--border-subtle)]">
+          <div className="flex justify-between text-xs text-[var(--text-secondary)] mb-1">
             <span>Utilization: {creditUtilizationRatio}%</span>
             <span className={privacyMode ? "privacy-blur" : ""}>
-              Headroom: {formatCurrency(availableCredit, account.currency, "id-ID")}
+              Available Credit: {formatCurrency(availableCredit, account.currency, "id-ID")}
             </span>
           </div>
-          <div className="h-1.5 w-full rounded-full bg-[#161B26] overflow-hidden">
+          <div className="h-1.5 w-full rounded-full bg-[var(--bg-void)] overflow-hidden">
             <div
               className={`h-full transition-all ${
                 creditUtilizationRatio > 75
-                  ? "bg-[#FF5C00]"
+                  ? "bg-rose-500"
                   : creditUtilizationRatio > 40
-                  ? "bg-[#FFB800]"
-                  : "bg-[#00FF88]"
+                  ? "bg-amber-500"
+                  : "bg-emerald-500"
               }`}
               style={{ width: `${creditUtilizationRatio}%` }}
             />
           </div>
-          <div className="flex justify-between text-[9px] font-mono-num text-[#64748B] mt-1">
+          <div className="flex justify-between text-[11px] text-[var(--text-muted)] mt-1">
             <span>Limit: {formatCurrency(creditLimit, account.currency, "id-ID")}</span>
           </div>
         </div>

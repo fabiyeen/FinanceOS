@@ -126,12 +126,14 @@ export interface UserSecuritySettings {
   lastUnlockedAt?: number;
 }
 
+export type ThemeMode = "light" | "dark" | "midnight-oled" | "system";
+
 export interface UserSettings {
   currency: string; // Default "IDR"
   locale: string; // Default "id-ID"
   monthlyBudget: number;
   categoryBudgets: Record<string, number>;
-  theme: "tokyo-slate" | "pitch-oled" | "clean-paper";
+  theme: ThemeMode | "tokyo-slate" | "pitch-oled" | "clean-paper";
   privacyMode: boolean;
   hapticFeedback: boolean;
   soundEnabled: boolean;

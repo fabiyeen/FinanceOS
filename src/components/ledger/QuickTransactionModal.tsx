@@ -20,12 +20,12 @@ import { db } from "../../lib/db/dexie";
 import { useLiveQuery } from "dexie-react-hooks";
 
 const TYPE_OPTIONS: { type: TransactionType; label: string; icon: React.ElementType; color: string }[] = [
-  { type: "expense", label: "EXPENSE", icon: ArrowUpRight, color: "#FF5C00" },
-  { type: "income", label: "INCOME", icon: ArrowDownLeft, color: "#00FF88" },
-  { type: "transfer", label: "TRANSFER", icon: ArrowRightLeft, color: "#00F0FF" },
-  { type: "vault_deposit", label: "VAULT DEP", icon: Shield, color: "#9D00FF" },
-  { type: "vault_withdraw", label: "VAULT WDR", icon: Shield, color: "#00F0FF" },
-  { type: "debt_payment", label: "DEBT PAY", icon: Handshake, color: "#FFB800" },
+  { type: "expense", label: "Expense", icon: ArrowUpRight, color: "#F43F5E" },
+  { type: "income", label: "Income", icon: ArrowDownLeft, color: "#10B981" },
+  { type: "transfer", label: "Transfer", icon: ArrowRightLeft, color: "#3B82F6" },
+  { type: "vault_deposit", label: "Deposit", icon: Shield, color: "#8B5CF6" },
+  { type: "vault_withdraw", label: "Withdraw", icon: Shield, color: "#06B6D4" },
+  { type: "debt_payment", label: "Debt Pay", icon: Handshake, color: "#F59E0B" },
 ];
 
 export const QuickTransactionModal: React.FC = () => {
@@ -225,20 +225,20 @@ export const QuickTransactionModal: React.FC = () => {
     <div
       ref={overlayRef}
       onClick={handleBackdropClick}
-      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/80 backdrop-blur-md overflow-hidden pb-[env(safe-area-inset-bottom)]"
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 md:p-6 bg-black/70 backdrop-blur-sm overflow-hidden"
     >
       <div
-        className="relative z-10 pointer-events-auto w-full max-w-lg max-h-[calc(100dvh-2rem)] flex flex-col rounded-xl border border-[#232A3B] bg-[#0F131C] shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150"
+        className="relative z-10 pointer-events-auto w-full sm:max-w-lg max-h-[92dvh] sm:max-h-[calc(100dvh-2rem)] flex flex-col rounded-t-2xl sm:rounded-2xl border border-[var(--border-subtle)] bg-[var(--card-bg)] shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Sticky Header */}
-        <div className="flex-shrink-0 flex items-center justify-between border-b border-[#232A3B] px-4 py-3 bg-[#07090E]">
+        <div className="flex-shrink-0 flex items-center justify-between border-b border-[var(--border-subtle)] px-4 py-3 bg-[var(--card-surface)]">
           <div className="flex items-center gap-2">
-            <span className="h-2 w-2 rounded-full bg-[#00F0FF] shadow-[0_0_8px_#00F0FF]" />
-            <h2 className="font-mono-num text-xs sm:text-sm font-bold tracking-wider text-white uppercase">
-              New Ledger Transaction
+            <span className="h-2 w-2 rounded-full bg-emerald-500" />
+            <h2 className="text-sm font-semibold tracking-tight text-[var(--text-primary)]">
+              New Transaction
             </h2>
-            <span className="text-[10px] font-mono-num px-1.5 py-0.5 rounded border border-[#232A3B] bg-[#161B26] text-[#00F0FF] uppercase">
+            <span className="text-[11px] font-medium px-2 py-0.5 rounded-full border border-[var(--border-subtle)] bg-[var(--bg-surface-2)] text-[var(--text-secondary)] capitalize">
               {type.replace("_", " ")}
             </span>
           </div>
@@ -248,7 +248,7 @@ export const QuickTransactionModal: React.FC = () => {
               playSound("click", soundEnabled);
               closeQuickTx();
             }}
-            className="rounded p-1 text-[#64748B] hover:bg-[#161B26] hover:text-white transition-colors"
+            className="rounded-lg p-2 text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface-2)] transition-colors min-h-[40px] min-w-[40px] flex items-center justify-center"
             title="Close (Esc)"
           >
             <X className="h-4 w-4" />
@@ -259,7 +259,7 @@ export const QuickTransactionModal: React.FC = () => {
         <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0 overflow-hidden">
           <div className="flex-1 min-h-0 overflow-y-auto p-4 space-y-4 pr-2 custom-scrollbar">
             {/* Type Selector Tabs */}
-            <div className="grid grid-cols-3 sm:grid-cols-6 gap-1.5 p-1 rounded bg-[#07090E] border border-[#232A3B]">
+            <div className="grid grid-cols-3 sm:grid-cols-6 gap-1 p-1 rounded-xl bg-[var(--bg-void)] border border-[var(--border-subtle)]">
               {TYPE_OPTIONS.map((opt) => {
                 const Icon = opt.icon;
                 const isSelected = type === opt.type;
@@ -279,14 +279,14 @@ export const QuickTransactionModal: React.FC = () => {
                         if (firstExp) setCategoryId(firstExp.id);
                       }
                     }}
-                    className={`flex flex-col items-center justify-center py-2 px-1 rounded text-[10px] font-mono-num transition-all ${
+                    className={`flex flex-col items-center justify-center py-2 px-1 rounded-lg text-[11px] font-medium transition-all min-h-[44px] ${
                       isSelected
-                        ? "bg-[#1E2536] text-white border border-[#384259] shadow-sm"
-                        : "text-[#64748B] hover:text-[#94A3B8]"
+                        ? "bg-[var(--card-bg)] text-[var(--text-primary)] border border-[var(--border-industrial)] shadow-sm font-semibold"
+                        : "text-[var(--text-muted)] hover:text-[var(--text-secondary)]"
                     }`}
                     style={{ color: isSelected ? opt.color : undefined }}
                   >
-                    <Icon className="h-3.5 w-3.5 mb-1" />
+                    <Icon className="h-4 w-4 mb-1" />
                     <span>{opt.label}</span>
                   </button>
                 );
@@ -295,8 +295,8 @@ export const QuickTransactionModal: React.FC = () => {
 
             {/* Amount Input & Quick Chips */}
             <div>
-              <label className="block text-[10px] font-mono-num uppercase tracking-wider text-[#64748B] mb-1">
-                Monetary Amount ({currency})
+              <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1">
+                Amount ({currency})
               </label>
               <div className="relative">
                 <input
@@ -305,12 +305,12 @@ export const QuickTransactionModal: React.FC = () => {
                   value={amountStr}
                   onChange={(e) => setAmountStr(e.target.value)}
                   placeholder="0"
-                  className="w-full rounded border border-[#232A3B] bg-[#07090E] px-3 py-2.5 font-mono-num text-lg sm:text-xl font-bold text-white placeholder-[#475569] focus:border-[#00F0FF] focus:outline-none"
+                  className="w-full rounded-xl border border-[var(--border-subtle)] bg-[var(--card-surface)] px-3.5 py-2.5 font-mono-num text-xl font-bold text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:border-emerald-500 focus:outline-none min-h-[44px]"
                   required
                   autoFocus
                 />
                 {amountStr && (
-                  <span className="absolute right-3 top-3 text-xs font-mono-num text-[#94A3B8]">
+                  <span className="absolute right-3.5 top-3 text-xs font-mono-num text-[var(--text-muted)]">
                     {formatCurrency(parseFloat(amountStr) || 0, currency, locale)}
                   </span>
                 )}
@@ -323,7 +323,7 @@ export const QuickTransactionModal: React.FC = () => {
                     key={chip}
                     type="button"
                     onClick={() => handleQuickAddAmount(chip)}
-                    className="rounded border border-[#232A3B] bg-[#161B26] px-2 py-1 text-[11px] font-mono-num text-[#94A3B8] hover:border-[#00F0FF]/50 hover:text-white transition-colors"
+                    className="rounded-lg border border-[var(--border-subtle)] bg-[var(--card-surface)] px-2.5 py-1 text-xs font-mono-num text-[var(--text-secondary)] hover:border-emerald-500/50 hover:text-[var(--text-primary)] transition-colors min-h-[36px]"
                   >
                     +{chip >= 1000000 ? `${chip / 1000000}M` : `${chip / 1000}k`}
                   </button>
@@ -333,15 +333,15 @@ export const QuickTransactionModal: React.FC = () => {
 
             {/* Description */}
             <div>
-              <label className="block text-[10px] font-mono-num uppercase tracking-wider text-[#64748B] mb-1">
-                Description / Merchant
+              <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1">
+                Description
               </label>
               <input
                 type="text"
                 value={desc}
                 onChange={(e) => setDesc(e.target.value)}
-                placeholder="e.g. Shibuya Station Coffee, Cloud Server Bill"
-                className="w-full rounded border border-[#232A3B] bg-[#07090E] px-3 py-2 text-xs sm:text-sm text-white placeholder-[#475569] focus:border-[#00F0FF] focus:outline-none font-mono-num"
+                placeholder="e.g. Coffee, Groceries, Dinner with friends"
+                className="w-full rounded-xl border border-[var(--border-subtle)] bg-[var(--card-surface)] px-3.5 py-2 text-sm text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:border-emerald-500 focus:outline-none min-h-[44px]"
                 required
               />
             </div>
@@ -349,13 +349,13 @@ export const QuickTransactionModal: React.FC = () => {
             {/* Accounts Routing */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="block text-[10px] font-mono-num uppercase tracking-wider text-[#64748B] mb-1">
-                  {type === "income" ? "Destination Account" : "Source Account"}
+                <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1">
+                  {type === "income" ? "Destination Account" : "Payment Account"}
                 </label>
                 <select
                   value={fromAccountId}
                   onChange={(e) => setFromAccountId(e.target.value)}
-                  className="w-full rounded border border-[#232A3B] bg-[#07090E] px-3 py-2 text-xs text-white focus:border-[#00F0FF] focus:outline-none font-mono-num"
+                  className="w-full rounded-xl border border-[var(--border-subtle)] bg-[var(--card-surface)] px-3.5 py-2.5 text-xs text-[var(--text-primary)] focus:border-emerald-500 focus:outline-none min-h-[44px]"
                 >
                   {accounts.map((acc) => (
                     <option key={acc.id} value={acc.id}>
@@ -364,8 +364,8 @@ export const QuickTransactionModal: React.FC = () => {
                   ))}
                 </select>
                 {selectedSourceAccount && type !== "income" && (
-                  <span className="block text-[10px] font-mono-num text-[#64748B] mt-0.5">
-                    Avail: {formatCurrency(selectedSourceAccount.currentBalance, currency, locale)}
+                  <span className="block text-[11px] text-[var(--text-muted)] mt-1">
+                    Available: {formatCurrency(selectedSourceAccount.currentBalance, currency, locale)}
                   </span>
                 )}
               </div>
@@ -373,13 +373,13 @@ export const QuickTransactionModal: React.FC = () => {
               {/* Target Account if Transfer or Vault Withdraw */}
               {(type === "transfer" || type === "vault_withdraw") && (
                 <div>
-                  <label className="block text-[10px] font-mono-num uppercase tracking-wider text-[#64748B] mb-1">
-                    Target Destination Account
+                  <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1">
+                    Destination Account
                   </label>
                   <select
                     value={toAccountId}
                     onChange={(e) => setToAccountId(e.target.value)}
-                    className="w-full rounded border border-[#232A3B] bg-[#07090E] px-3 py-2 text-xs text-white focus:border-[#00F0FF] focus:outline-none font-mono-num"
+                    className="w-full rounded-xl border border-[var(--border-subtle)] bg-[var(--card-surface)] px-3.5 py-2.5 text-xs text-[var(--text-primary)] focus:border-emerald-500 focus:outline-none min-h-[44px]"
                   >
                     {accounts.map((acc) => (
                       <option key={acc.id} value={acc.id}>
@@ -393,13 +393,13 @@ export const QuickTransactionModal: React.FC = () => {
               {/* Vault Target if Vault Deposit / Withdraw */}
               {(type === "vault_deposit" || type === "vault_withdraw") && (
                 <div>
-                  <label className="block text-[10px] font-mono-num uppercase tracking-wider text-[#64748B] mb-1">
-                    Target Capital Vault
+                  <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1">
+                    Savings Goal
                   </label>
                   <select
                     value={vaultId}
                     onChange={(e) => setVaultId(e.target.value)}
-                    className="w-full rounded border border-[#232A3B] bg-[#07090E] px-3 py-2 text-xs text-white focus:border-[#00F0FF] focus:outline-none font-mono-num"
+                    className="w-full rounded-xl border border-[var(--border-subtle)] bg-[var(--card-surface)] px-3.5 py-2.5 text-xs text-[var(--text-primary)] focus:border-emerald-500 focus:outline-none min-h-[44px]"
                   >
                     {vaults.map((v) => (
                       <option key={v.id} value={v.id}>
@@ -408,7 +408,7 @@ export const QuickTransactionModal: React.FC = () => {
                     ))}
                   </select>
                   {selectedVault && (
-                    <span className="block text-[10px] font-mono-num text-[#9D00FF] mt-0.5">
+                    <span className="block text-[11px] text-purple-500 mt-1">
                       Current: {formatCurrency(selectedVault.currentAmount, currency, locale)} / Target: {formatCurrency(selectedVault.targetAmount, currency, locale)}
                     </span>
                   )}
@@ -418,13 +418,13 @@ export const QuickTransactionModal: React.FC = () => {
               {/* Debt Target if Debt Payment */}
               {type === "debt_payment" && (
                 <div>
-                  <label className="block text-[10px] font-mono-num uppercase tracking-wider text-[#64748B] mb-1">
-                    Active Debt / IOU Account
+                  <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1">
+                    IOU / Debt Record
                   </label>
                   <select
                     value={debtId}
                     onChange={(e) => setDebtId(e.target.value)}
-                    className="w-full rounded border border-[#232A3B] bg-[#07090E] px-3 py-2 text-xs text-white focus:border-[#00F0FF] focus:outline-none font-mono-num"
+                    className="w-full rounded-xl border border-[var(--border-subtle)] bg-[var(--card-surface)] px-3.5 py-2.5 text-xs text-[var(--text-primary)] focus:border-emerald-500 focus:outline-none min-h-[44px]"
                   >
                     {debts.map((d) => (
                       <option key={d.id} value={d.id}>
@@ -440,8 +440,8 @@ export const QuickTransactionModal: React.FC = () => {
             {(type === "expense" || type === "income") && (
               <div>
                 <div className="flex items-center justify-between mb-1">
-                  <label className="text-[10px] font-mono-num uppercase tracking-wider text-[#64748B]">
-                    Category Allocation
+                  <label className="text-xs font-medium text-[var(--text-secondary)]">
+                    Category
                   </label>
                   <button
                     type="button"
@@ -449,68 +449,86 @@ export const QuickTransactionModal: React.FC = () => {
                       playSound("click", soundEnabled);
                       setCategoryManagerOpen(true);
                     }}
-                    className="text-[10px] font-mono-num text-[#00F0FF] hover:underline flex items-center gap-1"
+                    className="text-[11px] text-emerald-500 hover:text-emerald-400 flex items-center gap-1 font-medium transition-colors"
                   >
-                    <Settings2 className="h-2.5 w-2.5" />
-                    [MANAGE CATEGORIES]
+                    <Settings2 className="h-3 w-3" />
+                    <span>Manage</span>
                   </button>
                 </div>
-                <select
-                  value={categoryId}
-                  onChange={(e) => setCategoryId(e.target.value)}
-                  className="w-full rounded border border-[#232A3B] bg-[#07090E] px-3 py-2 text-xs text-white focus:border-[#00F0FF] focus:outline-none font-mono-num"
-                >
-                  {relevantCategories.map((cat) => (
-                    <option key={cat.id} value={cat.id}>
-                      {cat.name} {cat.budgetCap ? `(Cap: ${formatCurrency(cat.budgetCap, currency, locale)})` : ""}
-                    </option>
-                  ))}
-                </select>
+
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 max-h-36 overflow-y-auto p-1 rounded-xl border border-[var(--border-subtle)] bg-[var(--card-surface)]">
+                  {relevantCategories.map((cat) => {
+                    const isSelected = categoryId === cat.id;
+                    return (
+                      <button
+                        key={cat.id}
+                        type="button"
+                        onClick={() => {
+                          playSound("tab", soundEnabled);
+                          setCategoryId(cat.id);
+                        }}
+                        className={`flex items-center gap-2 p-2 rounded-lg text-xs font-medium transition-all text-left min-h-[40px] ${
+                          isSelected
+                            ? "bg-[var(--card-bg)] text-[var(--text-primary)] border border-emerald-500/50 shadow-sm"
+                            : "text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-[var(--bg-surface-2)]"
+                        }`}
+                      >
+                        <span
+                          className="h-2 w-2 rounded-full shrink-0"
+                          style={{ backgroundColor: cat.color }}
+                        />
+                        <span className="truncate">{cat.name}</span>
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
             )}
 
             {/* Date & Time */}
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="block text-[10px] font-mono-num uppercase tracking-wider text-[#64748B] mb-1">
-                  Entry Date
+                <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1">
+                  Date
                 </label>
                 <input
                   type="date"
                   value={date}
                   onChange={(e) => setDate(e.target.value)}
-                  className="w-full rounded border border-[#232A3B] bg-[#07090E] px-3 py-1.5 text-xs text-white focus:border-[#00F0FF] focus:outline-none font-mono-num"
+                  className="w-full rounded-xl border border-[var(--border-subtle)] bg-[var(--card-surface)] px-3.5 py-2.5 text-xs text-[var(--text-primary)] focus:border-emerald-500 focus:outline-none min-h-[44px]"
+                  required
                 />
               </div>
               <div>
-                <label className="block text-[10px] font-mono-num uppercase tracking-wider text-[#64748B] mb-1">
-                  Entry Time
+                <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1">
+                  Time
                 </label>
                 <input
                   type="time"
                   value={time}
                   onChange={(e) => setTime(e.target.value)}
-                  className="w-full rounded border border-[#232A3B] bg-[#07090E] px-3 py-1.5 text-xs text-white focus:border-[#00F0FF] focus:outline-none font-mono-num"
+                  className="w-full rounded-xl border border-[var(--border-subtle)] bg-[var(--card-surface)] px-3.5 py-2.5 text-xs text-[var(--text-primary)] focus:border-emerald-500 focus:outline-none min-h-[44px]"
+                  required
                 />
               </div>
             </div>
 
             {/* Tags */}
             <div>
-              <label className="block text-[10px] font-mono-num uppercase tracking-wider text-[#64748B] mb-1">
-                Metadata Tags
+              <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1">
+                Tags
               </label>
               <div className="flex flex-wrap gap-1.5 mb-2">
                 {tags.map((t) => (
                   <span
                     key={t}
-                    className="inline-flex items-center gap-1 rounded bg-[#161B26] border border-[#232A3B] px-2 py-0.5 text-[10px] font-mono-num text-[#00F0FF]"
+                    className="inline-flex items-center gap-1 rounded-full bg-[var(--bg-surface-2)] border border-[var(--border-subtle)] px-2.5 py-0.5 text-xs text-[var(--text-secondary)]"
                   >
                     #{t}
                     <button
                       type="button"
                       onClick={() => setTags(tags.filter((tag) => tag !== t))}
-                      className="hover:text-[#FF5C00]"
+                      className="hover:text-rose-500 ml-0.5"
                     >
                       ×
                     </button>
@@ -529,38 +547,38 @@ export const QuickTransactionModal: React.FC = () => {
                     }
                   }}
                   placeholder="Add tag and press Enter"
-                  className="flex-1 rounded border border-[#232A3B] bg-[#07090E] px-3 py-1.5 text-xs text-white placeholder-[#475569] focus:border-[#00F0FF] focus:outline-none font-mono-num"
+                  className="flex-1 rounded-xl border border-[var(--border-subtle)] bg-[var(--card-surface)] px-3.5 py-2 text-xs text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:border-emerald-500 focus:outline-none min-h-[40px]"
                 />
                 <button
                   type="button"
                   onClick={handleAddTag}
-                  className="rounded border border-[#232A3B] bg-[#161B26] px-3 py-1.5 text-xs text-[#94A3B8] hover:text-white font-mono-num"
+                  className="rounded-xl border border-[var(--border-subtle)] bg-[var(--card-surface)] px-3.5 py-2 text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface-2)] transition-colors min-h-[40px]"
                 >
                   Add
                 </button>
               </div>
             </div>
 
-            {/* Note */}
+            {/* Notes */}
             <div>
-              <label className="block text-[10px] font-mono-num uppercase tracking-wider text-[#64748B] mb-1">
-                Internal Note / Reference
+              <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1">
+                Notes (Optional)
               </label>
               <textarea
                 rows={2}
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
                 placeholder="Optional notes or receipt references..."
-                className="w-full rounded border border-[#232A3B] bg-[#07090E] px-3 py-2 text-xs text-white placeholder-[#475569] focus:border-[#00F0FF] focus:outline-none resize-none font-mono-num"
+                className="w-full rounded-xl border border-[var(--border-subtle)] bg-[var(--card-surface)] px-3.5 py-2 text-xs text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:border-emerald-500 focus:outline-none resize-none"
               />
             </div>
           </div>
 
           {/* Sticky Footer */}
-          <div className="flex-shrink-0 border-t border-[#232A3B] px-4 py-3 bg-[#07090E] space-y-2">
+          <div className="flex-shrink-0 border-t border-[var(--border-subtle)] px-4 py-3 bg-[var(--card-surface)] space-y-2">
             {error && (
-              <div className="rounded border border-[#FF5C00]/40 bg-[#FF5C00]/10 px-3 py-1.5 text-xs font-mono-num text-[#FF5C00]">
-                [ERROR]: {error}
+              <div className="rounded-xl border border-rose-500/30 bg-rose-500/10 px-3.5 py-2 text-xs text-rose-500">
+                {error}
               </div>
             )}
 
@@ -571,17 +589,17 @@ export const QuickTransactionModal: React.FC = () => {
                   playSound("click", soundEnabled);
                   closeQuickTx();
                 }}
-                className="rounded border border-[#232A3B] bg-[#161B26] px-4 py-2 text-xs font-mono-num text-[#94A3B8] hover:text-white transition-colors"
+                className="rounded-xl border border-[var(--border-subtle)] bg-[var(--card-surface)] px-4 py-2.5 text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface-2)] transition-colors min-h-[44px]"
               >
-                CANCEL
+                Cancel
               </button>
 
               <button
                 type="submit"
-                className="flex-1 flex items-center justify-center gap-2 rounded border border-[#00F0FF]/60 bg-[#00F0FF]/15 py-2 text-xs sm:text-sm font-bold text-[#00F0FF] hover:bg-[#00F0FF]/25 transition-all font-mono-num shadow-[0_0_15px_rgba(0,240,255,0.2)]"
+                className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 py-2.5 text-sm font-semibold hover:opacity-90 transition-all shadow-sm min-h-[44px]"
               >
                 <Check className="h-4 w-4" />
-                <span>COMMIT ENTRY TO LEDGER</span>
+                <span>Add Transaction</span>
               </button>
             </div>
           </div>

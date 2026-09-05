@@ -156,17 +156,17 @@ export const PinSettingsModal: React.FC<PinSettingsModalProps> = ({
     <div
       ref={overlayRef}
       onClick={handleBackdropClick}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-sm p-3 sm:p-4 overflow-hidden pb-[env(safe-area-inset-bottom)]"
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/70 backdrop-blur-sm p-0 sm:p-4 overflow-hidden"
     >
       <div
-        className="w-full max-w-md max-h-[calc(100dvh-2rem)] flex flex-col rounded-xl border border-[#232A3B] bg-[#0F131C] shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150"
+        className="w-full sm:max-w-md max-h-[92dvh] sm:max-h-[calc(100dvh-2rem)] flex flex-col rounded-t-2xl sm:rounded-2xl border border-[var(--border-subtle)] bg-[var(--card-bg)] shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex-shrink-0 flex items-center justify-between border-b border-[#232A3B] px-4 py-3 bg-[#07090E]">
+        <div className="flex-shrink-0 flex items-center justify-between border-b border-[var(--border-subtle)] px-4 py-3 bg-[var(--card-surface)]">
           <div className="flex items-center gap-2">
-            <KeyRound className="h-4 w-4 text-[#00F0FF]" />
-            <h3 className="font-mono-num text-xs font-bold uppercase tracking-wider text-white">
-              {isPinCurrentlySet ? "Configure Master Security PIN" : "Initialize Master PIN"}
+            <span className="h-2 w-2 rounded-full bg-emerald-500" />
+            <h3 className="text-sm font-semibold tracking-tight text-[var(--text-primary)]">
+              {isPinCurrentlySet ? "Change Passcode" : "Set Passcode"}
             </h3>
           </div>
           <button
@@ -174,7 +174,7 @@ export const PinSettingsModal: React.FC<PinSettingsModalProps> = ({
               playSound("click", soundEnabled);
               onClose();
             }}
-            className="text-[#64748B] hover:text-white p-1 rounded hover:bg-[#161B26]"
+            className="text-[var(--text-muted)] hover:text-[var(--text-primary)] p-2 rounded-lg hover:bg-[var(--bg-surface-2)] transition-colors min-h-[40px] min-w-[40px] flex items-center justify-center"
           >
             <X className="h-4 w-4" />
           </button>
@@ -184,9 +184,9 @@ export const PinSettingsModal: React.FC<PinSettingsModalProps> = ({
           <div className="flex-1 min-h-0 overflow-y-auto p-4 space-y-4 custom-scrollbar">
             {/* Current Verification Step (if PIN is already configured) */}
             {isPinCurrentlySet && (
-              <div className="space-y-1.5 p-3 rounded bg-[#07090E] border border-[#232A3B]">
-                <div className="flex items-center justify-between text-[10px] font-mono-num text-[#64748B] uppercase">
-                  <span>{usePasswordAuth ? "Account Password" : "Current PIN"}</span>
+              <div className="space-y-1.5 p-3 rounded-xl bg-[var(--card-surface)] border border-[var(--border-subtle)]">
+                <div className="flex items-center justify-between text-xs text-[var(--text-secondary)]">
+                  <span className="font-medium">{usePasswordAuth ? "Account Password" : "Current Passcode"}</span>
                   <button
                     type="button"
                     onClick={() => {
@@ -194,9 +194,9 @@ export const PinSettingsModal: React.FC<PinSettingsModalProps> = ({
                       setCurrentPinOrPassword("");
                       setError(null);
                     }}
-                    className="text-[#00F0FF] hover:underline"
+                    className="text-emerald-500 hover:underline text-xs"
                   >
-                    {usePasswordAuth ? "Verify via Current PIN" : "Verify via Account Password"}
+                    {usePasswordAuth ? "Verify via Passcode" : "Verify via Password"}
                   </button>
                 </div>
                 <input
@@ -204,9 +204,9 @@ export const PinSettingsModal: React.FC<PinSettingsModalProps> = ({
                   maxLength={usePasswordAuth ? undefined : 6}
                   value={currentPinOrPassword}
                   onChange={(e) => setCurrentPinOrPassword(e.target.value)}
-                  placeholder={usePasswordAuth ? "Enter account password..." : "Enter current 4-6 digit PIN..."}
+                  placeholder={usePasswordAuth ? "Enter account password..." : "Enter current 4-6 digit passcode..."}
                   required
-                  className="w-full rounded border border-[#232A3B] bg-[#161B26] px-3 py-2 text-xs text-white placeholder-[#475569] focus:border-[#00F0FF] focus:outline-none font-mono-num"
+                  className="w-full rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-void)] px-3.5 py-2 text-xs text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:border-emerald-500 focus:outline-none min-h-[44px]"
                 />
               </div>
             )}
@@ -214,8 +214,8 @@ export const PinSettingsModal: React.FC<PinSettingsModalProps> = ({
             {/* New PIN inputs */}
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-[10px] font-mono-num uppercase tracking-wider text-[#64748B] mb-1">
-                  New PIN (4-6 Digits)
+                <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1">
+                  New Passcode (4-6 Digits)
                 </label>
                 <input
                   type="password"
@@ -224,13 +224,13 @@ export const PinSettingsModal: React.FC<PinSettingsModalProps> = ({
                   onChange={(e) => setNewPin(e.target.value.replace(/\D/g, ""))}
                   placeholder="••••"
                   required
-                  className="w-full rounded border border-[#232A3B] bg-[#07090E] px-3 py-2 text-xs text-white placeholder-[#475569] focus:border-[#00F0FF] focus:outline-none font-mono-num text-center text-sm font-bold tracking-widest"
+                  className="w-full rounded-xl border border-[var(--border-subtle)] bg-[var(--card-surface)] px-3 py-2 text-sm text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:border-emerald-500 focus:outline-none text-center font-bold tracking-widest min-h-[44px]"
                 />
               </div>
 
               <div>
-                <label className="block text-[10px] font-mono-num uppercase tracking-wider text-[#64748B] mb-1">
-                  Confirm New PIN
+                <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1">
+                  Confirm Passcode
                 </label>
                 <input
                   type="password"
@@ -239,26 +239,26 @@ export const PinSettingsModal: React.FC<PinSettingsModalProps> = ({
                   onChange={(e) => setConfirmPin(e.target.value.replace(/\D/g, ""))}
                   placeholder="••••"
                   required
-                  className="w-full rounded border border-[#232A3B] bg-[#07090E] px-3 py-2 text-xs text-white placeholder-[#475569] focus:border-[#00F0FF] focus:outline-none font-mono-num text-center text-sm font-bold tracking-widest"
+                  className="w-full rounded-xl border border-[var(--border-subtle)] bg-[var(--card-surface)] px-3 py-2 text-sm text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:border-emerald-500 focus:outline-none text-center font-bold tracking-widest min-h-[44px]"
                 />
               </div>
             </div>
 
             {error && (
-              <div className="rounded border border-[#FF0055]/40 bg-[#FF0055]/10 p-2 text-xs font-mono-num text-[#FF0055]">
-                [ERROR]: {error}
+              <div className="rounded-xl border border-rose-500/30 bg-rose-500/10 p-2.5 text-xs text-rose-500">
+                {error}
               </div>
             )}
           </div>
 
-          <div className="flex-shrink-0 border-t border-[#232A3B] px-4 py-3 bg-[#07090E]">
+          <div className="flex-shrink-0 border-t border-[var(--border-subtle)] px-4 py-3 bg-[var(--card-surface)]">
             <button
               type="submit"
               disabled={isSaving}
-              className="flex w-full items-center justify-center gap-1.5 rounded border border-[#00F0FF]/60 bg-[#00F0FF]/15 py-2.5 text-xs font-bold font-mono-num text-[#00F0FF] hover:bg-[#00F0FF]/25 transition-all disabled:opacity-50 shadow-[0_0_15px_rgba(0,240,255,0.2)]"
+              className="flex w-full items-center justify-center gap-1.5 rounded-xl bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 py-2.5 text-xs font-semibold hover:opacity-90 transition-all disabled:opacity-50 shadow-sm min-h-[44px]"
             >
               <Check className="h-4 w-4" />
-              <span>{isSaving ? "COMPUTING SHA-256 SALT..." : "SET MASTER PIN"}</span>
+              <span>{isSaving ? "Saving..." : "Save Passcode"}</span>
             </button>
           </div>
         </form>

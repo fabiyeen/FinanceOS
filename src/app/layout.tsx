@@ -14,9 +14,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "FinanceOS v2 — Next-Gen Personal Financial Operating System & PWA",
+  title: "FinanceOS — Modern Personal Financial Operating System",
   description:
-    "Production-grade, offline-first personal financial operating system with double-entry transactional ledger, deep analytics, CSV pipeline, and Neo-Tokyo Industrial UI.",
+    "Clean, offline-first personal financial operating system with multi-account ledger, savings goals, and smart analytics.",
   manifest: "/manifest.json",
   icons: {
     icon: "/icons/icon-192.svg",
@@ -25,7 +25,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#07090E",
+  themeColor: "#090D14",
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
@@ -40,9 +40,13 @@ export default function RootLayout({
   return (
     <html
       lang="en"
+      suppressHydrationWarning
       className={`${geistSans.variable} ${geistMono.variable} dark h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-[#07090E] text-[#F1F5F9]">
+      <body
+        suppressHydrationWarning
+        className="min-h-full flex flex-col bg-[var(--bg-canvas)] text-[var(--text-primary)]"
+      >
         <AppProviders>{children}</AppProviders>
       </body>
     </html>

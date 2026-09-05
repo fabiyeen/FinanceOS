@@ -247,18 +247,18 @@ export const AccountModal: React.FC<AccountModalProps> = ({
     <div
       ref={overlayRef}
       onClick={handleBackdropClick}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-sm p-3 sm:p-6 overflow-hidden pb-[env(safe-area-inset-bottom)]"
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/70 backdrop-blur-sm p-0 sm:p-4 md:p-6 overflow-hidden"
     >
       <div
-        className="w-full max-w-lg max-h-[calc(100dvh-2rem)] flex flex-col rounded-xl border border-[#232A3B] bg-[#0F131C] shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150"
+        className="w-full sm:max-w-lg max-h-[92dvh] sm:max-h-[calc(100dvh-2rem)] flex flex-col rounded-t-2xl sm:rounded-2xl border border-[var(--border-subtle)] bg-[var(--card-bg)] shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Sticky Header */}
-        <div className="flex-shrink-0 flex items-center justify-between border-b border-[#232A3B] px-4 py-3 bg-[#07090E]">
+        <div className="flex-shrink-0 flex items-center justify-between border-b border-[var(--border-subtle)] px-4 py-3 bg-[var(--card-surface)]">
           <div className="flex items-center gap-2">
-            <Wallet className="h-4 w-4 text-[#00F0FF]" />
-            <h3 className="font-mono-num text-xs sm:text-sm font-bold uppercase tracking-wider text-white">
-              {accountToEdit ? `Configure Account: ${accountToEdit.name}` : "Create New Financial Account"}
+            <span className="h-2 w-2 rounded-full bg-emerald-500" />
+            <h3 className="text-sm font-semibold tracking-tight text-[var(--text-primary)]">
+              {accountToEdit ? `Edit Account: ${accountToEdit.name}` : "New Account"}
             </h3>
           </div>
           <button
@@ -267,7 +267,7 @@ export const AccountModal: React.FC<AccountModalProps> = ({
               playSound("click", true);
               onClose();
             }}
-            className="text-[#64748B] hover:text-white p-1 rounded hover:bg-[#161B26]"
+            className="text-[var(--text-muted)] hover:text-[var(--text-primary)] p-2 rounded-lg hover:bg-[var(--bg-surface-2)] transition-colors min-h-[40px] min-w-[40px] flex items-center justify-center"
           >
             <X className="h-4 w-4" />
           </button>
@@ -492,21 +492,21 @@ export const AccountModal: React.FC<AccountModalProps> = ({
           </div>
 
           {/* Sticky Footer */}
-          <div className="flex-shrink-0 border-t border-[#232A3B] px-4 py-3 bg-[#07090E] flex gap-2">
+          <div className="flex-shrink-0 border-t border-[var(--border-subtle)] px-4 py-3 bg-[var(--card-surface)] flex gap-2">
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 rounded border border-[#232A3B] bg-[#161B26] py-2 text-xs font-mono-num text-[#94A3B8] hover:text-white"
+              className="flex-1 rounded-xl border border-[var(--border-subtle)] bg-[var(--card-surface)] py-2.5 text-xs font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface-2)] transition-colors min-h-[44px]"
             >
-              CANCEL
+              Cancel
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
-              className="flex-1 flex items-center justify-center gap-1.5 rounded border border-[#00F0FF]/60 bg-[#00F0FF]/15 py-2 text-xs font-bold font-mono-num text-[#00F0FF] hover:bg-[#00F0FF]/25 shadow-[0_0_12px_rgba(0,240,255,0.2)] disabled:opacity-50"
+              className="flex-1 flex items-center justify-center gap-1.5 rounded-xl bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 py-2.5 text-xs font-semibold hover:opacity-90 transition-all disabled:opacity-50 min-h-[44px] shadow-sm"
             >
               <Check className="h-4 w-4" />
-              <span>{accountToEdit ? "UPDATE ACCOUNT" : "CREATE ACCOUNT"}</span>
+              <span>{accountToEdit ? "Save Changes" : "Create Account"}</span>
             </button>
           </div>
         </form>

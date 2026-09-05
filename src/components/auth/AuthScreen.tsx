@@ -78,26 +78,23 @@ export const AuthScreen: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#07090E] p-4 relative overflow-hidden">
-      {/* Background Micro-Grid */}
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,#232A3B18_1px,transparent_1px),linear-gradient(to_bottom,#232A3B18_1px,transparent_1px)] bg-[size:32px_32px] pointer-events-none" />
-
-      <div className="w-full max-w-md industrial-card rounded-xl border border-[#232A3B] bg-[#0F131C] p-6 sm:p-8 shadow-[0_12px_50px_rgba(0,0,0,0.8)] relative z-10 space-y-6">
-        {/* Terminal Header */}
+    <div className="min-h-screen flex items-center justify-center bg-[var(--bg-canvas)] p-4 relative overflow-hidden">
+      <div className="w-full max-w-md rounded-2xl border border-[var(--border-default)] bg-[var(--bg-surface)] p-6 sm:p-8 shadow-xl relative z-10 space-y-6">
+        {/* Header */}
         <div className="text-center space-y-2">
-          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-xl border border-[#00F0FF]/40 bg-[#07090E] shadow-[0_0_24px_rgba(0,240,255,0.25)]">
-            <Shield className="h-7 w-7 text-[#00F0FF]" />
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl border border-[var(--border-default)] bg-[var(--bg-canvas)] shadow-sm">
+            <Shield className="h-6 w-6 text-[var(--accent-primary)]" />
           </div>
-          <h1 className="font-mono-num text-base sm:text-lg font-bold tracking-widest text-white uppercase">
-            FINANCE<span className="text-[#00F0FF]">_OS</span> // IDENTITY ACCESS
+          <h1 className="text-lg sm:text-xl font-bold text-[var(--text-primary)]">
+            FinanceOS
           </h1>
-          <p className="text-xs font-mono-num text-[#64748B]">
-            Multi-Tenant Zero-Knowledge Cloud Ledger Partitioning
+          <p className="text-xs text-[var(--text-muted)]">
+            Sign in to access your financial dashboard
           </p>
         </div>
 
         {/* Tab Switcher */}
-        <div className="grid grid-cols-2 gap-1 rounded-lg bg-[#07090E] p-1 border border-[#232A3B]">
+        <div className="grid grid-cols-2 gap-1 rounded-xl bg-[var(--bg-canvas)] p-1 border border-[var(--border-default)]">
           <button
             type="button"
             onClick={() => {
@@ -105,14 +102,14 @@ export const AuthScreen: React.FC = () => {
               setTab("signin");
               setError(null);
             }}
-            className={`flex items-center justify-center gap-1.5 py-2 text-xs font-mono-num transition-all rounded ${
+            className={`flex items-center justify-center gap-1.5 py-2 text-xs font-semibold transition-all rounded-lg ${
               tab === "signin"
-                ? "bg-[#1E2536] text-[#00F0FF] border border-[#384259] font-bold shadow-sm"
-                : "text-[#64748B] hover:text-[#94A3B8]"
+                ? "bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-sm"
+                : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"
             }`}
           >
             <LogIn className="h-3.5 w-3.5" />
-            SIGN IN
+            Sign In
           </button>
           <button
             type="button"
@@ -121,14 +118,14 @@ export const AuthScreen: React.FC = () => {
               setTab("signup");
               setError(null);
             }}
-            className={`flex items-center justify-center gap-1.5 py-2 text-xs font-mono-num transition-all rounded ${
+            className={`flex items-center justify-center gap-1.5 py-2 text-xs font-semibold transition-all rounded-lg ${
               tab === "signup"
-                ? "bg-[#1E2536] text-[#00F0FF] border border-[#384259] font-bold shadow-sm"
-                : "text-[#64748B] hover:text-[#94A3B8]"
+                ? "bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-sm"
+                : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"
             }`}
           >
             <UserPlus className="h-3.5 w-3.5" />
-            REGISTER
+            Create Account
           </button>
         </div>
 
@@ -136,37 +133,37 @@ export const AuthScreen: React.FC = () => {
         <form onSubmit={handleSubmit} className="space-y-4">
           {tab === "signup" && (
             <div>
-              <label className="block text-[10px] font-mono-num uppercase tracking-wider text-[#64748B] mb-1">
-                Operative Codename
+              <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1">
+                Full Name
               </label>
               <input
                 type="text"
                 value={displayName}
                 onChange={(e) => setDisplayName(e.target.value)}
-                placeholder="e.g. Kenji, Akira"
-                className="w-full rounded border border-[#232A3B] bg-[#07090E] px-3 py-2 text-xs text-white placeholder-[#475569] focus:border-[#00F0FF] focus:outline-none font-mono-num"
+                placeholder="e.g. Alex Morgan"
+                className="w-full rounded-lg border border-[var(--border-default)] bg-[var(--bg-canvas)] px-3 py-2 text-xs text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:border-[var(--accent-primary)] focus:outline-none"
               />
             </div>
           )}
 
           <div>
-            <label className="block text-[10px] font-mono-num uppercase tracking-wider text-[#64748B] mb-1 flex items-center gap-1">
-              <Mail className="h-3 w-3 text-[#00F0FF]" />
-              Account Email
+            <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1 flex items-center gap-1">
+              <Mail className="h-3.5 w-3.5 text-[var(--text-muted)]" />
+              Email Address
             </label>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="operative@cyberia.org"
+              placeholder="you@example.com"
               required
-              className="w-full rounded border border-[#232A3B] bg-[#07090E] px-3 py-2 text-xs text-white placeholder-[#475569] focus:border-[#00F0FF] focus:outline-none font-mono-num"
+              className="w-full rounded-lg border border-[var(--border-default)] bg-[var(--bg-canvas)] px-3 py-2 text-xs text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:border-[var(--accent-primary)] focus:outline-none"
             />
           </div>
 
           <div>
-            <label className="block text-[10px] font-mono-num uppercase tracking-wider text-[#64748B] mb-1 flex items-center gap-1">
-              <Lock className="h-3 w-3 text-[#00F0FF]" />
+            <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1 flex items-center gap-1">
+              <Lock className="h-3.5 w-3.5 text-[var(--text-muted)]" />
               Password
             </label>
             <input
@@ -175,13 +172,13 @@ export const AuthScreen: React.FC = () => {
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••••••"
               required
-              className="w-full rounded border border-[#232A3B] bg-[#07090E] px-3 py-2 text-xs text-white placeholder-[#475569] focus:border-[#00F0FF] focus:outline-none font-mono-num"
+              className="w-full rounded-lg border border-[var(--border-default)] bg-[var(--bg-canvas)] px-3 py-2 text-xs text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:border-[var(--accent-primary)] focus:outline-none"
             />
           </div>
 
           {tab === "signup" && (
             <div>
-              <label className="block text-[10px] font-mono-num uppercase tracking-wider text-[#64748B] mb-1">
+              <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1">
                 Confirm Password
               </label>
               <input
@@ -190,67 +187,67 @@ export const AuthScreen: React.FC = () => {
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder="••••••••••••"
                 required
-                className="w-full rounded border border-[#232A3B] bg-[#07090E] px-3 py-2 text-xs text-white placeholder-[#475569] focus:border-[#00F0FF] focus:outline-none font-mono-num"
+                className="w-full rounded-lg border border-[var(--border-default)] bg-[var(--bg-canvas)] px-3 py-2 text-xs text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:border-[var(--accent-primary)] focus:outline-none"
               />
             </div>
           )}
 
           {error && (
-            <div className="rounded border border-[#FF0055]/40 bg-[#FF0055]/10 p-2.5 text-xs font-mono-num text-[#FF0055]">
-              [ERROR]: {error}
+            <div className="rounded-lg border border-[var(--color-rose)]/30 bg-[var(--color-rose)]/10 p-2.5 text-xs text-[var(--color-rose)]">
+              {error}
             </div>
           )}
 
           <button
             type="submit"
             disabled={isSubmitting}
-            className="flex w-full items-center justify-center gap-2 rounded border border-[#00F0FF]/60 bg-[#00F0FF]/15 py-2.5 text-xs font-bold font-mono-num text-[#00F0FF] hover:bg-[#00F0FF]/25 transition-all shadow-[0_0_15px_rgba(0,240,255,0.2)] disabled:opacity-50"
+            className="flex w-full items-center justify-center gap-2 rounded-lg bg-[var(--accent-primary)] py-2.5 text-xs font-semibold text-white hover:opacity-90 transition-opacity shadow-sm disabled:opacity-50"
           >
             <span>
               {isSubmitting
-                ? "AUTHENTICATING..."
+                ? "Please wait..."
                 : tab === "signin"
-                ? "ACCESS SECURE LEDGER"
-                : "INITIALIZE TENANT & RESEED"}
+                ? "Sign In"
+                : "Create Account"}
             </span>
             <ArrowRight className="h-4 w-4" />
           </button>
         </form>
 
-        {/* Quick Multi-Tenant Demo Operatives */}
-        <div className="pt-4 border-t border-[#232A3B] space-y-2.5">
-          <div className="flex items-center justify-between text-[10px] font-mono-num uppercase text-[#64748B]">
-            <span className="flex items-center gap-1">
-              <Users className="h-3 w-3 text-[#FFB800]" />
-              Multi-User Device Testing
+        {/* Quick Demo Profiles */}
+        <div className="pt-4 border-t border-[var(--border-default)] space-y-2.5">
+          <div className="flex items-center justify-between text-xs text-[var(--text-muted)]">
+            <span className="flex items-center gap-1 font-medium">
+              <Users className="h-3.5 w-3.5 text-[var(--accent-primary)]" />
+              Demo Test Accounts
             </span>
-            <span>Zero Data Leakage</span>
+            <span>Local Isolated Data</span>
           </div>
 
           <div className="grid grid-cols-2 gap-2">
             <button
               type="button"
               onClick={() => handleDemoOperative("operative_a")}
-              className="rounded border border-[#232A3B] bg-[#161B26] p-2 text-left hover:border-[#00FF88]/50 transition-colors"
+              className="rounded-xl border border-[var(--border-default)] bg-[var(--bg-canvas)] p-2.5 text-left hover:border-[var(--accent-primary)] transition-colors"
             >
-              <div className="text-xs font-bold font-mono-num text-[#00FF88]">
-                Operative Alpha
+              <div className="text-xs font-semibold text-[var(--text-primary)]">
+                Demo User A
               </div>
-              <div className="text-[10px] text-[#64748B] font-mono-num">
-                (Kenji) • Tokyo Data
+              <div className="text-[11px] text-[var(--text-muted)]">
+                Kenji • Sample Data
               </div>
             </button>
 
             <button
               type="button"
               onClick={() => handleDemoOperative("operative_b")}
-              className="rounded border border-[#232A3B] bg-[#161B26] p-2 text-left hover:border-[#00F0FF]/50 transition-colors"
+              className="rounded-xl border border-[var(--border-default)] bg-[var(--bg-canvas)] p-2.5 text-left hover:border-[var(--accent-primary)] transition-colors"
             >
-              <div className="text-xs font-bold font-mono-num text-[#00F0FF]">
-                Operative Beta
+              <div className="text-xs font-semibold text-[var(--text-primary)]">
+                Demo User B
               </div>
-              <div className="text-[10px] text-[#64748B] font-mono-num">
-                (Rei) • Clean Ledger
+              <div className="text-[11px] text-[var(--text-muted)]">
+                Rei • Clean Ledger
               </div>
             </button>
           </div>

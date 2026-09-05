@@ -55,14 +55,15 @@ export const FactoryResetModal: React.FC<FactoryResetModalProps> = ({
     e.preventDefault();
     setError(null);
 
-    if (confirmKeyword.trim() !== "PURGE-ALL") {
-      setError("You must type exactly 'PURGE-ALL' to confirm destruction");
+    const kw = confirmKeyword.trim().toUpperCase();
+    if (kw !== "RESET" && kw !== "PURGE-ALL") {
+      setError("Please type 'RESET' to confirm.");
       playSound("alert", soundEnabled);
       return;
     }
 
     if (!pin) {
-      setError("Master PIN is required to authorize factory reset");
+      setError("Passcode is required to authorize reset.");
       playSound("alert", soundEnabled);
       return;
     }
@@ -74,7 +75,7 @@ export const FactoryResetModal: React.FC<FactoryResetModalProps> = ({
       : pin === DEFAULT_FALLBACK_PIN;
 
     if (!isCorrectPin) {
-      setError("PIN authorization rejected: Incorrect master PIN");
+      setError("Incorrect passcode.");
       playSound("alert", soundEnabled);
       triggerHaptic([50, 60, 50]);
       return;
@@ -88,7 +89,7 @@ export const FactoryResetModal: React.FC<FactoryResetModalProps> = ({
       await executeNuclearReset(user?.uid || "default");
       playSound("delete", soundEnabled);
       triggerHaptic([100, 50, 100]);
-      alert("Nuclear factory reset complete: All ledger data purged. Baseline reseeded.");
+      alert("All data reset. Starting accounts have been re-created.");
       setActiveTab("overview");
       onClose();
     } catch (err: unknown) {
@@ -102,18 +103,18 @@ export const FactoryResetModal: React.FC<FactoryResetModalProps> = ({
     <div
       ref={overlayRef}
       onClick={handleBackdropClick}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-md p-3 sm:p-4 overflow-hidden pb-[env(safe-area-inset-bottom)]"
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-0 sm:p-4 overflow-hidden"
     >
       <div
-        className="w-full max-w-md max-h-[calc(100dvh-2rem)] flex flex-col rounded-xl border-2 border-[#FF5C00] bg-[#0F131C] shadow-[0_0_50px_rgba(255,92,0,0.3)] overflow-hidden animate-in fade-in zoom-in-95 duration-150"
+        className="w-full sm:max-w-md max-h-[92dvh] sm:max-h-[calc(100dvh-2rem)] flex flex-col rounded-t-2xl sm:rounded-2xl border border-[var(--border-default)] bg-[var(--bg-surface)] shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Caution Sticky Header */}
-        <div className="flex-shrink-0 flex items-center justify-between border-b border-[#FF5C00]/40 px-4 py-3 bg-[#FF5C00]/10">
+        {/* Header */}
+        <div className="flex-shrink-0 flex items-center justify-between border-b border-[var(--border-default)] px-4 py-3 bg-[var(--bg-surface)]">
           <div className="flex items-center gap-2">
-            <ShieldAlert className="h-5 w-5 text-[#FF5C00] animate-pulse" />
-            <h3 className="font-mono-num text-xs font-bold uppercase tracking-wider text-[#FF5C00]">
-              NUCLEAR LEDGER FACTORY RESET
+            <ShieldAlert className="h-5 w-5 text-[var(--color-rose)]" />
+            <h3 className="text-sm font-semibold text-[var(--text-primary)]">
+              Reset All Data
             </h3>
           </div>
           <button
@@ -121,7 +122,7 @@ export const FactoryResetModal: React.FC<FactoryResetModalProps> = ({
               playSound("click", soundEnabled);
               onClose();
             }}
-            className="text-[#94A3B8] hover:text-white p-1 rounded hover:bg-[#161B26]"
+            className="text-[var(--text-muted)] hover:text-[var(--text-primary)] p-1 rounded-lg hover:bg-[var(--bg-hover)]"
           >
             <X className="h-4 w-4" />
           </button>
@@ -129,72 +130,71 @@ export const FactoryResetModal: React.FC<FactoryResetModalProps> = ({
 
         <form onSubmit={handleExecuteWipe} className="flex flex-col flex-1 min-h-0 overflow-hidden">
           <div className="flex-1 min-h-0 overflow-y-auto p-4 space-y-4 custom-scrollbar">
-          <div className="rounded border border-[#FF5C00]/30 bg-[#FF5C00]/5 p-3 space-y-2 text-xs font-mono-num text-[#94A3B8]">
-            <div className="flex items-center gap-1.5 text-[#FF5C00] font-bold">
-              <AlertTriangle className="h-4 w-4 shrink-0" />
-              <span>IRREVERSIBLE DESTRUCTION WARNING</span>
+            <div className="rounded-xl border border-[var(--color-rose)]/20 bg-[var(--color-rose)]/10 p-3.5 space-y-2 text-xs text-[var(--text-secondary)]">
+              <div className="flex items-center gap-1.5 text-[var(--color-rose)] font-semibold">
+                <AlertTriangle className="h-4 w-4 shrink-0" />
+                <span>Permanent Reset Warning</span>
+              </div>
+              <p>
+                This will permanently delete all transactions, accounts, debts, recurring schedules, and savings goals from both your local device and the cloud.
+              </p>
+              <p className="text-[var(--text-primary)] font-medium">
+                Your login identity and security passcode will be kept. Clean baseline accounts with zero balances will be re-created.
+              </p>
             </div>
-            <p>
-              This will permanently purge all transactions, accounts, debts, recurring schedules, and sinking vaults from both local IndexedDB and Cloud Firestore.
-            </p>
-            <p className="text-white font-semibold">
-              Your login identity and security PIN will be preserved. Baseline zero-balance accounts will be reseeded.
-            </p>
-          </div>
 
-          <div>
-            <label className="block text-[10px] font-mono-num uppercase tracking-wider text-[#64748B] mb-1">
-              Step 1: Type <span className="text-[#FF5C00] font-bold">PURGE-ALL</span> to confirm
-            </label>
-            <input
-              type="text"
-              value={confirmKeyword}
-              onChange={(e) => setConfirmKeyword(e.target.value)}
-              placeholder="PURGE-ALL"
-              required
-              className="w-full rounded border border-[#232A3B] bg-[#07090E] px-3 py-2 text-xs text-white placeholder-[#475569] focus:border-[#FF5C00] focus:outline-none font-mono-num"
-            />
-          </div>
-
-          <div>
-            <label className="block text-[10px] font-mono-num uppercase tracking-wider text-[#64748B] mb-1">
-              Step 2: Enter Master PIN for Authorization
-            </label>
-            <input
-              type="password"
-              maxLength={6}
-              value={pin}
-              onChange={(e) => setPin(e.target.value)}
-              placeholder="Master PIN"
-              required
-              className="w-full rounded border border-[#232A3B] bg-[#07090E] px-3 py-2 text-xs text-white placeholder-[#475569] focus:border-[#FF5C00] focus:outline-none font-mono-num"
-            />
-          </div>
-
-          {error && (
-            <div className="rounded border border-[#FF0055]/40 bg-[#FF0055]/10 p-2 text-xs font-mono-num text-[#FF0055]">
-              [ABORTED]: {error}
+            <div>
+              <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1">
+                Step 1: Type <span className="text-[var(--color-rose)] font-bold">RESET</span> to confirm
+              </label>
+              <input
+                type="text"
+                value={confirmKeyword}
+                onChange={(e) => setConfirmKeyword(e.target.value)}
+                placeholder="RESET"
+                required
+                className="w-full rounded-lg border border-[var(--border-default)] bg-[var(--bg-canvas)] px-3 py-2 text-xs text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:border-[var(--color-rose)] focus:outline-none"
+              />
             </div>
-          )}
 
+            <div>
+              <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1">
+                Step 2: Enter Passcode for Authorization
+              </label>
+              <input
+                type="password"
+                maxLength={6}
+                value={pin}
+                onChange={(e) => setPin(e.target.value)}
+                placeholder="Passcode"
+                required
+                className="w-full rounded-lg border border-[var(--border-default)] bg-[var(--bg-canvas)] px-3 py-2 text-xs text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:border-[var(--color-rose)] focus:outline-none"
+              />
+            </div>
+
+            {error && (
+              <div className="rounded-lg border border-[var(--color-rose)]/30 bg-[var(--color-rose)]/10 p-2 text-xs font-medium text-[var(--color-rose)]">
+                {error}
+              </div>
+            )}
           </div>
 
           {/* Sticky Footer */}
-          <div className="flex-shrink-0 border-t border-[#232A3B] px-4 py-3 bg-[#07090E] flex gap-2">
+          <div className="flex-shrink-0 border-t border-[var(--border-default)] px-4 py-3 bg-[var(--bg-surface)] flex gap-2 pb-[calc(env(safe-area-inset-bottom)+0.75rem)]">
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 rounded border border-[#232A3B] bg-[#161B26] py-2 text-xs font-mono-num text-[#94A3B8] hover:text-white transition-colors"
+              className="flex-1 rounded-lg border border-[var(--border-default)] bg-[var(--bg-surface)] py-2 text-xs font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
             >
-              CANCEL
+              Cancel
             </button>
             <button
               type="submit"
               disabled={isWiping}
-              className="flex-1 flex items-center justify-center gap-1.5 rounded border border-[#FF5C00] bg-[#FF5C00]/20 py-2 text-xs font-bold font-mono-num text-[#FF5C00] hover:bg-[#FF5C00]/30 transition-all disabled:opacity-50"
+              className="flex-1 flex items-center justify-center gap-1.5 rounded-lg bg-[var(--color-rose)] py-2 text-xs font-semibold text-white hover:opacity-90 transition-opacity disabled:opacity-50"
             >
               <Flame className="h-4 w-4" />
-              <span>{isWiping ? "PURGING..." : "EXECUTE NUCLEAR RESET"}</span>
+              <span>{isWiping ? "Resetting..." : "Reset All Data"}</span>
             </button>
           </div>
         </form>

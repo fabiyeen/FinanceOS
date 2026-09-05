@@ -10,14 +10,14 @@ import {
 
 export const SEED_CATEGORIES: Category[] = [
   { id: "cat_food", name: "Food & Dining", icon: "Utensils", color: "#00F0FF", type: "expense", order: 0, isDefault: true },
-  { id: "cat_tech", name: "Tech & Infrastructure", icon: "Cpu", color: "#FF5C00", type: "expense", order: 1, isDefault: true },
+  { id: "cat_tech", name: "Tech & Equipment", icon: "Cpu", color: "#FF5C00", type: "expense", order: 1, isDefault: true },
   { id: "cat_subs", name: "Subscriptions & SaaS", icon: "Repeat", color: "#FFB800", type: "expense", order: 2, isDefault: true },
-  { id: "cat_trans", name: "Transport & Mobility", icon: "Navigation", color: "#00FF88", type: "expense", order: 3, isDefault: true },
+  { id: "cat_trans", name: "Transport & Commute", icon: "Navigation", color: "#00FF88", type: "expense", order: 3, isDefault: true },
   { id: "cat_util", name: "Housing & Utilities", icon: "Home", color: "#9D00FF", type: "expense", order: 4, isDefault: true },
   { id: "cat_health", name: "Health & Fitness", icon: "Activity", color: "#FF0055", type: "expense", order: 5, isDefault: true },
-  { id: "cat_ent", name: "Entertainment & Cyber", icon: "Gamepad2", color: "#00E5FF", type: "expense", order: 6, isDefault: true },
+  { id: "cat_ent", name: "Entertainment & Leisure", icon: "Gamepad2", color: "#00E5FF", type: "expense", order: 6, isDefault: true },
   { id: "cat_income", name: "Primary Income", icon: "TrendingUp", color: "#00FF88", type: "income", order: 0, isDefault: true },
-  { id: "cat_bonus", name: "Syndicate / Consulting", icon: "Coins", color: "#FFB800", type: "income", order: 1, isDefault: true },
+  { id: "cat_bonus", name: "Consulting & Freelance", icon: "Coins", color: "#FFB800", type: "income", order: 1, isDefault: true },
   { id: "cat_transfer", name: "Internal Transfer", icon: "ArrowLeftRight", color: "#708090", type: "expense", order: 7, isDefault: true },
   { id: "cat_debt", name: "Debt Settlement", icon: "Handshake", color: "#E056FD", type: "expense", order: 8, isDefault: true },
 ];
@@ -49,7 +49,7 @@ export const SEED_ACCOUNTS: Account[] = [
   },
   {
     id: "acc_tokyo_cc",
-    name: "Tokyo Black Platinum CC",
+    name: "Platinum Credit Card",
     type: "credit",
     currency: "IDR",
     initialBalance: 0,
@@ -63,7 +63,7 @@ export const SEED_ACCOUNTS: Account[] = [
   },
   {
     id: "acc_gopay",
-    name: "GoPay / Cyberia Wallet",
+    name: "GoPay Digital Wallet",
     type: "ewallet",
     currency: "IDR",
     initialBalance: 1250000,
@@ -75,7 +75,7 @@ export const SEED_ACCOUNTS: Account[] = [
   },
   {
     id: "acc_cash_stash",
-    name: "Physical Cash Stash",
+    name: "Physical Cash",
     type: "cash",
     currency: "IDR",
     initialBalance: 3500000,
@@ -90,7 +90,7 @@ export const SEED_ACCOUNTS: Account[] = [
 export const SEED_VAULTS: Vault[] = [
   {
     id: "vault_gear",
-    title: "Shibuya Tech Lab Gear",
+    title: "Work Setup & Laptop",
     targetAmount: 25000000,
     currentAmount: 18500000,
     assignedAccountId: "acc_bca",
@@ -102,7 +102,7 @@ export const SEED_VAULTS: Vault[] = [
   },
   {
     id: "vault_emergency",
-    title: "Emergency Runway (6 Months)",
+    title: "Emergency Fund (6 Months)",
     targetAmount: 90000000,
     currentAmount: 75000000,
     assignedAccountId: "acc_mandiri",
@@ -113,7 +113,7 @@ export const SEED_VAULTS: Vault[] = [
   },
   {
     id: "vault_retreat",
-    title: "Kyoto Ryokan Retreat",
+    title: "Holiday Vacation",
     targetAmount: 15000000,
     currentAmount: 15000000,
     assignedAccountId: "acc_bca",
@@ -132,7 +132,7 @@ export const SEED_DEBTS: Debt[] = [
     amount: 1500000,
     paidAmount: 500000,
     direction: "owed", // He owes us
-    desc: "Modular Synthesizer Group Order",
+    desc: "Studio Equipment Split",
     status: "active",
     dueDate: "2026-09-25",
     repaymentHistory: [
@@ -147,11 +147,11 @@ export const SEED_DEBTS: Debt[] = [
   },
   {
     id: "debt_cyberia",
-    counterparty: "Cyberia Node Cluster",
+    counterparty: "Cloud Hosting Services",
     amount: 850000,
     paidAmount: 0,
     direction: "owe", // We owe
-    desc: "Dedicated GPU Node Invoice (Unsettled)",
+    desc: "Server Hosting Invoice (Monthly)",
     status: "active",
     dueDate: "2026-09-15",
     repaymentHistory: [],
@@ -162,7 +162,7 @@ export const SEED_DEBTS: Debt[] = [
 export const SEED_RECURRING: RecurringRule[] = [
   {
     id: "rec_syndicate",
-    title: "Syndicate Retainer Payout",
+    title: "Consulting Retainer Income",
     amount: 32000000,
     type: "income",
     categoryId: "cat_income",
@@ -175,7 +175,7 @@ export const SEED_RECURRING: RecurringRule[] = [
   },
   {
     id: "rec_fiber",
-    title: "Fiber Optic 1Gbps Dedicated",
+    title: "Home Internet (Fiber Optic)",
     amount: 750000,
     type: "expense",
     categoryId: "cat_util",
@@ -188,7 +188,7 @@ export const SEED_RECURRING: RecurringRule[] = [
   },
   {
     id: "rec_ai_api",
-    title: "OpenAI / Anthropic Inference API",
+    title: "Cloud & AI API Services",
     amount: 1450000,
     type: "expense",
     categoryId: "cat_subs",
@@ -201,7 +201,7 @@ export const SEED_RECURRING: RecurringRule[] = [
   },
   {
     id: "rec_figma",
-    title: "Figma Enterprise Seat",
+    title: "Figma Subscription",
     amount: 280000,
     type: "expense",
     categoryId: "cat_subs",
@@ -274,12 +274,12 @@ export function generateSeedTransactions(): Transaction[] {
   const txs: Transaction[] = [
     {
       id: "tx_inc_1",
-      desc: "Syndicate Engineering Retainer",
+      desc: "Engineering Consulting Retainer",
       amount: 32000000,
       type: "income",
       categoryId: "cat_income",
       fromAccountId: "acc_bca",
-      tags: ["Syndicate", "TaxReportable"],
+      tags: ["Consulting", "Income"],
       date: "2026-09-01",
       time: "09:00",
       source: "web_client",
@@ -288,7 +288,7 @@ export function generateSeedTransactions(): Transaction[] {
     },
     {
       id: "tx_exp_1",
-      desc: "Cyberia Ramen Bar & Craft Brew",
+      desc: "Dinner & Drinks with Team",
       amount: 185000,
       type: "expense",
       categoryId: "cat_food",
@@ -302,7 +302,7 @@ export function generateSeedTransactions(): Transaction[] {
     },
     {
       id: "tx_exp_2",
-      desc: "GitHub Enterprise Copilot Seat",
+      desc: "GitHub Copilot Subscription",
       amount: 340000,
       type: "expense",
       categoryId: "cat_subs",
@@ -316,7 +316,7 @@ export function generateSeedTransactions(): Transaction[] {
     },
     {
       id: "tx_exp_3",
-      desc: "Express Commuter Train & Metro Pass",
+      desc: "Commuter Train & Transit Pass",
       amount: 120000,
       type: "expense",
       categoryId: "cat_trans",
@@ -330,7 +330,7 @@ export function generateSeedTransactions(): Transaction[] {
     },
     {
       id: "tx_vault_1",
-      desc: "Monthly Reserve Stash -> Shibuya Tech Gear",
+      desc: "Monthly Savings -> Work Setup",
       amount: 2500000,
       type: "vault_deposit",
       categoryId: "cat_transfer",
@@ -345,7 +345,7 @@ export function generateSeedTransactions(): Transaction[] {
     },
     {
       id: "tx_exp_4",
-      desc: "Specialty Espresso Bar Shot",
+      desc: "Specialty Coffee & Espresso",
       amount: 65000,
       type: "expense",
       categoryId: "cat_food",
@@ -359,7 +359,7 @@ export function generateSeedTransactions(): Transaction[] {
     },
     {
       id: "tx_exp_5",
-      desc: "Mechanical Keycap Set (Industrial Dye-Sub)",
+      desc: "Ergonomic Mechanical Keyboard",
       amount: 950000,
       type: "expense",
       categoryId: "cat_tech",
@@ -378,7 +378,7 @@ export function generateSeedTransactions(): Transaction[] {
     const dStr = `2026-08-${String(day).padStart(2, "0")}`;
     txs.push({
       id: `tx_hist_aug_${day}`,
-      desc: day % 2 === 0 ? "Tokyo Metro Transit" : "Cyber Food Market",
+      desc: day % 2 === 0 ? "Commuter Transit" : "Supermarket Groceries",
       amount: 150000 + (day * 12000),
       type: "expense",
       categoryId: day % 2 === 0 ? "cat_trans" : "cat_food",

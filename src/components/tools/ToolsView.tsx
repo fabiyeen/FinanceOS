@@ -4,7 +4,6 @@ import React, { useState } from "react";
 import {
   FileSpreadsheet,
   Download,
-  Key,
   Shield,
   Copy,
   Check,
@@ -12,8 +11,13 @@ import {
   Terminal,
   KeyRound,
   Clock,
-  Flame,
   AlertTriangle,
+  Sun,
+  Moon,
+  Contrast,
+  Laptop,
+  Palette,
+  Volume2,
 } from "lucide-react";
 import { DebtTracker } from "../ledger/DebtTracker";
 import { RecurringRulesManager } from "../ledger/RecurringRulesManager";
@@ -24,6 +28,8 @@ import { useUIStore } from "../../store/useUIStore";
 import { playSound, triggerHaptic } from "../../lib/audioHaptics";
 import { db } from "../../lib/db/dexie";
 import { useLiveQuery } from "dexie-react-hooks";
+import { useTheme } from "../providers/ThemeProvider";
+import { ThemeMode } from "../../lib/types";
 
 export const ToolsView: React.FC = () => {
   const {
@@ -34,6 +40,7 @@ export const ToolsView: React.FC = () => {
     toggleHapticsEnabled,
   } = useUIStore();
 
+  const { theme, setTheme } = useTheme();
   const settings = useLiveQuery(() => db.settings.get("main"));
   const [copiedKey, setCopiedKey] = useState(false);
   const [isPinSettingsOpen, setIsPinSettingsOpen] = useState(false);
@@ -64,38 +71,99 @@ export const ToolsView: React.FC = () => {
     }
   };
 
+  const themes: { id: ThemeMode; label: string; desc: string; icon: React.ElementType }[] = [
+    { id: "dark", label: "Dark (Slate)", desc: "Modern deep slate background", icon: Moon },
+    { id: "light", label: "Light (Paper)", desc: "Clean crisp paper contrast", icon: Sun },
+    { id: "midnight-oled", label: "Midnight OLED", desc: "Pure pitch black surfaces", icon: Contrast },
+    { id: "system", label: "System", desc: "Syncs with your device setting", icon: Laptop },
+  ];
+
   return (
     <div className="space-y-8">
-      {/* 1. Category Architecture & Priority Manager */}
-      <CategoryManager />
+      {/* 1. Theme & Visual Style Engine */}
+      <div className="space-y-3">
+        <div className="flex items-center gap-2">
+          <Palette className="h-4 w-4 text-emerald-500" />
+          <h3 className="text-sm font-semibold text-[var(--text-primary)]">
+            Appearance &amp; Theme
+          </h3>
+        </div>
 
-      {/* 2. Debt & IOUs */}
-      <div className="pt-4 border-t border-[#232A3B]">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          {themes.map((t) => {
+            const Icon = t.icon;
+            const isSelected = theme === t.id;
+            return (
+              <button
+                key={t.id}
+                type="button"
+                onClick={() => {
+                  playSound("click", soundEnabled);
+                  triggerHaptic(15);
+                  setTheme(t.id);
+                }}
+                className={`flex flex-col items-start p-4 rounded-xl border text-left transition-all min-h-[44px] ${
+                  isSelected
+                    ? "border-emerald-500 bg-emerald-500/10 ring-1 ring-emerald-500 shadow-sm"
+                    : "border-[var(--border-subtle)] bg-[var(--card-bg)] hover:border-[var(--border-industrial)]"
+                }`}
+              >
+                <div className="flex items-center justify-between w-full mb-2">
+                  <div
+                    className={`p-2 rounded-lg ${
+                      isSelected
+                        ? "bg-emerald-500 text-white"
+                        : "bg-[var(--card-surface)] text-[var(--text-secondary)] border border-[var(--border-subtle)]"
+                    }`}
+                  >
+                    <Icon className="h-4 w-4" />
+                  </div>
+                  {isSelected && <Check className="h-4 w-4 text-emerald-500 stroke-[3]" />}
+                </div>
+                <span className="text-sm font-semibold text-[var(--text-primary)]">
+                  {t.label}
+                </span>
+                <span className="text-xs text-[var(--text-muted)] mt-0.5">
+                  {t.desc}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* 2. Category Architecture & Priority Manager */}
+      <div className="pt-4 border-t border-[var(--border-subtle)]">
+        <CategoryManager />
+      </div>
+
+      {/* 3. Debt & IOUs */}
+      <div className="pt-4 border-t border-[var(--border-subtle)]">
         <DebtTracker />
       </div>
 
-      {/* 3. Subscriptions & Automation */}
-      <div className="pt-4 border-t border-[#232A3B]">
+      {/* 4. Subscriptions & Automation */}
+      <div className="pt-4 border-t border-[var(--border-subtle)]">
         <RecurringRulesManager />
       </div>
 
-      {/* 4. CSV Data Portability */}
-      <div className="pt-4 border-t border-[#232A3B] space-y-3">
+      {/* 5. CSV Data Portability */}
+      <div className="pt-4 border-t border-[var(--border-subtle)] space-y-3">
         <div className="flex items-center gap-2">
-          <FileSpreadsheet className="h-4 w-4 text-[#FFB800]" />
-          <h3 className="font-mono-num text-sm font-bold uppercase tracking-wider text-white">
-            Data Portability (CSV Engine)
+          <FileSpreadsheet className="h-4 w-4 text-blue-500" />
+          <h3 className="text-sm font-semibold text-[var(--text-primary)]">
+            Data Portability (CSV)
           </h3>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <div className="industrial-card rounded-lg border border-[#232A3B] bg-[#0F131C] p-4 flex flex-col justify-between">
+          <div className="industrial-card rounded-xl border border-[var(--border-subtle)] bg-[var(--card-bg)] p-4 flex flex-col justify-between">
             <div>
-              <h4 className="text-xs font-bold text-white font-mono-num uppercase">
+              <h4 className="text-xs font-semibold text-[var(--text-primary)]">
                 Import Bank Statements
               </h4>
-              <p className="text-xs text-[#94A3B8] font-mono-num mt-1">
-                Drag-and-drop statements with delimiter detection, column mapping, and duplicate hashing.
+              <p className="text-xs text-[var(--text-secondary)] mt-1">
+                Upload bank and credit card statements with delimiter detection and duplicate checks.
               </p>
             </div>
             <button
@@ -103,20 +171,20 @@ export const ToolsView: React.FC = () => {
                 playSound("click", soundEnabled);
                 setCsvImportOpen(true);
               }}
-              className="mt-4 flex items-center justify-center gap-2 rounded border border-[#FFB800]/50 bg-[#FFB800]/10 py-2 text-xs font-mono-num font-bold text-[#FFB800] hover:bg-[#FFB800]/20 transition-colors"
+              className="mt-4 flex items-center justify-center gap-2 rounded-xl border border-[var(--border-subtle)] bg-[var(--card-surface)] hover:bg-[var(--bg-surface-2)] py-2 text-xs font-semibold text-[var(--text-primary)] transition-colors min-h-[40px]"
             >
-              <FileSpreadsheet className="h-4 w-4" />
-              LAUNCH IMPORT WIZARD
+              <FileSpreadsheet className="h-4 w-4 text-blue-500" />
+              <span>Import Statement</span>
             </button>
           </div>
 
-          <div className="industrial-card rounded-lg border border-[#232A3B] bg-[#0F131C] p-4 flex flex-col justify-between">
+          <div className="industrial-card rounded-xl border border-[var(--border-subtle)] bg-[var(--card-bg)] p-4 flex flex-col justify-between">
             <div>
-              <h4 className="text-xs font-bold text-white font-mono-num uppercase">
-                Export Standard Ledger CSV
+              <h4 className="text-xs font-semibold text-[var(--text-primary)]">
+                Export Ledger Records
               </h4>
-              <p className="text-xs text-[#94A3B8] font-mono-num mt-1">
-                Download filterable double-entry ledger exports compatible with accounting software.
+              <p className="text-xs text-[var(--text-secondary)] mt-1">
+                Export complete transaction histories, categorized accounts, and ledger records to CSV.
               </p>
             </div>
             <button
@@ -124,44 +192,44 @@ export const ToolsView: React.FC = () => {
                 playSound("click", soundEnabled);
                 setCsvExportOpen(true);
               }}
-              className="mt-4 flex items-center justify-center gap-2 rounded border border-[#00FF88]/50 bg-[#00FF88]/10 py-2 text-xs font-mono-num font-bold text-[#00FF88] hover:bg-[#00FF88]/20 transition-colors"
+              className="mt-4 flex items-center justify-center gap-2 rounded-xl border border-[var(--border-subtle)] bg-[var(--card-surface)] hover:bg-[var(--bg-surface-2)] py-2 text-xs font-semibold text-[var(--text-primary)] transition-colors min-h-[40px]"
             >
-              <Download className="h-4 w-4" />
-              CONFIGURE EXPORT
+              <Download className="h-4 w-4 text-emerald-500" />
+              <span>Export Records</span>
             </button>
           </div>
         </div>
       </div>
 
-      {/* 4. Security & PIN Protocol */}
-      <div className="pt-4 border-t border-[#232A3B] space-y-3">
+      {/* 6. Security & Passcode Protocol */}
+      <div className="pt-4 border-t border-[var(--border-subtle)] space-y-3">
         <div className="flex items-center gap-2">
-          <Shield className="h-4 w-4 text-[#00F0FF]" />
-          <h3 className="font-mono-num text-sm font-bold uppercase tracking-wider text-white">
-            Security &amp; Session Authentication
+          <Shield className="h-4 w-4 text-emerald-500" />
+          <h3 className="text-sm font-semibold text-[var(--text-primary)]">
+            Security &amp; Passcode
           </h3>
         </div>
 
-        <div className="industrial-card rounded-lg border border-[#232A3B] bg-[#0F131C] p-4 space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#232A3B]">
+        <div className="industrial-card rounded-xl border border-[var(--border-subtle)] bg-[var(--card-bg)] p-4 space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[var(--border-subtle)]">
             <div>
               <div className="flex items-center gap-2">
-                <KeyRound className="h-4 w-4 text-[#00F0FF]" />
-                <h4 className="text-xs font-bold font-mono-num text-white uppercase">
-                  Master Security PIN
+                <KeyRound className="h-4 w-4 text-emerald-500" />
+                <h4 className="text-xs font-semibold text-[var(--text-primary)]">
+                  Security Passcode
                 </h4>
                 <span
-                  className={`rounded px-1.5 py-0.2 text-[9px] font-mono-num font-bold uppercase ${
+                  className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${
                     isPinSet
-                      ? "bg-[#00FF88]/15 text-[#00FF88] border border-[#00FF88]/30"
-                      : "bg-[#FF5C00]/15 text-[#FF5C00] border border-[#FF5C00]/30"
+                      ? "bg-emerald-500/15 text-emerald-500"
+                      : "bg-amber-500/15 text-amber-500"
                   }`}
                 >
-                  {isPinSet ? "[CONFIGURED]" : "[DEFAULT 0000 ACTIVE]"}
+                  {isPinSet ? "Configured" : "Default (0000)"}
                 </span>
               </div>
-              <p className="text-xs text-[#94A3B8] font-mono-num mt-1">
-                4 to 6 digit numeric code secured with salted Web Crypto SHA-256.
+              <p className="text-xs text-[var(--text-secondary)] mt-1">
+                4 to 6 digit numeric passcode secured with salted Web Crypto SHA-256.
               </p>
             </div>
 
@@ -170,30 +238,30 @@ export const ToolsView: React.FC = () => {
                 playSound("click", soundEnabled);
                 setIsPinSettingsOpen(true);
               }}
-              className="flex items-center justify-center gap-1.5 rounded border border-[#00F0FF]/50 bg-[#00F0FF]/10 px-3 py-2 text-xs font-mono-num text-[#00F0FF] hover:bg-[#00F0FF]/20 transition-colors shrink-0"
+              className="flex items-center justify-center gap-1.5 rounded-xl border border-[var(--border-subtle)] bg-[var(--card-surface)] hover:bg-[var(--bg-surface-2)] px-3.5 py-2 text-xs font-semibold text-[var(--text-primary)] transition-colors shrink-0 min-h-[40px]"
             >
               <KeyRound className="h-3.5 w-3.5" />
-              <span>{isPinSet ? "CHANGE MASTER PIN" : "CONFIGURE MASTER PIN"}</span>
+              <span>{isPinSet ? "Change Passcode" : "Set Passcode"}</span>
             </button>
           </div>
 
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#232A3B]">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[var(--border-subtle)]">
             <div>
               <div className="flex items-center gap-2">
-                <Clock className="h-4 w-4 text-[#FFB800]" />
-                <h4 className="text-xs font-bold font-mono-num text-white uppercase">
-                  Session Inactivity Auto-Lock
+                <Clock className="h-4 w-4 text-amber-500" />
+                <h4 className="text-xs font-semibold text-[var(--text-primary)]">
+                  Session Auto-Lock
                 </h4>
               </div>
-              <p className="text-xs text-[#94A3B8] font-mono-num mt-1">
-                Automatically engage PIN lock screen when idle or when browser tab loses focus.
+              <p className="text-xs text-[var(--text-secondary)] mt-1">
+                Automatically lock screen when idle or when switching browser tabs.
               </p>
             </div>
 
             <select
               value={autoLockTimeout}
               onChange={(e) => handleAutoLockChange(parseInt(e.target.value))}
-              className="rounded border border-[#232A3B] bg-[#07090E] px-3 py-1.5 text-xs text-white focus:border-[#00F0FF] focus:outline-none font-mono-num shrink-0"
+              className="rounded-xl border border-[var(--border-subtle)] bg-[var(--card-surface)] px-3 py-2 text-xs text-[var(--text-primary)] focus:border-emerald-500 focus:outline-none shrink-0 min-h-[40px]"
             >
               <option value="0">Immediately on Blur / Tab Switch</option>
               <option value="1">1 Minute Inactivity</option>
@@ -203,62 +271,62 @@ export const ToolsView: React.FC = () => {
             </select>
           </div>
 
-          <div className="flex items-center justify-between text-xs font-mono-num">
-            <span className="text-[#94A3B8]">Tactile Audio &amp; Haptic Vibration</span>
+          <div className="flex items-center justify-between text-xs">
+            <span className="text-[var(--text-secondary)]">Vibration &amp; Haptic Feedback</span>
             <button
               onClick={() => {
                 playSound("toggle", soundEnabled);
                 toggleHapticsEnabled();
               }}
-              className={`rounded px-2.5 py-1 border text-[10px] transition-colors ${
+              className={`rounded-xl px-3 py-1.5 border text-xs font-medium transition-colors min-h-[36px] ${
                 hapticsEnabled
-                  ? "border-[#00FF88]/40 bg-[#00FF88]/15 text-[#00FF88]"
-                  : "border-[#232A3B] bg-[#161B26] text-[#64748B]"
+                  ? "border-emerald-500/40 bg-emerald-500/15 text-emerald-500"
+                  : "border-[var(--border-subtle)] bg-[var(--card-surface)] text-[var(--text-muted)]"
               }`}
             >
-              {hapticsEnabled ? "HAPTICS [ON]" : "HAPTICS [OFF]"}
+              {hapticsEnabled ? "Haptics Enabled" : "Haptics Disabled"}
             </button>
           </div>
         </div>
       </div>
 
-      {/* 5. Companion REST API */}
-      <div className="pt-4 border-t border-[#232A3B] space-y-3">
+      {/* 7. REST API Credentials */}
+      <div className="pt-4 border-t border-[var(--border-subtle)] space-y-3">
         <div className="flex items-center gap-2">
-          <Code2 className="h-4 w-4 text-[#00F0FF]" />
-          <h3 className="font-mono-num text-sm font-bold uppercase tracking-wider text-white">
-            Companion REST API Credentials
+          <Code2 className="h-4 w-4 text-blue-500" />
+          <h3 className="text-sm font-semibold text-[var(--text-primary)]">
+            REST API Credentials
           </h3>
         </div>
 
-        <div className="industrial-card rounded-lg border border-[#232A3B] bg-[#0F131C] p-4 space-y-4">
+        <div className="industrial-card rounded-xl border border-[var(--border-subtle)] bg-[var(--card-bg)] p-4 space-y-4">
           <div>
-            <label className="block text-[10px] font-mono-num uppercase tracking-wider text-[#64748B] mb-1">
-              Active Companion API Bearer Key
+            <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1">
+              API Bearer Key
             </label>
             <div className="flex items-center gap-2">
               <input
                 type="text"
                 readOnly
                 value={apiKey}
-                className="flex-1 rounded border border-[#232A3B] bg-[#07090E] px-3 py-2 font-mono-num text-xs text-[#00F0FF] focus:outline-none select-all"
+                className="flex-1 rounded-xl border border-[var(--border-subtle)] bg-[var(--card-surface)] px-3.5 py-2 font-mono-num text-xs text-[var(--text-primary)] focus:outline-none select-all min-h-[40px]"
               />
               <button
                 onClick={handleCopyKey}
-                className="flex items-center gap-1.5 rounded border border-[#232A3B] bg-[#161B26] px-3 py-2 text-xs font-mono-num text-[#94A3B8] hover:text-white transition-colors"
+                className="flex items-center gap-1.5 rounded-xl border border-[var(--border-subtle)] bg-[var(--card-surface)] hover:bg-[var(--bg-surface-2)] px-3.5 py-2 text-xs font-semibold text-[var(--text-primary)] transition-colors min-h-[40px]"
               >
-                {copiedKey ? <Check className="h-4 w-4 text-[#00FF88]" /> : <Copy className="h-4 w-4" />}
-                <span>{copiedKey ? "COPIED" : "COPY"}</span>
+                {copiedKey ? <Check className="h-4 w-4 text-emerald-500" /> : <Copy className="h-4 w-4" />}
+                <span>{copiedKey ? "Copied" : "Copy"}</span>
               </button>
             </div>
           </div>
 
           <div>
-            <div className="text-[10px] font-mono-num uppercase tracking-wider text-[#64748B] mb-1 flex items-center gap-1">
-              <Terminal className="h-3 w-3" />
-              CURL Integration Example
+            <div className="text-xs font-medium text-[var(--text-muted)] mb-1.5 flex items-center gap-1.5">
+              <Terminal className="h-3.5 w-3.5" />
+              <span>Example API Request</span>
             </div>
-            <pre className="rounded bg-[#07090E] p-3 text-[11px] font-mono-num text-[#94A3B8] overflow-x-auto border border-[#232A3B]">
+            <pre className="rounded-xl bg-[var(--bg-void)] p-3.5 text-xs font-mono-num text-[var(--text-secondary)] overflow-x-auto border border-[var(--border-subtle)]">
               {`curl -X POST http://localhost:3000/api/v1/transactions \\
   -H "Authorization: Bearer ${apiKey}" \\
   -H "Content-Type: application/json" \\
@@ -268,22 +336,22 @@ export const ToolsView: React.FC = () => {
         </div>
       </div>
 
-      {/* 6. Danger Zone: Nuclear Factory Reset */}
-      <div className="pt-4 border-t border-[#FF5C00]/40 space-y-3">
+      {/* 8. Danger Zone: Reset All Data */}
+      <div className="pt-4 border-t border-rose-500/20 space-y-3">
         <div className="flex items-center gap-2">
-          <AlertTriangle className="h-4 w-4 text-[#FF5C00]" />
-          <h3 className="font-mono-num text-sm font-bold uppercase tracking-wider text-[#FF5C00]">
+          <AlertTriangle className="h-4 w-4 text-rose-500" />
+          <h3 className="text-sm font-semibold text-rose-500">
             Danger Zone
           </h3>
         </div>
 
-        <div className="rounded-lg border border-[#FF5C00]/40 bg-[#FF5C00]/5 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="rounded-xl border border-rose-500/30 bg-rose-500/5 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h4 className="text-xs font-bold text-white font-mono-num uppercase">
-              Nuclear Ledger Factory Reset
+            <h4 className="text-xs font-semibold text-[var(--text-primary)]">
+              Reset All Data
             </h4>
-            <p className="text-xs text-[#94A3B8] font-mono-num mt-1 max-w-lg">
-              Permanently purges all transactions, accounts, debts, and vaults from both IndexedDB and Firestore. Reseeds fresh baseline accounts while keeping your login identity and PIN intact.
+            <p className="text-xs text-[var(--text-secondary)] mt-1 max-w-lg">
+              Permanently clears all transactions, accounts, debts, and savings goals from both local storage and cloud database. Keeps your login account and passcode intact.
             </p>
           </div>
 
@@ -292,10 +360,9 @@ export const ToolsView: React.FC = () => {
               playSound("click", soundEnabled);
               setIsResetModalOpen(true);
             }}
-            className="flex items-center justify-center gap-1.5 rounded border border-[#FF5C00] bg-[#FF5C00]/20 px-4 py-2 text-xs font-mono-num font-bold text-[#FF5C00] hover:bg-[#FF5C00]/30 transition-colors shrink-0"
+            className="flex items-center justify-center gap-1.5 rounded-xl bg-rose-600 hover:bg-rose-500 px-4 py-2 text-xs font-semibold text-white transition-colors shrink-0 min-h-[40px]"
           >
-            <Flame className="h-4 w-4" />
-            <span>PURGE LEDGER</span>
+            <span>Reset Data</span>
           </button>
         </div>
       </div>

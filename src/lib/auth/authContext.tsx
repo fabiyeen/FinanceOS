@@ -188,8 +188,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const isOperativeA = id === "operative_a";
       const authUser: AuthUser = {
         uid: isOperativeA ? "demo_operative_alpha" : "demo_operative_beta",
-        email: isOperativeA ? "operative.alpha@tokyo.net" : "operative.beta@tokyo.net",
-        displayName: isOperativeA ? "Kenji (Cyber Operative A)" : "Rei (Cyber Operative B)",
+        email: isOperativeA ? "kenji@example.com" : "rei@example.com",
+        displayName: isOperativeA ? "Kenji Sato" : "Rei Takahashi",
         isDemo: true,
       };
 
