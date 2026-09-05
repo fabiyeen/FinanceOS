@@ -305,6 +305,9 @@ export default function DashboardPage() {
                   <SpendVelocityGauge
                     transactions={transactions}
                     monthlyBudget={monthlyBudget}
+                    currency={currency}
+                    locale={locale}
+                    variant="compact"
                   />
 
                   {/* Savings Goals Snapshot */}
@@ -328,33 +331,28 @@ export default function DashboardPage() {
                     </div>
 
                     {vaults.length === 0 ? (
-                      <div className="text-center py-6 border border-dashed border-white/[0.08] dark:border-white/[0.08] light:border-slate-200 rounded-xl">
-                        <p className="text-xs text-[var(--text-muted)]">No savings goals yet.</p>
+                      <div className="text-center py-6 text-xs text-[var(--text-muted)] space-y-1">
+                        <p>No active savings goals.</p>
+                        <p className="text-[11px]">Create a goal to allocate and preserve capital.</p>
                       </div>
                     ) : (
-                      <div className="space-y-2.5">
+                      <div className="space-y-3">
                         {vaults.slice(0, 3).map((vault) => {
-                          const progress =
-                            vault.targetAmount > 0
-                              ? Math.min(
-                                  100,
-                                  Math.round((vault.currentAmount / vault.targetAmount) * 100)
-                                )
-                              : 0;
+                          const progress = Math.min(
+                            100,
+                            Math.round((vault.currentAmount / (vault.targetAmount || 1)) * 100)
+                          );
                           return (
-                            <div
-                              key={vault.id}
-                              className="p-3 rounded-xl border border-white/[0.06] dark:border-white/[0.06] light:border-slate-200 bg-white/[0.02] dark:bg-white/[0.02] light:bg-slate-50 space-y-2 transition-colors"
-                            >
+                            <div key={vault.id} className="space-y-1.5">
                               <div className="flex items-center justify-between text-xs">
-                                <span className="font-medium text-[var(--text-primary)] truncate max-w-[150px]">
+                                <span className="font-medium text-[var(--text-primary)] truncate max-w-[160px]">
                                   {vault.title}
                                 </span>
-                                <span className="font-mono-num font-semibold text-emerald-500 tabular-nums">
+                                <span className="font-mono-num text-[11px] text-[var(--text-secondary)]">
                                   {progress}%
                                 </span>
                               </div>
-                              <div className="h-2 w-full rounded-full bg-white/[0.05] dark:bg-white/[0.05] light:bg-slate-200 overflow-hidden">
+                              <div className="h-1.5 w-full rounded-full bg-white/[0.05] dark:bg-white/[0.05] light:bg-slate-200 overflow-hidden">
                                 <div
                                   className="h-full rounded-full transition-all duration-300"
                                   style={{
@@ -362,6 +360,10 @@ export default function DashboardPage() {
                                     backgroundColor: vault.color || "#10B981",
                                   }}
                                 />
+                              </div>
+                              <div className="flex items-center justify-between text-[10px] text-[var(--text-muted)] font-mono-num tabular-nums">
+                                <span>{formatCurrency(vault.currentAmount, currency, locale)}</span>
+                                <span>Target: {formatCurrency(vault.targetAmount, currency, locale)}</span>
                               </div>
                             </div>
                           );
@@ -382,6 +384,9 @@ export default function DashboardPage() {
           <SpendVelocityGauge
             transactions={transactions}
             monthlyBudget={monthlyBudget}
+            currency={currency}
+            locale={locale}
+            variant="wide"
           />
           <SankeyFlowDiagram
             transactions={transactions}
