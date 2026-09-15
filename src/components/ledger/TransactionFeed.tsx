@@ -191,13 +191,13 @@ export const TransactionFeed: React.FC = () => {
               onChange={(e) => setSelectedType(e.target.value)}
               className="w-full rounded-xl border border-white/[0.08] dark:border-white/[0.08] light:border-slate-200 bg-[var(--bg-surface)] px-2.5 py-2 text-xs text-[var(--text-secondary)] focus:border-emerald-500/50 focus:outline-none transition-colors"
             >
-              <option value="all">All Types</option>
-              <option value="expense">Expense</option>
-              <option value="income">Income</option>
-              <option value="transfer">Transfer</option>
-              <option value="vault_deposit">Savings Deposit</option>
-              <option value="vault_withdraw">Savings Withdraw</option>
-              <option value="debt_payment">Debt Payment</option>
+              <option value="all" className="bg-[#0F131C] text-white dark:bg-[#0F131C] dark:text-white light:bg-white light:text-slate-900">All Types</option>
+              <option value="expense" className="bg-[#0F131C] text-white dark:bg-[#0F131C] dark:text-white light:bg-white light:text-slate-900">Expense</option>
+              <option value="income" className="bg-[#0F131C] text-white dark:bg-[#0F131C] dark:text-white light:bg-white light:text-slate-900">Income</option>
+              <option value="transfer" className="bg-[#0F131C] text-white dark:bg-[#0F131C] dark:text-white light:bg-white light:text-slate-900">Transfer</option>
+              <option value="vault_deposit" className="bg-[#0F131C] text-white dark:bg-[#0F131C] dark:text-white light:bg-white light:text-slate-900">Savings Deposit</option>
+              <option value="vault_withdraw" className="bg-[#0F131C] text-white dark:bg-[#0F131C] dark:text-white light:bg-white light:text-slate-900">Savings Withdraw</option>
+              <option value="debt_payment" className="bg-[#0F131C] text-white dark:bg-[#0F131C] dark:text-white light:bg-white light:text-slate-900">Debt Payment</option>
             </select>
           </div>
 
@@ -208,9 +208,9 @@ export const TransactionFeed: React.FC = () => {
               onChange={(e) => setSelectedAccount(e.target.value)}
               className="w-full rounded-xl border border-white/[0.08] dark:border-white/[0.08] light:border-slate-200 bg-[var(--bg-surface)] px-2.5 py-2 text-xs text-[var(--text-secondary)] focus:border-emerald-500/50 focus:outline-none transition-colors"
             >
-              <option value="all">All Accounts</option>
+              <option value="all" className="bg-[#0F131C] text-white dark:bg-[#0F131C] dark:text-white light:bg-white light:text-slate-900">All Accounts</option>
               {accounts.map((acc) => (
-                <option key={acc.id} value={acc.id}>
+                <option key={acc.id} value={acc.id} className="bg-[#0F131C] text-white dark:bg-[#0F131C] dark:text-white light:bg-white light:text-slate-900">
                   {acc.name}
                 </option>
               ))}

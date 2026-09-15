@@ -347,7 +347,10 @@ export function VaultModal({
             <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5">
               Target Amount ({currency})
             </label>
-            <div className="relative">
+            <div className="relative flex items-center">
+              <span className="absolute left-3.5 text-zinc-500 font-mono-num text-sm select-none pointer-events-none">
+                {currency === "IDR" ? "Rp" : currency}
+              </span>
               <input
                 type="text"
                 inputMode="numeric"
@@ -355,47 +358,41 @@ export function VaultModal({
                 placeholder="0"
                 value={targetAmountRaw ? Number(targetAmountRaw).toLocaleString("id-ID") : ""}
                 onChange={handleAmountChange}
-                className="w-full px-3.5 py-2.5 text-sm bg-[var(--card-surface)] border border-[var(--border-subtle)] focus:border-emerald-500 rounded-xl text-[var(--text-primary)] placeholder:[var(--text-muted)] outline-none transition-colors font-mono-num min-h-[44px]"
+                className="w-full pl-12 pr-3.5 py-2.5 text-sm bg-[var(--card-surface)] border border-[var(--border-subtle)] focus:border-emerald-500 rounded-xl text-[var(--text-primary)] placeholder:[var(--text-muted)] outline-none transition-colors font-mono-num font-bold min-h-[44px] tabular-nums"
               />
-              {targetAmountRaw && (
-                <span className="absolute right-3 top-2 text-xs font-mono-num text-[#94A3B8]">
-                  {formatCurrency(parseInt(targetAmountRaw, 10) || 0, currency, locale)}
-                </span>
-              )}
             </div>
           </div>
 
-          {/* Liquid Wallet & Deadline Row */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5">
-                Payment Account
-              </label>
-              <select
-                value={assignedAccountId}
-                onChange={(e) => setAssignedAccountId(e.target.value)}
-                className="w-full px-3.5 py-2.5 text-xs bg-[var(--card-surface)] border border-[var(--border-subtle)] focus:border-emerald-500 rounded-xl text-[var(--text-primary)] outline-none transition-colors min-h-[44px]"
-              >
-                {liquidAccounts.length === 0 && <option value="">No Accounts Available</option>}
-                {liquidAccounts.map((acc) => (
-                  <option key={acc.id} value={acc.id}>
-                    {acc.name} ({formatCurrency(acc.currentBalance, currency, locale)})
-                  </option>
-                ))}
-              </select>
-            </div>
+          {/* Liquid Backing Wallet Selection */}
+          <div>
+            <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5">
+              Payment Account
+            </label>
+            <select
+              value={assignedAccountId}
+              onChange={(e) => setAssignedAccountId(e.target.value)}
+              className="w-full px-3.5 py-2.5 text-xs bg-[var(--card-surface)] border border-[var(--border-subtle)] focus:border-emerald-500 rounded-xl text-[var(--text-primary)] outline-none transition-colors min-h-[44px]"
+            >
+              {liquidAccounts.length === 0 && <option value="" className="bg-[#0F131C] text-white dark:bg-[#0F131C] dark:text-white light:bg-white light:text-slate-900">No Accounts Available</option>}
+              {liquidAccounts.map((acc) => (
+                <option key={acc.id} value={acc.id} className="bg-[#0F131C] text-white dark:bg-[#0F131C] dark:text-white light:bg-white light:text-slate-900">
+                  {acc.name} ({formatCurrency(acc.currentBalance, currency, locale)})
+                </option>
+              ))}
+            </select>
+          </div>
 
-            <div>
-              <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5">
-                Target Date (Optional)
-              </label>
-              <input
-                type="date"
-                value={targetDate}
-                onChange={(e) => setTargetDate(e.target.value)}
-                className="w-full px-3.5 py-2.5 text-xs bg-[var(--card-surface)] border border-[var(--border-subtle)] focus:border-emerald-500 rounded-xl text-[var(--text-primary)] outline-none transition-colors min-h-[44px]"
-              />
-            </div>
+          {/* Target Date */}
+          <div>
+            <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5">
+              Target Date (Optional)
+            </label>
+            <input
+              type="date"
+              value={targetDate}
+              onChange={(e) => setTargetDate(e.target.value)}
+              className="w-full px-3.5 py-2.5 text-xs bg-[var(--card-surface)] border border-[var(--border-subtle)] focus:border-emerald-500 rounded-xl text-[var(--text-primary)] outline-none transition-colors min-h-[44px]"
+            />
           </div>
 
           {/* Accent Color Chips */}
@@ -508,7 +505,7 @@ export function VaultModal({
                         className="w-full rounded-xl border border-[var(--border-subtle)] bg-[var(--card-surface)] px-3 py-2 text-xs text-[var(--text-primary)] focus:border-rose-500 focus:outline-none min-h-[44px]"
                       >
                         {liquidAccounts.map((acc) => (
-                          <option key={acc.id} value={acc.id}>
+                          <option key={acc.id} value={acc.id} className="bg-[#0F131C] text-white dark:bg-[#0F131C] dark:text-white light:bg-white light:text-slate-900">
                             {acc.name} ({formatCurrency(acc.currentBalance, currency, locale)})
                           </option>
                         ))}

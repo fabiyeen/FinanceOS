@@ -63,9 +63,12 @@ export const AccountModal: React.FC<AccountModalProps> = ({
   const [name, setName] = useState("");
   const [type, setType] = useState<AccountType>("checking");
   const [currency, setCurrency] = useState("IDR");
-  const [initialBalance, setInitialBalance] = useState("");
-  const [currentBalanceInput, setCurrentBalanceInput] = useState("");
-  const [creditLimit, setCreditLimit] = useState("");
+  const [initialBalance, setInitialBalance] = useState<number>(0);
+  const [initialBalanceDisplay, setInitialBalanceDisplay] = useState("");
+  const [currentBalanceInput, setCurrentBalanceInput] = useState<number>(0);
+  const [currentBalanceDisplay, setCurrentBalanceDisplay] = useState("");
+  const [creditLimit, setCreditLimit] = useState<number>(0);
+  const [creditLimitDisplay, setCreditLimitDisplay] = useState("");
   const [statementDay, setStatementDay] = useState("20");
   const [color, setColor] = useState("#00F0FF");
   const [icon, setIcon] = useState("Landmark");
@@ -95,9 +98,15 @@ export const AccountModal: React.FC<AccountModalProps> = ({
         setName(accountToEdit.name);
         setType(accountToEdit.type);
         setCurrency(accountToEdit.currency || "IDR");
-        setInitialBalance(String(accountToEdit.initialBalance));
-        setCurrentBalanceInput(String(accountToEdit.currentBalance));
-        setCreditLimit(accountToEdit.creditLimit ? String(accountToEdit.creditLimit) : "");
+        const initBal = accountToEdit.initialBalance || 0;
+        setInitialBalance(initBal);
+        setInitialBalanceDisplay(initBal > 0 ? initBal.toLocaleString("id-ID") : "");
+        const currBal = accountToEdit.currentBalance || 0;
+        setCurrentBalanceInput(currBal);
+        setCurrentBalanceDisplay(currBal !== 0 ? currBal.toLocaleString("id-ID") : "0");
+        const cLim = accountToEdit.creditLimit || 0;
+        setCreditLimit(cLim);
+        setCreditLimitDisplay(cLim > 0 ? cLim.toLocaleString("id-ID") : "");
         setStatementDay(accountToEdit.statementClosingDay ? String(accountToEdit.statementClosingDay) : "20");
         setColor(accountToEdit.color || "#00F0FF");
         setIcon(accountToEdit.icon || "Landmark");
@@ -105,9 +114,12 @@ export const AccountModal: React.FC<AccountModalProps> = ({
         setName("");
         setType("checking");
         setCurrency("IDR");
-        setInitialBalance("0");
-        setCurrentBalanceInput("0");
-        setCreditLimit("");
+        setInitialBalance(0);
+        setInitialBalanceDisplay("");
+        setCurrentBalanceInput(0);
+        setCurrentBalanceDisplay("");
+        setCreditLimit(0);
+        setCreditLimitDisplay("");
         setStatementDay("20");
         setColor("#00F0FF");
         setIcon("Landmark");
@@ -126,6 +138,42 @@ export const AccountModal: React.FC<AccountModalProps> = ({
     }
   };
 
+  const handleInitialBalanceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const cleanDigits = e.target.value.replace(/\D/g, "");
+    if (!cleanDigits) {
+      setInitialBalance(0);
+      setInitialBalanceDisplay("");
+      return;
+    }
+    const val = parseInt(cleanDigits, 10);
+    setInitialBalance(val);
+    setInitialBalanceDisplay(val.toLocaleString("id-ID"));
+  };
+
+  const handleCurrentBalanceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const cleanDigits = e.target.value.replace(/\D/g, "");
+    if (!cleanDigits) {
+      setCurrentBalanceInput(0);
+      setCurrentBalanceDisplay("");
+      return;
+    }
+    const val = parseInt(cleanDigits, 10);
+    setCurrentBalanceInput(val);
+    setCurrentBalanceDisplay(val.toLocaleString("id-ID"));
+  };
+
+  const handleCreditLimitChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const cleanDigits = e.target.value.replace(/\D/g, "");
+    if (!cleanDigits) {
+      setCreditLimit(0);
+      setCreditLimitDisplay("");
+      return;
+    }
+    const val = parseInt(cleanDigits, 10);
+    setCreditLimit(val);
+    setCreditLimitDisplay(val.toLocaleString("id-ID"));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) {
@@ -137,13 +185,13 @@ export const AccountModal: React.FC<AccountModalProps> = ({
     playSound("click", true);
     triggerHaptic(20);
 
-    const credLim = type === "credit" ? parseFloat(creditLimit) || 0 : undefined;
+    const credLim = type === "credit" ? creditLimit : undefined;
     const stmtDay = type === "credit" ? parseInt(statementDay) || 20 : undefined;
 
     try {
       if (accountToEdit) {
         // Check if balance adjustment is requested
-        const targetBal = parseFloat(currentBalanceInput) || 0;
+        const targetBal = currentBalanceInput;
         const balDifference = safeSub(targetBal, accountToEdit.currentBalance);
 
         if (balDifference !== 0) {
@@ -181,9 +229,9 @@ export const AccountModal: React.FC<AccountModalProps> = ({
       } else {
         // Create new account
         const existingAccounts = await db.accounts.toArray();
-        const initBal = parseFloat(initialBalance) || 0;
+        const initBal = initialBalance;
         const newAcc: Account = {
-          id: `acc_${Date.now()}_${Math.random().toString(36).substring(2, 5)}`,
+          id: `acc_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
           name: name.trim(),
           type,
           currency,
@@ -191,20 +239,22 @@ export const AccountModal: React.FC<AccountModalProps> = ({
           currentBalance: initBal,
           color,
           icon,
-          isArchived: false,
-          order: existingAccounts.length,
           creditLimit: credLim,
           statementClosingDay: stmtDay,
+          order: existingAccounts.length,
+          isArchived: false,
         };
 
         await saveAccount(newAcc, user?.uid);
       }
 
       playSound("success", true);
+      triggerHaptic(30);
       onClose();
-    } catch (err) {
-      console.error("[AccountModal] Error saving account:", err);
-      setError("Failed to save account details");
+    } catch (err: unknown) {
+      console.error("[AccountModal] Submit failed:", err);
+      setError("Failed to save account. Please verify input values.");
+      playSound("alert", true);
     } finally {
       setIsSubmitting(false);
     }
@@ -300,14 +350,14 @@ export const AccountModal: React.FC<AccountModalProps> = ({
                 <select
                   value={type}
                   onChange={(e) => setType(e.target.value as AccountType)}
-                  className="w-full rounded-xl border border-white/[0.08] dark:border-white/[0.08] light:border-slate-200 bg-white/[0.03] dark:bg-white/[0.03] light:bg-slate-50 px-3.5 py-2.5 text-xs text-white dark:text-white light:text-slate-900 focus:outline-none focus:border-emerald-500/50 font-mono-num"
+                  className="w-full rounded-xl border border-white/[0.08] dark:border-white/[0.08] light:border-slate-200 bg-[#0D111A] dark:bg-[#0D111A] light:bg-white px-3.5 py-2.5 text-xs text-white dark:text-white light:text-slate-900 focus:outline-none focus:border-emerald-500/50 font-mono-num"
                 >
-                  <option value="checking">Checking / Everyday</option>
-                  <option value="savings">Savings (High-Yield)</option>
-                  <option value="credit">Credit Card</option>
-                  <option value="ewallet">E-Wallet (GoPay, OVO, PayPal)</option>
-                  <option value="cash">Cash (Physical)</option>
-                  <option value="investment">Investment / Brokerage</option>
+                  <option value="checking" className="bg-[#0F131C] text-white dark:bg-[#0F131C] dark:text-white light:bg-white light:text-slate-900">Checking / Everyday</option>
+                  <option value="savings" className="bg-[#0F131C] text-white dark:bg-[#0F131C] dark:text-white light:bg-white light:text-slate-900">Savings Account</option>
+                  <option value="credit" className="bg-[#0F131C] text-white dark:bg-[#0F131C] dark:text-white light:bg-white light:text-slate-900">Credit Card</option>
+                  <option value="ewallet" className="bg-[#0F131C] text-white dark:bg-[#0F131C] dark:text-white light:bg-white light:text-slate-900">E-Wallet (GoPay, OVO, PayPal)</option>
+                  <option value="cash" className="bg-[#0F131C] text-white dark:bg-[#0F131C] dark:text-white light:bg-white light:text-slate-900">Physical Cash</option>
+                  <option value="investment" className="bg-[#0F131C] text-white dark:bg-[#0F131C] dark:text-white light:bg-white light:text-slate-900">Investment / Crypto</option>
                 </select>
               </div>
 
@@ -332,14 +382,19 @@ export const AccountModal: React.FC<AccountModalProps> = ({
                 <label className="block text-[11px] font-medium text-zinc-400 mb-1">
                   Initial Opening Balance ({currency})
                 </label>
-                <input
-                  type="number"
-                  step="any"
-                  value={initialBalance}
-                  onChange={(e) => setInitialBalance(e.target.value)}
-                  placeholder="0"
-                  className="w-full rounded-xl border border-white/[0.08] dark:border-white/[0.08] light:border-slate-200 bg-white/[0.03] dark:bg-white/[0.03] light:bg-slate-50 px-3.5 py-2.5 text-xs text-white dark:text-white light:text-slate-900 placeholder:text-zinc-500 focus:outline-none focus:border-emerald-500/50 font-mono-num font-semibold"
-                />
+                <div className="relative flex items-center">
+                  <span className="absolute left-3.5 text-zinc-400 font-mono-num text-sm select-none">
+                    {currency === "IDR" ? "Rp" : currency}
+                  </span>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    value={initialBalanceDisplay}
+                    onChange={handleInitialBalanceChange}
+                    placeholder="0"
+                    className="w-full pl-12 pr-3.5 py-2.5 rounded-xl border border-white/[0.08] dark:border-white/[0.08] light:border-slate-200 bg-white/[0.03] dark:bg-white/[0.03] light:bg-slate-50 text-base text-white dark:text-white light:text-slate-900 placeholder:text-zinc-500 focus:outline-none focus:border-emerald-500/50 font-mono-num font-bold tabular-nums"
+                  />
+                </div>
               </div>
             ) : (
               <div className="p-3.5 rounded-xl bg-white/[0.02] dark:bg-white/[0.02] light:bg-slate-50 border border-white/[0.06] dark:border-white/[0.06] light:border-slate-200 space-y-2">
@@ -353,13 +408,19 @@ export const AccountModal: React.FC<AccountModalProps> = ({
                   <label className="block text-[11px] font-medium text-zinc-400 mb-1">
                     Calibrate Balance (Generates adjustment entry)
                   </label>
-                  <input
-                    type="number"
-                    step="any"
-                    value={currentBalanceInput}
-                    onChange={(e) => setCurrentBalanceInput(e.target.value)}
-                    className="w-full rounded-xl border border-white/[0.08] dark:border-white/[0.08] light:border-slate-200 bg-white/[0.03] dark:bg-white/[0.03] light:bg-white px-3 py-2 text-xs text-white dark:text-white light:text-slate-900 font-mono-num"
-                  />
+                  <div className="relative flex items-center">
+                    <span className="absolute left-3.5 text-zinc-400 font-mono-num text-xs select-none">
+                      {currency === "IDR" ? "Rp" : currency}
+                    </span>
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      value={currentBalanceDisplay}
+                      onChange={handleCurrentBalanceChange}
+                      placeholder="0"
+                      className="w-full pl-12 pr-3.5 py-2 rounded-xl border border-white/[0.08] dark:border-white/[0.08] light:border-slate-200 bg-white/[0.03] dark:bg-white/[0.03] light:bg-white text-xs text-white dark:text-white light:text-slate-900 font-mono-num font-semibold tabular-nums focus:outline-none focus:border-emerald-500/50"
+                    />
+                  </div>
                 </div>
               </div>
             )}
@@ -371,13 +432,19 @@ export const AccountModal: React.FC<AccountModalProps> = ({
                   <label className="block text-[11px] font-medium text-zinc-400 mb-1">
                     Credit Limit ({currency})
                   </label>
-                  <input
-                    type="number"
-                    value={creditLimit}
-                    onChange={(e) => setCreditLimit(e.target.value)}
-                    placeholder="e.g. 50000000"
-                    className="w-full rounded-xl border border-white/[0.08] dark:border-white/[0.08] light:border-slate-200 bg-white/[0.03] dark:bg-white/[0.03] light:bg-white px-3 py-2 text-xs text-white dark:text-white light:text-slate-900 font-mono-num"
-                  />
+                  <div className="relative flex items-center">
+                    <span className="absolute left-3 text-zinc-400 font-mono-num text-xs select-none">
+                      {currency === "IDR" ? "Rp" : currency}
+                    </span>
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      value={creditLimitDisplay}
+                      onChange={handleCreditLimitChange}
+                      placeholder="0"
+                      className="w-full pl-10 pr-3 py-2 rounded-xl border border-white/[0.08] dark:border-white/[0.08] light:border-slate-200 bg-white/[0.03] dark:bg-white/[0.03] light:bg-white text-xs text-white dark:text-white light:text-slate-900 font-mono-num font-semibold tabular-nums focus:outline-none focus:border-emerald-500/50"
+                    />
+                  </div>
                 </div>
                 <div>
                   <label className="block text-[11px] font-medium text-zinc-400 mb-1">

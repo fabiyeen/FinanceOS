@@ -53,7 +53,8 @@ export const QuickTransactionModal: React.FC = () => {
   const locale = settings?.locale || "id-ID";
 
   const [type, setType] = useState<TransactionType>("expense");
-  const [amountStr, setAmountStr] = useState("");
+  const [rawAmount, setRawAmount] = useState<number>(0);
+  const [displayAmount, setDisplayAmount] = useState<string>("");
   const [desc, setDesc] = useState("");
   const [fromAccountId, setFromAccountId] = useState("");
   const [toAccountId, setToAccountId] = useState("");
@@ -91,7 +92,9 @@ export const QuickTransactionModal: React.FC = () => {
 
       const initialType = quickTxDraft?.type || "expense";
       setType(initialType);
-      setAmountStr(quickTxDraft?.amount ? String(quickTxDraft.amount) : "");
+      const initAmount = quickTxDraft?.amount || 0;
+      setRawAmount(initAmount);
+      setDisplayAmount(initAmount > 0 ? initAmount.toLocaleString("id-ID") : "");
       setDesc(quickTxDraft?.desc || "");
       setFromAccountId(
         quickTxDraft?.fromAccountId ||
@@ -150,11 +153,25 @@ export const QuickTransactionModal: React.FC = () => {
     }
   };
 
+  const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const cleanDigits = e.target.value.replace(/\D/g, "");
+    if (!cleanDigits) {
+      setRawAmount(0);
+      setDisplayAmount("");
+      return;
+    }
+    const numericValue = parseInt(cleanDigits, 10);
+    setRawAmount(numericValue);
+    setDisplayAmount(numericValue.toLocaleString("id-ID"));
+  };
+
   const handleQuickAddAmount = (add: number) => {
     playSound("click", soundEnabled);
     triggerHaptic(10);
-    const curr = parseFloat(amountStr) || 0;
-    setAmountStr(String(curr + add));
+    const curr = rawAmount || 0;
+    const nextVal = curr + add;
+    setRawAmount(nextVal);
+    setDisplayAmount(nextVal > 0 ? nextVal.toLocaleString("id-ID") : "");
   };
 
   const selectedVault = vaults.find((v) => v.id === vaultId);
@@ -162,7 +179,7 @@ export const QuickTransactionModal: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const parsedAmount = Math.abs(parseFloat(amountStr));
+    const parsedAmount = Math.abs(rawAmount);
 
     if (!parsedAmount || isNaN(parsedAmount)) {
       setError("Please enter a valid monetary amount");
@@ -298,22 +315,20 @@ export const QuickTransactionModal: React.FC = () => {
               <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1">
                 Amount ({currency})
               </label>
-              <div className="relative">
+              <div className="relative flex items-center">
+                <span className="absolute left-3.5 text-zinc-500 font-mono-num text-sm select-none pointer-events-none">
+                  {currency === "IDR" ? "Rp" : currency}
+                </span>
                 <input
-                  type="number"
-                  step="any"
-                  value={amountStr}
-                  onChange={(e) => setAmountStr(e.target.value)}
+                  type="text"
+                  inputMode="numeric"
+                  value={displayAmount}
+                  onChange={handleAmountChange}
                   placeholder="0"
-                  className="w-full rounded-xl border border-[var(--border-subtle)] bg-[var(--card-surface)] px-3.5 py-2.5 font-mono-num text-xl font-bold text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:border-emerald-500 focus:outline-none min-h-[44px]"
+                  className="w-full pl-12 pr-3.5 py-2.5 rounded-xl border border-[var(--border-subtle)] bg-[var(--card-surface)] font-mono-num text-xl font-bold text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:border-emerald-500 focus:outline-none min-h-[44px] tabular-nums"
                   required
                   autoFocus
                 />
-                {amountStr && (
-                  <span className="absolute right-3.5 top-3 text-xs font-mono-num text-[var(--text-muted)]">
-                    {formatCurrency(parseFloat(amountStr) || 0, currency, locale)}
-                  </span>
-                )}
               </div>
 
               {/* Quick Increment Chips */}
@@ -358,7 +373,7 @@ export const QuickTransactionModal: React.FC = () => {
                   className="w-full rounded-xl border border-[var(--border-subtle)] bg-[var(--card-surface)] px-3.5 py-2.5 text-xs text-[var(--text-primary)] focus:border-emerald-500 focus:outline-none min-h-[44px]"
                 >
                   {accounts.map((acc) => (
-                    <option key={acc.id} value={acc.id}>
+                    <option key={acc.id} value={acc.id} className="bg-[#0F131C] text-white dark:bg-[#0F131C] dark:text-white light:bg-white light:text-slate-900">
                       {acc.name} ({formatCurrency(acc.currentBalance, acc.currency, locale)})
                     </option>
                   ))}
@@ -382,7 +397,7 @@ export const QuickTransactionModal: React.FC = () => {
                     className="w-full rounded-xl border border-[var(--border-subtle)] bg-[var(--card-surface)] px-3.5 py-2.5 text-xs text-[var(--text-primary)] focus:border-emerald-500 focus:outline-none min-h-[44px]"
                   >
                     {accounts.map((acc) => (
-                      <option key={acc.id} value={acc.id}>
+                      <option key={acc.id} value={acc.id} className="bg-[#0F131C] text-white dark:bg-[#0F131C] dark:text-white light:bg-white light:text-slate-900">
                         {acc.name} ({formatCurrency(acc.currentBalance, acc.currency, locale)})
                       </option>
                     ))}
@@ -402,7 +417,7 @@ export const QuickTransactionModal: React.FC = () => {
                     className="w-full rounded-xl border border-[var(--border-subtle)] bg-[var(--card-surface)] px-3.5 py-2.5 text-xs text-[var(--text-primary)] focus:border-emerald-500 focus:outline-none min-h-[44px]"
                   >
                     {vaults.map((v) => (
-                      <option key={v.id} value={v.id}>
+                      <option key={v.id} value={v.id} className="bg-[#0F131C] text-white dark:bg-[#0F131C] dark:text-white light:bg-white light:text-slate-900">
                         {v.title} ({formatCurrency(v.currentAmount, currency, locale)})
                       </option>
                     ))}
@@ -427,7 +442,7 @@ export const QuickTransactionModal: React.FC = () => {
                     className="w-full rounded-xl border border-[var(--border-subtle)] bg-[var(--card-surface)] px-3.5 py-2.5 text-xs text-[var(--text-primary)] focus:border-emerald-500 focus:outline-none min-h-[44px]"
                   >
                     {debts.map((d) => (
-                      <option key={d.id} value={d.id}>
+                      <option key={d.id} value={d.id} className="bg-[#0F131C] text-white dark:bg-[#0F131C] dark:text-white light:bg-white light:text-slate-900">
                         {d.counterparty} ({formatCurrency(d.amount - d.paidAmount, currency, locale)} remaining)
                       </option>
                     ))}

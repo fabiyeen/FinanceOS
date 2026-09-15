@@ -215,3 +215,25 @@
   pointer-events: none;
   transition: filter 0.2s ease;
 }
+
+/* Select Option Contrast Guard */
+select option {
+  background-color: #0F131C;
+  color: #FFFFFF;
+}
+
+.light select option {
+  background-color: #FFFFFF;
+  color: #0F172A;
+}
+
+/* Numeric input spinner removal */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}

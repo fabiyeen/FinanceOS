@@ -121,9 +121,9 @@ export const CsvExportModal: React.FC = () => {
               onChange={(e) => setDateFilter(e.target.value as "all" | "this_month" | "this_year")}
               className="w-full rounded-xl border border-white/[0.08] dark:border-white/[0.08] light:border-slate-200 bg-white/[0.03] dark:bg-white/[0.03] light:bg-slate-50 px-3.5 py-2.5 text-xs text-white dark:text-white light:text-slate-900 focus:outline-none focus:border-emerald-500/50 font-mono-num"
             >
-              <option value="this_month">Current Month Only</option>
-              <option value="this_year">Current Year ({new Date().getFullYear()})</option>
-              <option value="all">All-time Transactions</option>
+              <option value="this_month" className="bg-[#0F131C] text-white dark:bg-[#0F131C] dark:text-white light:bg-white light:text-slate-900">Current Month Only</option>
+              <option value="this_year" className="bg-[#0F131C] text-white dark:bg-[#0F131C] dark:text-white light:bg-white light:text-slate-900">Current Year ({new Date().getFullYear()})</option>
+              <option value="all" className="bg-[#0F131C] text-white dark:bg-[#0F131C] dark:text-white light:bg-white light:text-slate-900">All-time Transactions</option>
             </select>
           </div>
 
@@ -136,9 +136,9 @@ export const CsvExportModal: React.FC = () => {
               onChange={(e) => setSelectedAccountId(e.target.value)}
               className="w-full rounded-xl border border-white/[0.08] dark:border-white/[0.08] light:border-slate-200 bg-white/[0.03] dark:bg-white/[0.03] light:bg-slate-50 px-3.5 py-2.5 text-xs text-white dark:text-white light:text-slate-900 focus:outline-none focus:border-emerald-500/50 font-mono-num"
             >
-              <option value="all">All Accounts Combined</option>
+              <option value="all" className="bg-[#0F131C] text-white dark:bg-[#0F131C] dark:text-white light:bg-white light:text-slate-900">All Accounts Combined</option>
               {accounts.map((a) => (
-                <option key={a.id} value={a.id}>
+                <option key={a.id} value={a.id} className="bg-[#0F131C] text-white dark:bg-[#0F131C] dark:text-white light:bg-white light:text-slate-900">
                   {a.name}
                 </option>
               ))}
@@ -154,9 +154,9 @@ export const CsvExportModal: React.FC = () => {
               onChange={(e) => setSelectedCategoryId(e.target.value)}
               className="w-full rounded-xl border border-white/[0.08] dark:border-white/[0.08] light:border-slate-200 bg-white/[0.03] dark:bg-white/[0.03] light:bg-slate-50 px-3.5 py-2.5 text-xs text-white dark:text-white light:text-slate-900 focus:outline-none focus:border-emerald-500/50 font-mono-num"
             >
-              <option value="all">All Categories</option>
+              <option value="all" className="bg-[#0F131C] text-white dark:bg-[#0F131C] dark:text-white light:bg-white light:text-slate-900">All Categories</option>
               {categories.map((c) => (
-                <option key={c.id} value={c.id}>
+                <option key={c.id} value={c.id} className="bg-[#0F131C] text-white dark:bg-[#0F131C] dark:text-white light:bg-white light:text-slate-900">
                   {c.name}
                 </option>
               ))}

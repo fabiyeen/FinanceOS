@@ -24,15 +24,27 @@ export const DebtTracker: React.FC = () => {
 
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [counterparty, setCounterparty] = useState("");
-  const [amountStr, setAmountStr] = useState("");
+  const [rawAmount, setRawAmount] = useState<number>(0);
+  const [displayAmount, setDisplayAmount] = useState<string>("");
   const [direction, setDirection] = useState<"owe" | "owed">("owe");
   const [dueDate, setDueDate] = useState("");
   const [desc, setDesc] = useState("");
 
+  const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const cleanDigits = e.target.value.replace(/\D/g, "");
+    if (!cleanDigits) {
+      setRawAmount(0);
+      setDisplayAmount("");
+      return;
+    }
+    const val = parseInt(cleanDigits, 10);
+    setRawAmount(val);
+    setDisplayAmount(val.toLocaleString("id-ID"));
+  };
+
   const handleCreateDebt = async (e: React.FormEvent) => {
     e.preventDefault();
-    const amount = parseFloat(amountStr);
-    if (!counterparty.trim() || !amount) return;
+    if (!counterparty.trim() || !rawAmount) return;
 
     playSound("click", soundEnabled);
     triggerHaptic(20);
@@ -40,7 +52,7 @@ export const DebtTracker: React.FC = () => {
     const newDebt: Debt = {
       id: `debt_${Date.now()}_${Math.random().toString(36).substring(2, 5)}`,
       counterparty: counterparty.trim(),
-      amount: Math.abs(amount),
+      amount: Math.abs(rawAmount),
       paidAmount: 0,
       direction,
       dueDate: dueDate || undefined,
@@ -54,7 +66,8 @@ export const DebtTracker: React.FC = () => {
     playSound("success", soundEnabled);
     setIsAddOpen(false);
     setCounterparty("");
-    setAmountStr("");
+    setRawAmount(0);
+    setDisplayAmount("");
     setDesc("");
   };
 
@@ -210,22 +223,28 @@ export const DebtTracker: React.FC = () => {
                     onChange={(e) => setDirection(e.target.value as "owe" | "owed")}
                     className="w-full rounded-lg border border-[var(--border-default)] bg-[var(--bg-canvas)] px-3 py-2 text-xs text-[var(--text-primary)] focus:border-[var(--accent-primary)] focus:outline-none"
                   >
-                    <option value="owe">I Owe (Payable)</option>
-                    <option value="owed">Owed to Me (Receivable)</option>
+                    <option value="owe" className="bg-[#0F131C] text-white dark:bg-[#0F131C] dark:text-white light:bg-white light:text-slate-900">I Owe (Payable)</option>
+                    <option value="owed" className="bg-[#0F131C] text-white dark:bg-[#0F131C] dark:text-white light:bg-white light:text-slate-900">Owed to Me (Receivable)</option>
                   </select>
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1">
                     Amount
                   </label>
-                  <input
-                    type="number"
-                    value={amountStr}
-                    onChange={(e) => setAmountStr(e.target.value)}
-                    placeholder="0"
-                    className="w-full rounded-lg border border-[var(--border-default)] bg-[var(--bg-canvas)] px-3 py-2 text-xs text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:border-[var(--accent-primary)] focus:outline-none"
-                    required
-                  />
+                  <div className="relative flex items-center">
+                    <span className="absolute left-2.5 text-[var(--text-muted)] font-mono-num text-xs select-none pointer-events-none">
+                      {currency === "IDR" ? "Rp" : currency}
+                    </span>
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      value={displayAmount}
+                      onChange={handleAmountChange}
+                      placeholder="0"
+                      className="w-full rounded-lg border border-[var(--border-default)] bg-[var(--bg-canvas)] pl-8 pr-3 py-2 text-xs text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:border-[var(--accent-primary)] focus:outline-none font-mono-num font-medium tabular-nums"
+                      required
+                    />
+                  </div>
                 </div>
               </div>
 

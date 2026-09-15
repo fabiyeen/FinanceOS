@@ -263,11 +263,11 @@ export const ToolsView: React.FC = () => {
               onChange={(e) => handleAutoLockChange(parseInt(e.target.value))}
               className="rounded-xl border border-[var(--border-subtle)] bg-[var(--card-surface)] px-3 py-2 text-xs text-[var(--text-primary)] focus:border-emerald-500 focus:outline-none shrink-0 min-h-[40px]"
             >
-              <option value="0">Immediately on Blur / Tab Switch</option>
-              <option value="1">1 Minute Inactivity</option>
-              <option value="5">5 Minutes Inactivity (Default)</option>
-              <option value="15">15 Minutes Inactivity</option>
-              <option value="-1">Never (Manual Lock Only)</option>
+              <option value="0" className="bg-[#0F131C] text-white dark:bg-[#0F131C] dark:text-white light:bg-white light:text-slate-900">Immediately on Blur / Tab Switch</option>
+              <option value="1" className="bg-[#0F131C] text-white dark:bg-[#0F131C] dark:text-white light:bg-white light:text-slate-900">1 Minute Inactivity</option>
+              <option value="5" className="bg-[#0F131C] text-white dark:bg-[#0F131C] dark:text-white light:bg-white light:text-slate-900">5 Minutes Inactivity (Default)</option>
+              <option value="15" className="bg-[#0F131C] text-white dark:bg-[#0F131C] dark:text-white light:bg-white light:text-slate-900">15 Minutes Inactivity</option>
+              <option value="-1" className="bg-[#0F131C] text-white dark:bg-[#0F131C] dark:text-white light:bg-white light:text-slate-900">Never (Manual Lock Only)</option>
             </select>
           </div>
 

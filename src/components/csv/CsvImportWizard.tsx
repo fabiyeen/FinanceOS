@@ -242,9 +242,9 @@ export const CsvImportWizard: React.FC = () => {
                   onChange={(e) => setMapping({ ...mapping, date: e.target.value })}
                   className="w-full rounded-xl border border-white/[0.08] dark:border-white/[0.08] light:border-slate-200 bg-white/[0.03] dark:bg-white/[0.03] light:bg-white px-3 py-2 text-xs text-white dark:text-white light:text-slate-900 focus:outline-none focus:border-emerald-500/50 font-mono-num"
                 >
-                  <option value="">-- Select Header --</option>
+                  <option value="" className="bg-[#0F131C] text-white dark:bg-[#0F131C] dark:text-white light:bg-white light:text-slate-900">-- Select Header --</option>
                   {csvHeaders.map((h) => (
-                    <option key={h} value={h}>
+                    <option key={h} value={h} className="bg-[#0F131C] text-white dark:bg-[#0F131C] dark:text-white light:bg-white light:text-slate-900">
                       {h}
                     </option>
                   ))}
@@ -260,9 +260,9 @@ export const CsvImportWizard: React.FC = () => {
                   onChange={(e) => setMapping({ ...mapping, amount: e.target.value })}
                   className="w-full rounded-xl border border-white/[0.08] dark:border-white/[0.08] light:border-slate-200 bg-white/[0.03] dark:bg-white/[0.03] light:bg-white px-3 py-2 text-xs text-white dark:text-white light:text-slate-900 focus:outline-none focus:border-emerald-500/50 font-mono-num"
                 >
-                  <option value="">-- Select Header --</option>
+                  <option value="" className="bg-[#0F131C] text-white dark:bg-[#0F131C] dark:text-white light:bg-white light:text-slate-900">-- Select Header --</option>
                   {csvHeaders.map((h) => (
-                    <option key={h} value={h}>
+                    <option key={h} value={h} className="bg-[#0F131C] text-white dark:bg-[#0F131C] dark:text-white light:bg-white light:text-slate-900">
                       {h}
                     </option>
                   ))}
@@ -278,9 +278,9 @@ export const CsvImportWizard: React.FC = () => {
                   onChange={(e) => setMapping({ ...mapping, desc: e.target.value })}
                   className="w-full rounded-xl border border-white/[0.08] dark:border-white/[0.08] light:border-slate-200 bg-white/[0.03] dark:bg-white/[0.03] light:bg-white px-3 py-2 text-xs text-white dark:text-white light:text-slate-900 focus:outline-none focus:border-emerald-500/50 font-mono-num"
                 >
-                  <option value="">-- Select Header --</option>
+                  <option value="" className="bg-[#0F131C] text-white dark:bg-[#0F131C] dark:text-white light:bg-white light:text-slate-900">-- Select Header --</option>
                   {csvHeaders.map((h) => (
-                    <option key={h} value={h}>
+                    <option key={h} value={h} className="bg-[#0F131C] text-white dark:bg-[#0F131C] dark:text-white light:bg-white light:text-slate-900">
                       {h}
                     </option>
                   ))}
@@ -296,9 +296,9 @@ export const CsvImportWizard: React.FC = () => {
                   onChange={(e) => setMapping({ ...mapping, type: e.target.value })}
                   className="w-full rounded-xl border border-white/[0.08] dark:border-white/[0.08] light:border-slate-200 bg-white/[0.03] dark:bg-white/[0.03] light:bg-white px-3 py-2 text-xs text-white dark:text-white light:text-slate-900 focus:outline-none focus:border-emerald-500/50 font-mono-num"
                 >
-                  <option value="">-- None (Default: Expense) --</option>
+                  <option value="" className="bg-[#0F131C] text-white dark:bg-[#0F131C] dark:text-white light:bg-white light:text-slate-900">-- None (Default: Expense) --</option>
                   {csvHeaders.map((h) => (
-                    <option key={h} value={h}>
+                    <option key={h} value={h} className="bg-[#0F131C] text-white dark:bg-[#0F131C] dark:text-white light:bg-white light:text-slate-900">
                       {h}
                     </option>
                   ))}

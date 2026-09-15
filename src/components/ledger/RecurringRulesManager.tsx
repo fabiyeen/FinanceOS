@@ -25,7 +25,8 @@ export const RecurringRulesManager: React.FC = () => {
 
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [title, setTitle] = useState("");
-  const [amountStr, setAmountStr] = useState("");
+  const [rawAmount, setRawAmount] = useState<number>(0);
+  const [displayAmount, setDisplayAmount] = useState<string>("");
   const [type, setType] = useState<"expense" | "income">("expense");
   const [frequency, setFrequency] = useState<RecurringRule["frequency"]>("monthly");
   const [nextRunDate, setNextRunDate] = useState(new Date().toISOString().split("T")[0]);
@@ -33,10 +34,21 @@ export const RecurringRulesManager: React.FC = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [statusMsg, setStatusMsg] = useState("");
 
+  const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const cleanDigits = e.target.value.replace(/\D/g, "");
+    if (!cleanDigits) {
+      setRawAmount(0);
+      setDisplayAmount("");
+      return;
+    }
+    const val = parseInt(cleanDigits, 10);
+    setRawAmount(val);
+    setDisplayAmount(val.toLocaleString("id-ID"));
+  };
+
   const handleCreateRule = async (e: React.FormEvent) => {
     e.preventDefault();
-    const amount = parseFloat(amountStr);
-    if (!title.trim() || !amount) return;
+    if (!title.trim() || !rawAmount) return;
 
     playSound("click", soundEnabled);
     triggerHaptic(20);
@@ -47,7 +59,7 @@ export const RecurringRulesManager: React.FC = () => {
     const newRule: RecurringRule = {
       id: `rule_${Date.now()}_${Math.random().toString(36).substring(2, 5)}`,
       title: title.trim(),
-      amount: Math.abs(amount),
+      amount: Math.abs(rawAmount),
       type,
       frequency,
       interval: 1,
@@ -62,7 +74,8 @@ export const RecurringRulesManager: React.FC = () => {
     playSound("success", soundEnabled);
     setIsAddOpen(false);
     setTitle("");
-    setAmountStr("");
+    setRawAmount(0);
+    setDisplayAmount("");
   };
 
   const handleRunDue = async () => {
@@ -233,22 +246,28 @@ export const RecurringRulesManager: React.FC = () => {
                     onChange={(e) => setType(e.target.value as "expense" | "income")}
                     className="w-full rounded-xl border border-white/[0.08] dark:border-white/[0.08] light:border-slate-200 bg-[var(--bg-surface)] px-3 py-2 text-xs text-[var(--text-secondary)] focus:border-emerald-500/50 focus:outline-none transition-colors"
                   >
-                    <option value="expense">Expense</option>
-                    <option value="income">Income</option>
+                    <option value="expense" className="bg-[#0F131C] text-white dark:bg-[#0F131C] dark:text-white light:bg-white light:text-slate-900">Expense</option>
+                    <option value="income" className="bg-[#0F131C] text-white dark:bg-[#0F131C] dark:text-white light:bg-white light:text-slate-900">Income</option>
                   </select>
                 </div>
                 <div>
                   <label className="block text-[11px] font-medium text-[var(--text-muted)] mb-1">
                     Amount ({currency})
                   </label>
-                  <input
-                    type="number"
-                    value={amountStr}
-                    onChange={(e) => setAmountStr(e.target.value)}
-                    placeholder="0"
-                    className="w-full rounded-xl border border-white/[0.08] dark:border-white/[0.08] light:border-slate-200 bg-[var(--bg-surface)] px-3.5 py-2 text-xs text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:border-emerald-500/50 focus:outline-none transition-colors font-mono-num"
-                    required
-                  />
+                  <div className="relative flex items-center">
+                    <span className="absolute left-3 text-[var(--text-muted)] font-mono-num text-xs select-none pointer-events-none">
+                      {currency === "IDR" ? "Rp" : currency}
+                    </span>
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      value={displayAmount}
+                      onChange={handleAmountChange}
+                      placeholder="0"
+                      className="w-full rounded-xl border border-white/[0.08] dark:border-white/[0.08] light:border-slate-200 bg-[var(--bg-surface)] pl-9 pr-3.5 py-2 text-xs text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:border-emerald-500/50 focus:outline-none transition-colors font-mono-num font-medium tabular-nums"
+                      required
+                    />
+                  </div>
                 </div>
               </div>
 
@@ -262,11 +281,11 @@ export const RecurringRulesManager: React.FC = () => {
                     onChange={(e) => setFrequency(e.target.value as RecurringRule["frequency"])}
                     className="w-full rounded-xl border border-white/[0.08] dark:border-white/[0.08] light:border-slate-200 bg-[var(--bg-surface)] px-3 py-2 text-xs text-[var(--text-secondary)] focus:border-emerald-500/50 focus:outline-none transition-colors"
                   >
-                    <option value="daily">Daily</option>
-                    <option value="weekly">Weekly</option>
-                    <option value="biweekly">Bi-weekly (2 weeks)</option>
-                    <option value="monthly">Monthly</option>
-                    <option value="yearly">Yearly</option>
+                    <option value="daily" className="bg-[#0F131C] text-white dark:bg-[#0F131C] dark:text-white light:bg-white light:text-slate-900">Daily</option>
+                    <option value="weekly" className="bg-[#0F131C] text-white dark:bg-[#0F131C] dark:text-white light:bg-white light:text-slate-900">Weekly</option>
+                    <option value="biweekly" className="bg-[#0F131C] text-white dark:bg-[#0F131C] dark:text-white light:bg-white light:text-slate-900">Bi-weekly (2 weeks)</option>
+                    <option value="monthly" className="bg-[#0F131C] text-white dark:bg-[#0F131C] dark:text-white light:bg-white light:text-slate-900">Monthly</option>
+                    <option value="yearly" className="bg-[#0F131C] text-white dark:bg-[#0F131C] dark:text-white light:bg-white light:text-slate-900">Yearly</option>
                   </select>
                 </div>
                 <div>
