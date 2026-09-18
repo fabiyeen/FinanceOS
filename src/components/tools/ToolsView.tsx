@@ -18,6 +18,7 @@ import {
   Laptop,
   Palette,
   Volume2,
+  User,
 } from "lucide-react";
 import { DebtTracker } from "../ledger/DebtTracker";
 import { RecurringRulesManager } from "../ledger/RecurringRulesManager";
@@ -25,6 +26,7 @@ import { PinSettingsModal } from "../security/PinSettingsModal";
 import { FactoryResetModal } from "../modals/FactoryResetModal";
 import { CategoryManager } from "./CategoryManager";
 import { useUIStore } from "../../store/useUIStore";
+import { useAuth } from "../../lib/auth/authContext";
 import { playSound, triggerHaptic } from "../../lib/audioHaptics";
 import { db } from "../../lib/db/dexie";
 import { useLiveQuery } from "dexie-react-hooks";
@@ -32,12 +34,14 @@ import { useTheme } from "../providers/ThemeProvider";
 import { ThemeMode } from "../../lib/types";
 
 export const ToolsView: React.FC = () => {
+  const { user } = useAuth();
   const {
     setCsvImportOpen,
     setCsvExportOpen,
     soundEnabled,
     hapticsEnabled,
     toggleHapticsEnabled,
+    openProfileModal,
   } = useUIStore();
 
   const { theme, setTheme } = useTheme();
@@ -198,6 +202,56 @@ export const ToolsView: React.FC = () => {
               <span>Export Records</span>
             </button>
           </div>
+        </div>
+      </div>
+
+      {/* Account & Security Profile */}
+      <div className="pt-4 border-t border-[var(--border-subtle)] space-y-3">
+        <div className="flex items-center gap-2">
+          <User className="h-4 w-4 text-emerald-500" />
+          <h3 className="text-sm font-semibold text-[var(--text-primary)]">
+            Account &amp; Security Profile
+          </h3>
+        </div>
+
+        <div className="industrial-card rounded-xl border border-[var(--border-subtle)] bg-[var(--card-bg)] p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="h-11 w-11 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-500 font-bold text-base select-none shrink-0">
+              {(user?.displayName || user?.email || "U")[0].toUpperCase()}
+            </div>
+            <div className="min-w-0">
+              <div className="flex items-center gap-2">
+                <h4 className="text-xs font-semibold text-[var(--text-primary)] truncate">
+                  {user?.displayName || "Account User"}
+                </h4>
+                <span
+                  className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${
+                    user?.emailVerified
+                      ? "bg-emerald-500/15 text-emerald-500"
+                      : "bg-amber-500/15 text-amber-500"
+                  }`}
+                >
+                  {user?.emailVerified ? "Verified" : "Active"}
+                </span>
+              </div>
+              <p className="text-xs text-[var(--text-secondary)] truncate mt-0.5">
+                {user?.email || "user@financeos.local"}
+              </p>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => {
+              playSound("click", soundEnabled);
+              triggerHaptic(15);
+              openProfileModal();
+            }}
+            className="flex items-center justify-center gap-1.5 rounded-xl border border-[var(--border-subtle)] bg-[var(--card-surface)] hover:bg-[var(--bg-surface-2)] px-4 py-2 text-xs font-semibold text-[var(--text-primary)] transition-colors shrink-0 min-h-[40px]"
+          >
+            <User className="h-3.5 w-3.5" />
+            <span>Manage Profile &amp; Security</span>
+          </button>
         </div>
       </div>
 

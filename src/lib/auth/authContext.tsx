@@ -21,6 +21,10 @@ export interface AuthUser {
   email: string;
   displayName?: string;
   isDemo?: boolean;
+  emailVerified?: boolean;
+  createdAt?: string;
+  lastSignInAt?: string;
+  photoURL?: string;
 }
 
 interface AuthContextType {
@@ -31,6 +35,7 @@ interface AuthContextType {
   signOut: () => Promise<void>;
   signInWithDemoOperative: (id: "operative_a" | "operative_b") => Promise<void>;
   verifyPassword: (password: string) => Promise<boolean>;
+  updateUser: (updates: Partial<AuthUser>) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -67,6 +72,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             uid: fbUser.uid,
             email: fbUser.email || "user@financeos.local",
             displayName: fbUser.displayName || fbUser.email?.split("@")[0] || "Operative",
+            emailVerified: fbUser.emailVerified,
+            createdAt: fbUser.metadata?.creationTime,
+            lastSignInAt: fbUser.metadata?.lastSignInTime,
+            photoURL: fbUser.photoURL || undefined,
+            isDemo: false,
           };
           setUser(authUser);
           localStorage.setItem(LOCAL_SESSION_KEY, JSON.stringify(authUser));
@@ -241,6 +251,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const updateUser = (updates: Partial<AuthUser>) => {
+    setUser((prev) => {
+      if (!prev) return null;
+      const updated = { ...prev, ...updates };
+      localStorage.setItem(LOCAL_SESSION_KEY, JSON.stringify(updated));
+      return updated;
+    });
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -251,6 +270,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         signOut,
         signInWithDemoOperative,
         verifyPassword,
+        updateUser,
       }}
     >
       {children}

@@ -37,6 +37,7 @@ import { HeatmapCalendar } from "../components/analytics/HeatmapCalendar";
 import { CashflowHorizonChart } from "../components/analytics/CashflowHorizonChart";
 import { ExpenseTreemap } from "../components/analytics/ExpenseTreemap";
 import { ToolsView } from "../components/tools/ToolsView";
+import { ProfileModal } from "../components/profile/ProfileModal";
 
 export default function DashboardPage() {
   const {
@@ -48,7 +49,11 @@ export default function DashboardPage() {
     setCmdBarOpen,
     setCsvImportOpen,
     openVaultModal,
+    isProfileOpen,
+    setProfileOpen,
   } = useUIStore();
+
+  const setIsProfileOpen = (open: boolean) => setProfileOpen(open);
 
   // Route fallback: ensure valid tab defaults to overview
   useEffect(() => {
@@ -481,6 +486,12 @@ export default function DashboardPage() {
 
       {/* Tools / Settings Tab Content */}
       {activeTab === "tools" && <ToolsView />}
+
+      {/* User Profile & Security Settings Modal */}
+      <ProfileModal
+        isOpen={isProfileOpen}
+        onClose={() => setIsProfileOpen(false)}
+      />
     </div>
   );
 }

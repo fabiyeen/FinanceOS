@@ -45,6 +45,11 @@ interface UIState {
   isCsvExportOpen: boolean;
   setCsvExportOpen: (open: boolean) => void;
 
+  isProfileOpen: boolean;
+  setProfileOpen: (open: boolean) => void;
+  openProfileModal: () => void;
+  closeProfileModal: () => void;
+
   isLocked: boolean;
   setLocked: (locked: boolean) => void;
 
@@ -95,6 +100,11 @@ export const useUIStore = create<UIState>()(
 
       isCsvExportOpen: false,
       setCsvExportOpen: (isCsvExportOpen) => set({ isCsvExportOpen }),
+
+      isProfileOpen: false,
+      setProfileOpen: (isProfileOpen) => set({ isProfileOpen }),
+      openProfileModal: () => set({ isProfileOpen: true }),
+      closeProfileModal: () => set({ isProfileOpen: false }),
 
       isLocked: false,
       setLocked: (isLocked) => set({ isLocked }),

@@ -39,7 +39,11 @@ export const TopDock: React.FC = () => {
     setCmdBarOpen,
     openQuickTx,
     setLocked,
+    openProfileModal,
+    setProfileOpen,
   } = useUIStore();
+
+  const setIsProfileOpen = (open: boolean) => setProfileOpen(open);
 
   const { theme, effectiveTheme, setTheme } = useTheme();
   const { user, signOut } = useAuth();
@@ -187,15 +191,23 @@ export const TopDock: React.FC = () => {
           <div className="flex items-center gap-1 sm:gap-2">
             {/* User identity pill */}
             {user && (
-              <div
-                className="hidden md:flex items-center gap-1.5 rounded-lg border border-[var(--border-subtle)] bg-[var(--card-surface)] px-2.5 py-1 text-xs text-[var(--text-secondary)]"
-                title={`Logged in as ${user.email}`}
+              <button
+                type="button"
+                onClick={() => {
+                  playSound("click", soundEnabled);
+                  triggerHaptic(15);
+                  setIsProfileOpen(true);
+                }}
+                className="hidden md:flex items-center gap-2 rounded-lg border border-[var(--border-subtle)] bg-[var(--card-surface)] px-2.5 py-1.5 text-xs text-[var(--text-secondary)] hover:border-[var(--border-industrial)] hover:opacity-80 transition-all cursor-pointer min-h-[36px]"
+                title={`Logged in as ${user.email} — Click for Profile & Security`}
               >
-                <User className="h-3.5 w-3.5 text-[var(--text-muted)]" />
-                <span className="truncate max-w-[120px] font-medium text-[var(--text-primary)]">
+                <div className="h-5 w-5 rounded-full bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-[10px] font-bold text-emerald-500 shrink-0">
+                  {(user.displayName || user.email)[0].toUpperCase()}
+                </div>
+                <span className="truncate max-w-[130px] font-medium text-[var(--text-primary)]">
                   {user.displayName || user.email.split("@")[0]}
                 </span>
-              </div>
+              </button>
             )}
 
             {/* Quick Cmd Bar Trigger */}
