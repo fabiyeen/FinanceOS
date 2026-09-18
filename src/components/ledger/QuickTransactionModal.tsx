@@ -12,6 +12,7 @@ import {
   Settings2,
 } from "lucide-react";
 import { useUIStore } from "../../store/useUIStore";
+import { useAuth } from "../../lib/auth/authContext";
 import { TransactionType } from "../../lib/types";
 import { formatCurrency } from "../../lib/mathEngine";
 import { playSound, triggerHaptic } from "../../lib/audioHaptics";
@@ -29,6 +30,7 @@ const TYPE_OPTIONS: { type: TransactionType; label: string; icon: React.ElementT
 ];
 
 export const QuickTransactionModal: React.FC = () => {
+  const { user } = useAuth();
   const {
     isQuickTxOpen,
     closeQuickTx,
@@ -221,7 +223,7 @@ export const QuickTransactionModal: React.FC = () => {
       time: time || "12:00",
       note: note.trim() || undefined,
       source: "web_client",
-    });
+    }, user?.uid);
 
     if (res.error) {
       setError(res.error);

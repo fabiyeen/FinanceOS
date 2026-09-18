@@ -24,8 +24,10 @@ import { playSound, triggerHaptic } from "../../lib/audioHaptics";
 import { addTransactionWithLedgerSync } from "../../lib/db/syncEngine";
 import { db } from "../../lib/db/dexie";
 import { useLiveQuery } from "dexie-react-hooks";
+import { useAuth } from "../../lib/auth/authContext";
 
 export const CsvImportWizard: React.FC = () => {
+  const { user } = useAuth();
   const { isCsvImportOpen, setCsvImportOpen, soundEnabled } = useUIStore();
 
   const accounts = useLiveQuery(() => db.accounts.toArray()) ?? [];
@@ -140,7 +142,7 @@ export const CsvImportWizard: React.FC = () => {
           time: r.mapped.time || "12:00",
           note: r.mapped.note,
           source: "csv_import",
-        });
+        }, user?.uid);
         successCount++;
       }
     }

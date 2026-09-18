@@ -16,12 +16,14 @@ import {
 import { Transaction, TransactionType } from "../../lib/types";
 import { formatCurrency } from "../../lib/mathEngine";
 import { useUIStore } from "../../store/useUIStore";
+import { useAuth } from "../../lib/auth/authContext";
 import { deleteTransactionWithLedgerSync } from "../../lib/db/syncEngine";
 import { playSound, triggerHaptic } from "../../lib/audioHaptics";
 import { db } from "../../lib/db/dexie";
 import { useLiveQuery } from "dexie-react-hooks";
 
 export const TransactionFeed: React.FC = () => {
+  const { user } = useAuth();
   const { privacyMode, soundEnabled } = useUIStore();
 
   const transactions = useLiveQuery(() =>
@@ -100,7 +102,7 @@ export const TransactionFeed: React.FC = () => {
     if (confirm("Are you sure you want to delete this transaction and reverse its balance impact?")) {
       playSound("delete", soundEnabled);
       triggerHaptic(20);
-      await deleteTransactionWithLedgerSync(txId);
+      await deleteTransactionWithLedgerSync(txId, user?.uid);
     }
   };
 

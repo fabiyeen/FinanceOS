@@ -270,7 +270,7 @@ export function VaultModal({
           time: new Date().toTimeString().slice(0, 5),
           tags: ["liquidation", "vault_closure"],
           source: "web_client",
-        });
+        }, user?.uid);
       }
 
       // Delete the vault

@@ -13,6 +13,7 @@ import {
   Zap,
 } from "lucide-react";
 import { useUIStore } from "../../store/useUIStore";
+import { useAuth } from "../../lib/auth/authContext";
 import { parseNaturalLanguageInput } from "../../lib/nlpParser";
 import { formatCurrency } from "../../lib/mathEngine";
 import { playSound, triggerHaptic } from "../../lib/audioHaptics";
@@ -21,6 +22,7 @@ import { db } from "../../lib/db/dexie";
 import { useLiveQuery } from "dexie-react-hooks";
 
 export const UniversalCmdBar: React.FC = () => {
+  const { user } = useAuth();
   const {
     isCmdBarOpen,
     setCmdBarOpen,
@@ -105,7 +107,7 @@ export const UniversalCmdBar: React.FC = () => {
       date: today,
       time: `${hours}:${minutes}`,
       source: "web_client",
-    });
+    }, user?.uid);
 
     if (res.error) {
       setStatusMessage(`Error: ${res.error}`);

@@ -23,7 +23,7 @@ import { useAuth } from "../../lib/auth/authContext";
 import { formatCurrency } from "../../lib/mathEngine";
 import { playSound, triggerHaptic } from "../../lib/audioHaptics";
 import { db } from "../../lib/db/dexie";
-import { drainSyncQueue } from "../../lib/db/syncEngine";
+import { drainSyncQueue, hydrateFromFirestore } from "../../lib/db/syncEngine";
 import { useLiveQuery } from "dexie-react-hooks";
 import { calculateNetWorth } from "../../lib/mathEngine";
 import { PinSettingsModal } from "../security/PinSettingsModal";
@@ -41,6 +41,8 @@ export const TopDock: React.FC = () => {
     setLocked,
     openProfileModal,
     setProfileOpen,
+    syncStatus,
+    syncError,
   } = useUIStore();
 
   const setIsProfileOpen = (open: boolean) => setProfileOpen(open);
@@ -108,7 +110,14 @@ export const TopDock: React.FC = () => {
     setIsSyncing(true);
     playSound("tab", soundEnabled);
     try {
-      await drainSyncQueue();
+      if (user?.uid) {
+        await hydrateFromFirestore(user.uid);
+        await drainSyncQueue(user.uid);
+      } else {
+        await drainSyncQueue();
+      }
+    } catch (err) {
+      console.error("[TopDock Sync Error]", err);
     } finally {
       setIsSyncing(false);
     }
@@ -147,24 +156,42 @@ export const TopDock: React.FC = () => {
             {/* Sync Status Badge */}
             <button
               onClick={triggerSync}
-              title={isOnline ? "Online — click to force sync" : "Offline mode — changes saved locally"}
+              title={
+                !isOnline || syncStatus === "offline"
+                  ? "Offline mode — changes saved locally"
+                  : syncStatus === "error"
+                  ? (syncError || "Sync error encountered — click to force resync")
+                  : isSyncing || syncStatus === "syncing"
+                  ? "Synchronizing with cloud..."
+                  : "Synced with Firestore — click to force resync"
+              }
               className="flex items-center gap-1.5 rounded-full border border-[var(--border-subtle)] bg-[var(--card-surface)] px-2.5 py-1 text-xs text-[var(--text-secondary)] transition-colors hover:border-[var(--border-industrial)]"
             >
-              {isOnline ? (
-                <span className="flex items-center gap-1.5 text-xs text-emerald-500 font-medium">
-                  <span className="h-2 w-2 rounded-full bg-emerald-500" />
-                  <span className="hidden sm:inline">Synced</span>
-                </span>
-              ) : (
+              {(!isOnline || syncStatus === "offline") ? (
                 <span className="flex items-center gap-1.5 text-xs text-amber-500 font-medium">
                   <span className="h-2 w-2 rounded-full bg-amber-500" />
                   <span>Offline</span>
                 </span>
+              ) : syncStatus === "error" ? (
+                <span className="flex items-center gap-1.5 text-xs text-rose-500 font-medium">
+                  <span className="h-2 w-2 rounded-full bg-rose-500" />
+                  <span>Sync Error</span>
+                </span>
+              ) : (isSyncing || syncStatus === "syncing") ? (
+                <span className="flex items-center gap-1.5 text-xs text-amber-500 font-medium">
+                  <RefreshCw className="h-2.5 w-2.5 animate-spin text-amber-500" />
+                  <span>Syncing...</span>
+                </span>
+              ) : (
+                <span className="flex items-center gap-1.5 text-xs text-emerald-500 font-medium">
+                  <span className="h-2 w-2 rounded-full bg-emerald-500" />
+                  <span className="hidden sm:inline">Synced</span>
+                </span>
               )}
 
-              {pendingCount > 0 && (
+              {pendingCount > 0 && !(isSyncing || syncStatus === "syncing") && (
                 <span className="flex items-center gap-0.5 rounded-full bg-amber-500/15 px-1.5 text-[10px] text-amber-500 font-semibold">
-                  <RefreshCw className={`h-2.5 w-2.5 ${isSyncing ? "animate-spin" : ""}`} />
+                  <RefreshCw className="h-2.5 w-2.5" />
                   {pendingCount}
                 </span>
               )}

@@ -50,6 +50,10 @@ interface UIState {
   openProfileModal: () => void;
   closeProfileModal: () => void;
 
+  syncStatus: "synced" | "syncing" | "error" | "offline";
+  syncError: string | null;
+  setSyncStatus: (status: "synced" | "syncing" | "error" | "offline", error?: string | null) => void;
+
   isLocked: boolean;
   setLocked: (locked: boolean) => void;
 
@@ -105,6 +109,10 @@ export const useUIStore = create<UIState>()(
       setProfileOpen: (isProfileOpen) => set({ isProfileOpen }),
       openProfileModal: () => set({ isProfileOpen: true }),
       closeProfileModal: () => set({ isProfileOpen: false }),
+
+      syncStatus: "synced",
+      syncError: null,
+      setSyncStatus: (syncStatus, syncError = null) => set({ syncStatus, syncError }),
 
       isLocked: false,
       setLocked: (isLocked) => set({ isLocked }),

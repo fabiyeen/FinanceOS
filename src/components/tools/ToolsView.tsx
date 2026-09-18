@@ -19,6 +19,8 @@ import {
   Palette,
   Volume2,
   User,
+  Cloud,
+  RefreshCw,
 } from "lucide-react";
 import { DebtTracker } from "../ledger/DebtTracker";
 import { RecurringRulesManager } from "../ledger/RecurringRulesManager";
@@ -29,6 +31,7 @@ import { useUIStore } from "../../store/useUIStore";
 import { useAuth } from "../../lib/auth/authContext";
 import { playSound, triggerHaptic } from "../../lib/audioHaptics";
 import { db } from "../../lib/db/dexie";
+import { hydrateFromFirestore, drainSyncQueue } from "../../lib/db/syncEngine";
 import { useLiveQuery } from "dexie-react-hooks";
 import { useTheme } from "../providers/ThemeProvider";
 import { ThemeMode } from "../../lib/types";
@@ -42,13 +45,43 @@ export const ToolsView: React.FC = () => {
     hapticsEnabled,
     toggleHapticsEnabled,
     openProfileModal,
+    syncStatus,
+    syncError,
   } = useUIStore();
 
   const { theme, setTheme } = useTheme();
   const settings = useLiveQuery(() => db.settings.get("main"));
+  const pendingCount = useLiveQuery(() => db.syncQueue.where("status").equals("pending").count()) ?? 0;
   const [copiedKey, setCopiedKey] = useState(false);
   const [isPinSettingsOpen, setIsPinSettingsOpen] = useState(false);
   const [isResetModalOpen, setIsResetModalOpen] = useState(false);
+  const [isResyncing, setIsResyncing] = useState(false);
+  const [resyncSuccess, setResyncSuccess] = useState(false);
+
+  const handleForceResync = async () => {
+    if (isResyncing) return;
+    setIsResyncing(true);
+    setResyncSuccess(false);
+    playSound("tab", soundEnabled);
+    triggerHaptic(15);
+    try {
+      if (user?.uid) {
+        await hydrateFromFirestore(user.uid);
+        await drainSyncQueue(user.uid);
+      } else {
+        await drainSyncQueue();
+      }
+      setResyncSuccess(true);
+      playSound("success", soundEnabled);
+      triggerHaptic(20);
+      setTimeout(() => setResyncSuccess(false), 3000);
+    } catch (err) {
+      console.error("[ToolsView Resync Error]", err);
+      playSound("alert", soundEnabled);
+    } finally {
+      setIsResyncing(false);
+    }
+  };
 
   const apiKey = settings?.companionApiKey || "fos_sec_79a83f120e89b41a9c472d001";
   const isPinSet = Boolean(settings?.security?.isPinSet);
@@ -252,6 +285,73 @@ export const ToolsView: React.FC = () => {
             <User className="h-3.5 w-3.5" />
             <span>Manage Profile &amp; Security</span>
           </button>
+        </div>
+      </div>
+
+      {/* Cloud Synchronization & Multi-Device Sync */}
+      <div className="pt-4 border-t border-[var(--border-subtle)] space-y-3">
+        <div className="flex items-center gap-2">
+          <Cloud className="h-4 w-4 text-emerald-500" />
+          <h3 className="text-sm font-semibold text-[var(--text-primary)]">
+            Cloud Synchronization &amp; Multi-Device
+          </h3>
+        </div>
+
+        <div className="industrial-card rounded-xl border border-[var(--border-subtle)] bg-[var(--card-bg)] p-4 space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-semibold text-[var(--text-primary)]">
+                  Cloud Status
+                </span>
+                {syncStatus === "synced" ? (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/15 px-2 py-0.5 text-[10px] font-semibold text-emerald-500">
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                    Synced &amp; Real-time Active
+                  </span>
+                ) : syncStatus === "syncing" || isResyncing ? (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/15 px-2 py-0.5 text-[10px] font-semibold text-amber-500">
+                    <RefreshCw className="h-2.5 w-2.5 animate-spin" />
+                    Syncing...
+                  </span>
+                ) : syncStatus === "error" ? (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-rose-500/15 px-2 py-0.5 text-[10px] font-semibold text-rose-500">
+                    <span className="h-1.5 w-1.5 rounded-full bg-rose-500" />
+                    Sync Error
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/15 px-2 py-0.5 text-[10px] font-semibold text-amber-500">
+                    <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+                    Offline Mode
+                  </span>
+                )}
+              </div>
+              <p className="text-xs text-[var(--text-secondary)] max-w-lg">
+                Your transactions, accounts, debts, and savings synchronize automatically between devices. 
+                Tap Force Cloud Resync to pull the latest source of truth directly from Firestore.
+              </p>
+              {pendingCount > 0 && (
+                <p className="text-[11px] font-medium text-amber-500">
+                  {pendingCount} offline change{pendingCount > 1 ? "s" : ""} queued for upload.
+                </p>
+              )}
+              {syncError && syncStatus === "error" && (
+                <p className="text-[11px] font-mono text-rose-400">
+                  {syncError}
+                </p>
+              )}
+            </div>
+
+            <button
+              type="button"
+              onClick={handleForceResync}
+              disabled={isResyncing}
+              className="flex items-center justify-center gap-2 rounded-xl border border-[var(--border-subtle)] bg-[var(--card-surface)] hover:bg-[var(--bg-surface-2)] px-4 py-2 text-xs font-semibold text-[var(--text-primary)] transition-colors shrink-0 min-h-[40px] disabled:opacity-50"
+            >
+              <RefreshCw className={`h-3.5 w-3.5 text-emerald-500 ${isResyncing ? "animate-spin" : ""}`} />
+              <span>{isResyncing ? "Resyncing..." : resyncSuccess ? "Synced!" : "Force Cloud Resync"}</span>
+            </button>
+          </div>
         </div>
       </div>
 

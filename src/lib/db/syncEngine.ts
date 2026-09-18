@@ -9,7 +9,7 @@ import {
   UserSettings,
   Vault,
 } from "../types";
-import { db, getDatabaseForUser, getCurrentActiveUserId } from "./dexie";
+import { db, getDatabaseForUser, getCurrentActiveUserId, setActiveUserDatabase } from "./dexie";
 import {
   generateSeedTransactions,
   SEED_ACCOUNTS,
@@ -21,7 +21,7 @@ import {
   FACTORY_BASELINE_ACCOUNTS,
 } from "./seedData";
 import { createDefaultSecuritySettings } from "../security";
-import { firestore } from "../firebase/config";
+import { auth, firestore } from "../firebase/config";
 import {
   collection,
   doc,
@@ -30,6 +30,7 @@ import {
   deleteDoc,
   onSnapshot,
 } from "firebase/firestore";
+import { useUIStore } from "../../store/useUIStore";
 
 /**
  * Checks whether a user ID is eligible for cloud sync (excludes demo / anonymous guest)
@@ -39,6 +40,38 @@ export function isSyncEligible(userId?: string): boolean {
   if (userId === "default") return false;
   if (userId.startsWith("demo_")) return false;
   return true;
+}
+
+/**
+ * Resolves the true active user ID, checking passed param, Dexie active state, and Firebase Auth
+ */
+export function resolveActiveUserId(userId?: string): string {
+  if (userId && isSyncEligible(userId)) return userId;
+  const current = getCurrentActiveUserId();
+  if (isSyncEligible(current)) return current;
+  if (auth && auth.currentUser && isSyncEligible(auth.currentUser.uid)) {
+    setActiveUserDatabase(auth.currentUser.uid);
+    return auth.currentUser.uid;
+  }
+  return current;
+}
+
+/**
+ * Recursively strips undefined keys from payloads to prevent Firestore rejecting with:
+ * "Unsupported field value: undefined"
+ */
+export function sanitizeForFirestore<T extends Record<string, unknown>>(data: T): Record<string, unknown> {
+  const clean: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(data)) {
+    if (value !== undefined) {
+      if (value !== null && typeof value === "object" && !Array.isArray(value)) {
+        clean[key] = sanitizeForFirestore(value as Record<string, unknown>);
+      } else {
+        clean[key] = value;
+      }
+    }
+  }
+  return clean;
 }
 
 /**
@@ -52,44 +85,44 @@ export async function pushToCloud(
   payload: Record<string, unknown>,
   userId?: string
 ): Promise<void> {
-  const activeUserId = userId || getCurrentActiveUserId();
+  const activeUserId = resolveActiveUserId(userId);
   if (!isSyncEligible(activeUserId)) return;
-
-  const isOnline =
-    typeof window !== "undefined" && typeof navigator !== "undefined"
-      ? navigator.onLine
-      : false;
 
   const userDb = getDatabaseForUser(activeUserId);
 
-  if (isOnline && firestore) {
+  if (firestore) {
     try {
+      useUIStore.getState().setSyncStatus("syncing");
       const docRef = doc(firestore, `users/${activeUserId}/${collectionName}/${docId}`);
       if (action === "delete") {
         await deleteDoc(docRef);
       } else {
-        await setDoc(docRef, payload, { merge: true });
+        const cleanPayload = sanitizeForFirestore(payload);
+        await setDoc(docRef, cleanPayload, { merge: true });
       }
+      useUIStore.getState().setSyncStatus("synced");
       return;
     } catch (err) {
-      console.warn(`[SyncEngine] Cloud push failed for ${collectionName}/${docId}, queuing offline:`, err);
+      console.error(`[SyncEngine Upstream Failed] Cloud push failed for users/${activeUserId}/${collectionName}/${docId}:`, err);
+      useUIStore.getState().setSyncStatus("error", err instanceof Error ? err.message : String(err));
     }
   }
 
   // Offline or push failed -> persist in syncQueue table
   try {
+    const cleanPayload = sanitizeForFirestore(payload);
     const queueItem: SyncQueueItem = {
       id: `queue_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
       action: action === "delete" ? "delete" : "create",
       collection: collectionName,
-      payload: action === "delete" ? { id: docId } : payload,
+      payload: action === "delete" ? { id: docId } : cleanPayload,
       timestamp: Date.now(),
       status: "pending",
       retryCount: 0,
     };
     await userDb.syncQueue.add(queueItem);
-  } catch (err) {
-    console.warn("[SyncEngine] Failed to record offline syncQueue item:", err);
+  } catch (queueErr) {
+    console.error("[SyncEngine] Failed to record offline syncQueue item:", queueErr);
   }
 }
 
@@ -99,9 +132,10 @@ export async function pushToCloud(
 export async function drainSyncQueue(
   userId?: string
 ): Promise<{ processed: number; failed: number }> {
-  const activeUserId = userId || getCurrentActiveUserId();
+  const activeUserId = resolveActiveUserId(userId);
   if (!isSyncEligible(activeUserId)) return { processed: 0, failed: 0 };
-  if (typeof window === "undefined" || (typeof navigator !== "undefined" && !navigator.onLine)) {
+  if (typeof window !== "undefined" && typeof navigator !== "undefined" && !navigator.onLine) {
+    useUIStore.getState().setSyncStatus("offline");
     return { processed: 0, failed: 0 };
   }
   if (!firestore) return { processed: 0, failed: 0 };
@@ -112,8 +146,12 @@ export async function drainSyncQueue(
     .equals("pending")
     .toArray();
 
-  if (pendingItems.length === 0) return { processed: 0, failed: 0 };
+  if (pendingItems.length === 0) {
+    useUIStore.getState().setSyncStatus("synced");
+    return { processed: 0, failed: 0 };
+  }
 
+  useUIStore.getState().setSyncStatus("syncing");
   let processed = 0;
   let failed = 0;
 
@@ -124,18 +162,26 @@ export async function drainSyncQueue(
       if (item.action === "delete") {
         await deleteDoc(docRef);
       } else {
-        await setDoc(docRef, item.payload, { merge: true });
+        const cleanPayload = sanitizeForFirestore(item.payload as Record<string, unknown>);
+        await setDoc(docRef, cleanPayload, { merge: true });
       }
       await userDb.syncQueue.delete(item.id);
       processed++;
     } catch (err) {
       failed++;
+      console.error(`[SyncEngine Upstream Failed] drainSyncQueue failed for ${item.collection}/${item.id}:`, err);
       const nextRetry = (item.retryCount || 0) + 1;
       await userDb.syncQueue.update(item.id, {
         retryCount: nextRetry,
         status: nextRetry >= 5 ? "failed" : "pending",
       });
     }
+  }
+
+  if (failed > 0) {
+    useUIStore.getState().setSyncStatus("error", `${failed} item(s) failed to sync`);
+  } else {
+    useUIStore.getState().setSyncStatus("synced");
   }
 
   return { processed, failed };
@@ -146,7 +192,7 @@ export async function drainSyncQueue(
  * Strictly preserves currentBalance to prevent balance zeroing on multi-device sync
  */
 export async function saveAccount(account: Account, userId?: string): Promise<void> {
-  const activeUserId = userId || getCurrentActiveUserId();
+  const activeUserId = resolveActiveUserId(userId);
   const userDb = getDatabaseForUser(activeUserId);
   const accountWithBalance: Account = {
     ...account,
@@ -160,7 +206,7 @@ export async function saveAccount(account: Account, userId?: string): Promise<vo
 }
 
 export async function deleteAccount(accountId: string, userId?: string): Promise<void> {
-  const activeUserId = userId || getCurrentActiveUserId();
+  const activeUserId = resolveActiveUserId(userId);
   const userDb = getDatabaseForUser(activeUserId);
   await userDb.accounts.delete(accountId);
   await pushToCloud("accounts", accountId, "delete", { id: accountId }, activeUserId);
@@ -170,14 +216,14 @@ export async function deleteAccount(accountId: string, userId?: string): Promise
  * Unified Vault mutations (Dexie + Firestore + offline queue)
  */
 export async function saveVault(vault: Vault, userId?: string): Promise<void> {
-  const activeUserId = userId || getCurrentActiveUserId();
+  const activeUserId = resolveActiveUserId(userId);
   const userDb = getDatabaseForUser(activeUserId);
   await userDb.vaults.put(vault);
   await pushToCloud("vaults", vault.id, "create", vault as unknown as Record<string, unknown>, activeUserId);
 }
 
 export async function deleteVault(vaultId: string, userId?: string): Promise<void> {
-  const activeUserId = userId || getCurrentActiveUserId();
+  const activeUserId = resolveActiveUserId(userId);
   const userDb = getDatabaseForUser(activeUserId);
   await userDb.vaults.delete(vaultId);
   await pushToCloud("vaults", vaultId, "delete", { id: vaultId }, activeUserId);
@@ -187,14 +233,14 @@ export async function deleteVault(vaultId: string, userId?: string): Promise<voi
  * Unified Debt mutations (Dexie + Firestore + offline queue)
  */
 export async function saveDebt(debt: Debt, userId?: string): Promise<void> {
-  const activeUserId = userId || getCurrentActiveUserId();
+  const activeUserId = resolveActiveUserId(userId);
   const userDb = getDatabaseForUser(activeUserId);
   await userDb.debts.put(debt);
   await pushToCloud("debts", debt.id, "create", debt as unknown as Record<string, unknown>, activeUserId);
 }
 
 export async function deleteDebt(debtId: string, userId?: string): Promise<void> {
-  const activeUserId = userId || getCurrentActiveUserId();
+  const activeUserId = resolveActiveUserId(userId);
   const userDb = getDatabaseForUser(activeUserId);
   await userDb.debts.delete(debtId);
   await pushToCloud("debts", debtId, "delete", { id: debtId }, activeUserId);
@@ -204,14 +250,14 @@ export async function deleteDebt(debtId: string, userId?: string): Promise<void>
  * Unified Category mutations (Dexie + Firestore + offline queue)
  */
 export async function saveCategory(category: Category, userId?: string): Promise<void> {
-  const activeUserId = userId || getCurrentActiveUserId();
+  const activeUserId = resolveActiveUserId(userId);
   const userDb = getDatabaseForUser(activeUserId);
   await userDb.categories.put(category);
   await pushToCloud("categories", category.id, "create", category as unknown as Record<string, unknown>, activeUserId);
 }
 
 export async function deleteCategory(categoryId: string, userId?: string): Promise<void> {
-  const activeUserId = userId || getCurrentActiveUserId();
+  const activeUserId = resolveActiveUserId(userId);
   const userDb = getDatabaseForUser(activeUserId);
   await userDb.categories.delete(categoryId);
   await pushToCloud("categories", categoryId, "delete", { id: categoryId }, activeUserId);
@@ -221,7 +267,7 @@ export async function deleteCategory(categoryId: string, userId?: string): Promi
  * Unified User Settings mutations
  */
 export async function saveSettings(settings: UserSettings, userId?: string): Promise<void> {
-  const activeUserId = userId || getCurrentActiveUserId();
+  const activeUserId = resolveActiveUserId(userId);
   const userDb = getDatabaseForUser(activeUserId);
   await userDb.settings.put({ ...settings, id: "main" });
   await pushToCloud("settings", "main", "create", { ...settings, id: "main" } as unknown as Record<string, unknown>, activeUserId);
@@ -237,13 +283,14 @@ export async function initializeDatabaseIfEmpty(
 ): Promise<boolean> {
   if (typeof window === "undefined" && typeof globalThis.indexedDB === "undefined") return false;
 
-  const userDb = getDatabaseForUser(userId);
+  const activeUserId = resolveActiveUserId(userId);
+  const userDb = getDatabaseForUser(activeUserId);
   const accountsCount = await userDb.accounts.count();
   if (accountsCount > 0) {
     return false; // Already populated
   }
 
-  const shouldSeedFullDemo = isDemo || userId === "default" || userId.startsWith("demo_");
+  const shouldSeedFullDemo = isDemo || activeUserId === "default" || activeUserId.startsWith("demo_");
 
   await userDb.transaction("rw", [
     userDb.accounts,
@@ -282,8 +329,9 @@ export async function initializeDatabaseIfEmpty(
  * Pushes all current local Dexie data to Firestore
  */
 export async function syncAllLocalDataToFirestore(userId: string): Promise<void> {
-  if (!isSyncEligible(userId) || !firestore) return;
-  const userDb = getDatabaseForUser(userId);
+  const activeUserId = resolveActiveUserId(userId);
+  if (!isSyncEligible(activeUserId) || !firestore) return;
+  const userDb = getDatabaseForUser(activeUserId);
 
   try {
     const [localAccounts, localCategories, localVaults, localDebts, localTransactions, localSettings] =
@@ -297,25 +345,25 @@ export async function syncAllLocalDataToFirestore(userId: string): Promise<void>
       ]);
 
     for (const a of localAccounts) {
-      await pushToCloud("accounts", a.id, "create", a as unknown as Record<string, unknown>, userId);
+      await pushToCloud("accounts", a.id, "create", a as unknown as Record<string, unknown>, activeUserId);
     }
     for (const c of localCategories) {
-      await pushToCloud("categories", c.id, "create", c as unknown as Record<string, unknown>, userId);
+      await pushToCloud("categories", c.id, "create", c as unknown as Record<string, unknown>, activeUserId);
     }
     for (const v of localVaults) {
-      await pushToCloud("vaults", v.id, "create", v as unknown as Record<string, unknown>, userId);
+      await pushToCloud("vaults", v.id, "create", v as unknown as Record<string, unknown>, activeUserId);
     }
     for (const d of localDebts) {
-      await pushToCloud("debts", d.id, "create", d as unknown as Record<string, unknown>, userId);
+      await pushToCloud("debts", d.id, "create", d as unknown as Record<string, unknown>, activeUserId);
     }
     for (const t of localTransactions) {
-      await pushToCloud("transactions", t.id, "create", t as unknown as Record<string, unknown>, userId);
+      await pushToCloud("transactions", t.id, "create", t as unknown as Record<string, unknown>, activeUserId);
     }
     if (localSettings) {
-      await pushToCloud("settings", "main", "create", localSettings as unknown as Record<string, unknown>, userId);
+      await pushToCloud("settings", "main", "create", localSettings as unknown as Record<string, unknown>, activeUserId);
     }
   } catch (err) {
-    console.warn("[SyncEngine] Error syncing local data to Firestore:", err);
+    console.error("[SyncEngine] Error syncing local data to Firestore:", err);
   }
 }
 
@@ -326,7 +374,7 @@ export async function addTransactionWithLedgerSync(
   txData: Omit<Transaction, "id" | "createdAt" | "updatedAt"> & { id?: string },
   userId?: string
 ): Promise<{ transaction: Transaction; error?: string }> {
-  const activeUserId = userId || getCurrentActiveUserId();
+  const activeUserId = resolveActiveUserId(userId);
   const userDb = getDatabaseForUser(activeUserId);
 
   const id = txData.id || `tx_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
@@ -384,7 +432,7 @@ export async function deleteTransactionWithLedgerSync(
   txId: string,
   userId?: string
 ): Promise<boolean> {
-  const activeUserId = userId || getCurrentActiveUserId();
+  const activeUserId = resolveActiveUserId(userId);
   const userDb = getDatabaseForUser(activeUserId);
 
   const tx = await userDb.transactions.get(txId);
@@ -450,14 +498,16 @@ export async function deleteTransactionWithLedgerSync(
 /**
  * Hydrates local Dexie tables from Firestore cloud documents.
  * Strictly ONE-WAY (Firestore -> Local Dexie).
- * NEVER pushes empty local state back to Firestore on initial mount.
+ * If Firestore has remote documents, remote state takes absolute precedence.
  */
 export async function hydrateFromFirestore(userId: string): Promise<boolean> {
-  if (typeof window === "undefined" || !isSyncEligible(userId) || !firestore) {
+  const activeUserId = resolveActiveUserId(userId);
+  if (typeof window === "undefined" || !isSyncEligible(activeUserId) || !firestore) {
     return false;
   }
 
-  const userDb = getDatabaseForUser(userId);
+  const userDb = getDatabaseForUser(activeUserId);
+  useUIStore.getState().setSyncStatus("syncing");
 
   try {
     const [
@@ -468,12 +518,12 @@ export async function hydrateFromFirestore(userId: string): Promise<boolean> {
       categoriesSnap,
       settingsSnap,
     ] = await Promise.all([
-      getDocs(collection(firestore, `users/${userId}/accounts`)),
-      getDocs(collection(firestore, `users/${userId}/transactions`)),
-      getDocs(collection(firestore, `users/${userId}/vaults`)),
-      getDocs(collection(firestore, `users/${userId}/debts`)),
-      getDocs(collection(firestore, `users/${userId}/categories`)),
-      getDocs(collection(firestore, `users/${userId}/settings`)),
+      getDocs(collection(firestore, `users/${activeUserId}/accounts`)),
+      getDocs(collection(firestore, `users/${activeUserId}/transactions`)),
+      getDocs(collection(firestore, `users/${activeUserId}/vaults`)),
+      getDocs(collection(firestore, `users/${activeUserId}/debts`)),
+      getDocs(collection(firestore, `users/${activeUserId}/categories`)),
+      getDocs(collection(firestore, `users/${activeUserId}/settings`)),
     ]);
 
     const hasAnyRemoteData =
@@ -484,7 +534,6 @@ export async function hydrateFromFirestore(userId: string): Promise<boolean> {
       !categoriesSnap.empty;
 
     if (hasAnyRemoteData) {
-      // 1. Seed remote Firestore records into local Dexie tables using bulkPut
       let remoteAccounts = accountsSnap.docs.map((d) => {
         const data = d.data();
         return {
@@ -509,21 +558,66 @@ export async function hydrateFromFirestore(userId: string): Promise<boolean> {
         remoteDebts = recalculated.debts;
       }
 
+      // Reconcile accounts: remote Firestore is the absolute source-of-truth
       if (remoteAccounts.length > 0) {
+        const remoteIds = new Set(remoteAccounts.map((a) => a.id));
+        const localAccounts = await userDb.accounts.toArray();
+        for (const la of localAccounts) {
+          if (!remoteIds.has(la.id)) {
+            await userDb.accounts.delete(la.id);
+          }
+        }
         await userDb.accounts.bulkPut(remoteAccounts);
       }
+
+      // Reconcile transactions
       if (remoteTxs.length > 0) {
+        const remoteIds = new Set(remoteTxs.map((t) => t.id));
+        const localTxs = await userDb.transactions.toArray();
+        for (const lt of localTxs) {
+          if (!remoteIds.has(lt.id)) {
+            await userDb.transactions.delete(lt.id);
+          }
+        }
         await userDb.transactions.bulkPut(remoteTxs);
       }
+
+      // Reconcile vaults
       if (remoteVaults.length > 0) {
+        const remoteIds = new Set(remoteVaults.map((v) => v.id));
+        const localVaults = await userDb.vaults.toArray();
+        for (const lv of localVaults) {
+          if (!remoteIds.has(lv.id)) {
+            await userDb.vaults.delete(lv.id);
+          }
+        }
         await userDb.vaults.bulkPut(remoteVaults);
       }
+
+      // Reconcile debts
       if (remoteDebts.length > 0) {
+        const remoteIds = new Set(remoteDebts.map((d) => d.id));
+        const localDebts = await userDb.debts.toArray();
+        for (const ld of localDebts) {
+          if (!remoteIds.has(ld.id)) {
+            await userDb.debts.delete(ld.id);
+          }
+        }
         await userDb.debts.bulkPut(remoteDebts);
       }
+
+      // Reconcile categories
       if (remoteCategories.length > 0) {
+        const remoteIds = new Set(remoteCategories.map((c) => c.id));
+        const localCategories = await userDb.categories.toArray();
+        for (const lc of localCategories) {
+          if (!remoteIds.has(lc.id)) {
+            await userDb.categories.delete(lc.id);
+          }
+        }
         await userDb.categories.bulkPut(remoteCategories);
       }
+
       if (!settingsSnap.empty) {
         const mainSetting = settingsSnap.docs.find((d) => d.id === "main");
         if (mainSetting) {
@@ -531,20 +625,21 @@ export async function hydrateFromFirestore(userId: string): Promise<boolean> {
         }
       }
 
-      // CRITICAL: Hydration is strictly ONE-WAY (Firestore -> Local Dexie).
-      // DO NOT perform an automatic bidirectional merge that pushes empty or default local arrays to the cloud.
+      useUIStore.getState().setSyncStatus("synced");
       return true;
     } else {
       // Cloud is completely empty for this user (brand new registration)
       const localCount = await userDb.accounts.count();
       if (localCount === 0) {
-        await initializeDatabaseIfEmpty(userId, false);
+        await initializeDatabaseIfEmpty(activeUserId, false);
       }
-      await syncAllLocalDataToFirestore(userId);
+      await syncAllLocalDataToFirestore(activeUserId);
+      useUIStore.getState().setSyncStatus("synced");
       return true;
     }
   } catch (err) {
-    console.warn("[SyncEngine] Firestore hydration warning:", err);
+    console.error("[SyncEngine] Firestore hydration error:", err);
+    useUIStore.getState().setSyncStatus("error", err instanceof Error ? err.message : String(err));
     return false;
   }
 }
@@ -553,22 +648,25 @@ export async function hydrateFromFirestore(userId: string): Promise<boolean> {
  * Initializes two-way real-time Firestore sync and returns an unsubscribe cleanup function.
  */
 export function initFirestoreSync(userId: string): () => void {
-  if (typeof window === "undefined" || !isSyncEligible(userId) || !firestore) {
+  const activeUserId = resolveActiveUserId(userId);
+  if (typeof window === "undefined" || !isSyncEligible(activeUserId) || !firestore) {
     return () => {};
   }
 
   let isCleanedUp = false;
   const unsubs: (() => void)[] = [];
-  const userDb = getDatabaseForUser(userId);
+  const userDb = getDatabaseForUser(activeUserId);
+
+  useUIStore.getState().setSyncStatus("syncing");
 
   // 1. Initial hydration pull (strictly one-way Firestore -> Local Dexie)
-  hydrateFromFirestore(userId)
+  hydrateFromFirestore(activeUserId)
     .then(() => {
       if (isCleanedUp) return;
-      drainSyncQueue(userId).catch(console.error);
+      drainSyncQueue(activeUserId).catch(console.error);
     })
     .catch((err) => {
-      console.warn("[SyncEngine] Hydration error in initFirestoreSync:", err);
+      console.error("[SyncEngine] Hydration error in initFirestoreSync:", err);
     });
 
   // 2. Real-time onSnapshot listeners on user collections (non-destructive granular updates)
@@ -585,64 +683,68 @@ export function initFirestoreSync(userId: string): () => void {
   ];
 
   for (const { name, table } of subcollections) {
-    const colRef = collection(firestore, `users/${userId}/${name}`);
+    const colRef = collection(firestore, `users/${activeUserId}/${name}`);
     const unsub = onSnapshot(
       colRef,
       { includeMetadataChanges: false },
-      (snapshot) => {
+      async (snapshot) => {
         if (isCleanedUp) return;
-        snapshot.docChanges().forEach(async (change) => {
-          // If the change has pending local writes, this client initiated it; ignore to avoid echo loops
-          if (change.doc.metadata.hasPendingWrites) return;
-
-          const docData = { id: change.doc.id, ...change.doc.data() };
-          try {
-            if (change.type === "added" || change.type === "modified") {
-              if (name === "accounts") {
-                const acc = docData as Account;
-                if (typeof acc.currentBalance !== "number" || isNaN(acc.currentBalance)) {
-                  acc.currentBalance = acc.initialBalance ?? 0;
-                }
-              }
-              await table.put(docData);
-
-              // When remote transactions arrive, recompute ledger balances across accounts, vaults, and debts
-              if (name === "transactions") {
-                const allAccounts = await userDb.accounts.toArray();
-                const allTxs = await userDb.transactions.toArray();
-                if (allAccounts.length > 0 && allTxs.length > 0) {
-                  const allVaults = await userDb.vaults.toArray();
-                  const allDebts = await userDb.debts.toArray();
-                  const rec = recalculateLedgerBalances(allAccounts, allTxs, allVaults, allDebts);
-                  await userDb.accounts.bulkPut(rec.accounts);
-                  await userDb.vaults.bulkPut(rec.vaults);
-                  await userDb.debts.bulkPut(rec.debts);
-                }
-              }
-            } else if (change.type === "removed") {
+        try {
+          // Deletions: if removed remotely, delete locally
+          let hadRemovals = false;
+          for (const change of snapshot.docChanges()) {
+            if (change.type === "removed") {
               await table.delete(change.doc.id);
+              hadRemovals = true;
+            }
+          }
 
-              // When remote transactions are removed, recompute ledger balances
-              if (name === "transactions") {
-                const allAccounts = await userDb.accounts.toArray();
-                const allTxs = await userDb.transactions.toArray();
-                if (allAccounts.length > 0) {
-                  const allVaults = await userDb.vaults.toArray();
-                  const allDebts = await userDb.debts.toArray();
-                  const rec = recalculateLedgerBalances(allAccounts, allTxs, allVaults, allDebts);
-                  await userDb.accounts.bulkPut(rec.accounts);
-                  await userDb.vaults.bulkPut(rec.vaults);
-                  await userDb.debts.bulkPut(rec.debts);
-                }
+          const remoteItems = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
+          if (remoteItems.length > 0) {
+            if (name === "accounts") {
+              const formattedAccounts = remoteItems.map((a: any) => ({
+                ...a,
+                currentBalance:
+                  typeof a.currentBalance === "number" && !isNaN(a.currentBalance)
+                    ? a.currentBalance
+                    : (a.initialBalance ?? 0),
+              }));
+              await table.bulkPut(formattedAccounts);
+            } else if (name === "settings") {
+              const main = remoteItems.find((s: any) => s.id === "main") || remoteItems[0];
+              if (main) {
+                await table.put({ ...main, id: "main" });
+              }
+            } else {
+              await table.bulkPut(remoteItems);
+            }
+          }
+
+          // Recalculate ledger balances whenever transactions, accounts, vaults, or debts are updated or removed
+          if (remoteItems.length > 0 || hadRemovals) {
+            if (name === "transactions" || name === "accounts" || name === "vaults" || name === "debts") {
+              const allAccounts = await userDb.accounts.toArray();
+              const allTxs = await userDb.transactions.toArray();
+              const allVaults = await userDb.vaults.toArray();
+              const allDebts = await userDb.debts.toArray();
+              if (allAccounts.length > 0) {
+                const rec = recalculateLedgerBalances(allAccounts, allTxs, allVaults, allDebts);
+                await userDb.accounts.bulkPut(rec.accounts);
+                await userDb.vaults.bulkPut(rec.vaults);
+                await userDb.debts.bulkPut(rec.debts);
               }
             }
-          } catch (err) {
-            console.warn(`[SyncEngine] onSnapshot error applying ${name}/${change.doc.id}:`, err);
           }
-        });
+
+          useUIStore.getState().setSyncStatus("synced");
+        } catch (err) {
+          console.error(`[SyncEngine] onSnapshot error applying ${name}:`, err);
+          useUIStore.getState().setSyncStatus("error", String(err));
+        }
       },
       (err) => {
-        console.warn(`[SyncEngine] Listener error on ${name}:`, err);
+        console.error(`[SyncEngine] Listener error on ${name}:`, err);
+        useUIStore.getState().setSyncStatus("error", err.message);
       }
     );
     unsubs.push(unsub);
@@ -650,9 +752,14 @@ export function initFirestoreSync(userId: string): () => void {
 
   // 3. Auto-drain syncQueue when browser regains connectivity
   const handleOnline = () => {
-    drainSyncQueue(userId).catch(console.error);
+    useUIStore.getState().setSyncStatus("syncing");
+    drainSyncQueue(activeUserId).catch(console.error);
+  };
+  const handleOffline = () => {
+    useUIStore.getState().setSyncStatus("offline");
   };
   window.addEventListener("online", handleOnline);
+  window.addEventListener("offline", handleOffline);
 
   // 4. Return clean unsubscribe function
   return () => {
@@ -665,6 +772,7 @@ export function initFirestoreSync(userId: string): () => void {
       }
     }
     window.removeEventListener("online", handleOnline);
+    window.removeEventListener("offline", handleOffline);
   };
 }
 
@@ -672,7 +780,7 @@ export function initFirestoreSync(userId: string): () => void {
  * Check and execute due recurring rules
  */
 export async function processDueRecurringRules(userId?: string): Promise<number> {
-  const activeUserId = userId || getCurrentActiveUserId();
+  const activeUserId = resolveActiveUserId(userId);
   const userDb = getDatabaseForUser(activeUserId);
   const today = new Date().toISOString().split("T")[0];
   const dueRules = await userDb.recurring
@@ -698,7 +806,7 @@ export async function processDueRecurringRules(userId?: string): Promise<number>
       isRecurringInstance: true,
       recurringRuleId: rule.id,
       source: "companion_api",
-    });
+    }, activeUserId);
 
     // Compute next run date based on frequency and interval
     const nextDate = new Date(rule.nextRunDate);
@@ -737,9 +845,8 @@ export async function saveRecurringRule(
   rule: RecurringRule,
   userId?: string
 ): Promise<void> {
-  const activeUserId = userId || getCurrentActiveUserId();
+  const activeUserId = resolveActiveUserId(userId);
   const userDb = getDatabaseForUser(activeUserId);
   await userDb.recurring.put(rule);
   await db.recurring.put(rule);
 }
-

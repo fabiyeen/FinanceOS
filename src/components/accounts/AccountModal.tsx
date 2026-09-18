@@ -211,7 +211,7 @@ export const AccountModal: React.FC<AccountModalProps> = ({
             time: `${hours}:${minutes}`,
             note: `System ledger adjustment from ${formatCurrency(accountToEdit.currentBalance, currency, "id-ID")} to ${formatCurrency(targetBal, currency, "id-ID")}`,
             source: "web_client",
-          });
+          }, user?.uid);
         }
 
         const updated: Account = {
